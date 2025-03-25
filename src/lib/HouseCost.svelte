@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import Chart from "chart.js/auto";
 
     // Define types for the house cost breakdown
     type CostItem = {
@@ -14,6 +15,7 @@
     let house_price: number = 300000;
     let is_fisrt_house: boolean = true;
     let is_sold_by_builder: boolean = true;
+    let is_sold_by_agency: boolean = false;
 
     //20.5 is the number of mq to have a unit of "vani" for A/2 A/3 class
     //18.89 is a factor to obtain the estimate teriffe catastali which is divided by €/mq
@@ -28,7 +30,7 @@
     let imposta_ipotecaria: number = 200;
     let imposta_catastale: number = 200;
 
-    let agencyFee: number = 3;
+    let agencyFee: number = 0;
     let agencyAmount: number = (agencyFee * house_price) / 100;
     let notaryAmount: number = house_price * 0.00085 * 1.22;
 
@@ -37,9 +39,12 @@
     let tassa_archivio = 60;
     let visure_ipotecarie = 180;
 
+    //if the number is < 0 i assume is the integer one
+    $: house_price = house_price >= 0 ? house_price : house_price * -1;
+    $: agencyFee = agencyFee >= 0 ? agencyFee : agencyFee * -1;
+
     // Derived calculations (automatically update when dependencies change)
     //estimate to calculate the tassa_archivio cost, min 27.1 max 139.4
-
     $: tassa_archivio =
         house_price * 0.0001614 < 27.1
             ? 27.1
@@ -81,7 +86,9 @@
     $: vatAmount = (vat * house_price) / 100;
     $: notaryAmount = house_price * 0.0042 * 1.22;
 
-    $: agencyAmount = ((agencyFee * house_price) / 100) * 1.22;
+    $: agencyAmount = is_sold_by_agency
+        ? ((agencyFee * house_price) / 100) * 1.22
+        : 0;
 
     $: total_cost =
         house_price +
@@ -99,9 +106,11 @@
 
     // Chart Data
     let chartData: CostItem[] = [];
+    let doughnutChartInstance: Chart | null = null; // Store chart instance globally
 
     onMount(() => {
         updateChart();
+        barChart();
     });
 
     function updateChart(): void {
@@ -191,24 +200,100 @@
                 info: "Imposta di bollo, tassa fissa durante il rogito.",
             },
         ];
+        updateDoughnut(chartData);
     }
 
-    function updateTable() {
-        const tbody = document.getElementById("chartDataBody");
-        if (!tbody) return;
-        tbody.innerHTML = "";
+    function barChart() {
+        const ctx = document.getElementById("myChart") as HTMLCanvasElement;
 
-        chartData.forEach((item, index) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.value}</td>
-                <td>${item.estimate ? "Yes" : "No"}</td>
-            `;
-            tbody.appendChild(row);
+        if (!ctx) return; // Ensure ctx exists before using it
+        const ctx2D = ctx.getContext("2d"); // Get the 2D drawing context
+
+        if (!ctx2D) return; // Ensure context is available
+
+        const filteredData = chartData.filter(
+            (item) => item.value > 0 && item.name != "Property Price",
+        ); //filtering out 0 values
+
+        doughnutChartInstance = new Chart(ctx2D, {
+            type: "doughnut",
+            data: {
+                labels: filteredData.map((item) => item.name), // Names as labels
+                datasets: [
+                    {
+                        label: "Cost Values",
+                        data: filteredData.map((item) => item.value), // Values as data
+                        backgroundColor: filteredData.map(
+                            (item) =>
+                                item.category == "Tax"
+                                    ? "rgba(255, 99, 132, 0.6)"
+                                    : item.category == "Agency"
+                                      ? "rgba(54, 162, 235, 0.6)"
+                                      : "rgba(201, 200, 115, 0.6)", //notary category
+                        ),
+                        borderColor: filteredData.map(
+                            (item) =>
+                                item.category == "Tax"
+                                    ? "rgba(255, 99, 132)"
+                                    : item.category == "Agency"
+                                      ? "rgba(54, 162, 235)"
+                                      : "rgba(201, 200, 115)", //notary category
+                        ),
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                animation: {
+                    animateRotate: true, // Enable rotation animation
+                    animateScale: true, // Optional: Animates scaling of the pie chart
+                    duration: 1000, // Duration of animation (2 seconds)
+                    easing: "easeInOutCubic", // Smooth easing effect
+                },
+            },
         });
     }
+
+    function updateDoughnut(newData: CostItem[]) {
+        if (!doughnutChartInstance) return; // Ensure the chart exists
+
+        const filteredData = chartData.filter(
+            (item) => item.value > 0 && item.name != "Property Price",
+        ); //filtering out 0 values
+
+        doughnutChartInstance.data.labels = filteredData.map(
+            (item) => item.name,
+        ); // Update labels
+        doughnutChartInstance.data.datasets[0].data = filteredData.map(
+            (item) => item.value,
+        ); // Update values
+        doughnutChartInstance.data.datasets[0].backgroundColor =
+            filteredData.map(
+                (item) =>
+                    item.category == "Tax"
+                        ? "rgba(255, 99, 132,0.6)"
+                        : item.category == "Agency"
+                          ? "rgba(54, 162, 235, 0.6)"
+                          : "rgba(201, 200, 115, 0.6)", //notary category
+            ); // Update backgroud colors
+        doughnutChartInstance.data.datasets[0].borderColor = filteredData.map(
+            (item) =>
+                item.category == "Tax"
+                    ? "rgba(255, 99, 132)"
+                    : item.category == "Agency"
+                      ? "rgba(54, 162, 235)"
+                      : "rgba(201, 200, 115)", //notary category
+        ); // Update border colors
+
+        doughnutChartInstance.update(); // Smoothly update the chart
+    }
+
+    window.addEventListener("resize", () => {
+        if (doughnutChartInstance) {
+            doughnutChartInstance.resize(); // Force the chart to resize
+        }
+    });
 </script>
 
 <main class="w-1/2 mx-auto p-6 border rounded-lg shadow flex flex-col gap-4">
@@ -219,6 +304,8 @@
         <input
             id="price"
             type="number"
+            min="0"
+            step="10000"
             bind:value={house_price}
             on:input={updateChart}
             class="w-full p-2 border rounded"
@@ -252,14 +339,28 @@
         class="w-5 h-5 border-2 rounded cursor-pointer"
     />
 
-    <label for="agencyFee">Agency Fee (%)</label>
-    <input
-        id="agencyFee"
-        type="number"
-        bind:value={agencyFee}
-        on:input={updateChart}
-        class="w-full p-2 border rounded"
-    />
+    <label for="isSoldByAgency">Using agency?</label>
+    <div class="flex items-center space-x-2">
+        <input
+            type="checkbox"
+            id="isSoldByAgency"
+            bind:checked={is_sold_by_agency}
+            on:change={updateChart}
+            class="w-5 h-5 border-2 rounded cursor-pointer"
+        />
+        {#if is_sold_by_agency}
+            <input
+                id="agencyFee"
+                type="number"
+                min="0"
+                step="0.1"
+                bind:value={agencyFee}
+                on:input={updateChart}
+                class="w-24 h-8 p-2 border rounded"
+            />
+            <label for="agencyFee">%</label>
+        {/if}
+    </div>
 
     <h2 class="text-xl font-semibold text-center">
         Total Cost: €{Number(total_cost).toLocaleString().split(".")[0]}
@@ -291,12 +392,15 @@
             {/each}
         </tbody>
     </table>
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
 </main>
 
 <style>
     main {
         display: flex;
         flex-direction: column;
-        gap: 1rem; /* Adjust the gap size as needed */
+        gap: 1.5rem; /* Adjust the gap size as needed */
     }
 </style>
