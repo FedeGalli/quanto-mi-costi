@@ -1,6 +1,8 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import Chart from "chart.js/auto";
+    import { fade, scale, fly } from "svelte/transition";
+    import NumberFlow from "@number-flow/svelte";
 
     // Define types for the house cost breakdown
     type CostItem = {
@@ -38,6 +40,7 @@
     let tassa_ipotecaria = 90;
     let tassa_archivio = 60;
     let visure_ipotecarie = 180;
+    let showCosts = false;
 
     //if the number is < 0 i assume is the integer one
     $: house_price = house_price >= 0 ? house_price : house_price * -1;
@@ -108,12 +111,9 @@
     let chartData: CostItem[] = [];
     let doughnutChartInstance: Chart | null = null; // Store chart instance globally
 
-    onMount(() => {
-        updateChart();
-        barChart();
-    });
+    onMount(() => {});
 
-    function updateChart(): void {
+    function updateData() {
         chartData = [
             {
                 name: "Property Price",
@@ -200,59 +200,68 @@
                 info: "Imposta di bollo, tassa fissa durante il rogito.",
             },
         ];
+
+        //charts
         updateDoughnut(chartData);
     }
 
-    function barChart() {
-        const ctx = document.getElementById("myChart") as HTMLCanvasElement;
+    async function initializeDoughnut() {
+        if (showCosts) {
+            await tick(); // Wait for DOM update before selecting the canvas
 
-        if (!ctx) return; // Ensure ctx exists before using it
-        const ctx2D = ctx.getContext("2d"); // Get the 2D drawing context
+            const ctx = document.getElementById("myChart") as HTMLCanvasElement;
 
-        if (!ctx2D) return; // Ensure context is available
+            if (!ctx) return; // Ensure ctx exists before using it
+            const ctx2D = ctx.getContext("2d"); // Get the 2D drawing context
 
-        const filteredData = chartData.filter(
-            (item) => item.value > 0 && item.name != "Property Price",
-        ); //filtering out 0 values
+            if (!ctx2D) return; // Ensure context is available
 
-        doughnutChartInstance = new Chart(ctx2D, {
-            type: "doughnut",
-            data: {
-                labels: filteredData.map((item) => item.name), // Names as labels
-                datasets: [
-                    {
-                        label: "Cost Values",
-                        data: filteredData.map((item) => item.value), // Values as data
-                        backgroundColor: filteredData.map(
-                            (item) =>
-                                item.category == "Tax"
-                                    ? "rgba(255, 99, 132, 0.6)"
-                                    : item.category == "Agency"
-                                      ? "rgba(54, 162, 235, 0.6)"
-                                      : "rgba(201, 200, 115, 0.6)", //notary category
-                        ),
-                        borderColor: filteredData.map(
-                            (item) =>
-                                item.category == "Tax"
-                                    ? "rgba(255, 99, 132)"
-                                    : item.category == "Agency"
-                                      ? "rgba(54, 162, 235)"
-                                      : "rgba(201, 200, 115)", //notary category
-                        ),
-                        borderWidth: 1,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                animation: {
-                    animateRotate: true, // Enable rotation animation
-                    animateScale: true, // Optional: Animates scaling of the pie chart
-                    duration: 1000, // Duration of animation (2 seconds)
-                    easing: "easeInOutCubic", // Smooth easing effect
+            const filteredData = chartData.filter(
+                (item) => item.value > 0 && item.name != "Property Price",
+            ); //filtering out 0 values
+
+            doughnutChartInstance = new Chart(ctx2D, {
+                type: "doughnut",
+                data: {
+                    labels: filteredData.map((item) => item.name), // Names as labels
+                    datasets: [
+                        {
+                            label: "Cost Values",
+                            data: filteredData.map((item) => item.value), // Values as data
+                            backgroundColor: filteredData.map(
+                                (item) =>
+                                    item.category == "Tax"
+                                        ? "rgba(255, 99, 132, 0.6)"
+                                        : item.category == "Agency"
+                                          ? "rgba(54, 162, 235, 0.6)"
+                                          : "rgba(201, 200, 115, 0.6)", //notary category
+                            ),
+                            borderColor: filteredData.map(
+                                (item) =>
+                                    item.category == "Tax"
+                                        ? "rgba(255, 99, 132)"
+                                        : item.category == "Agency"
+                                          ? "rgba(54, 162, 235)"
+                                          : "rgba(201, 200, 115)", //notary category
+                            ),
+                            borderWidth: 1,
+                            //borderJoinStyle: "round",
+                            //borderRadius: 100,
+                        },
+                    ],
                 },
-            },
-        });
+
+                options: {
+                    responsive: true,
+                    animation: {
+                        animateRotate: true, // Enable rotation animation
+                        animateScale: true, // Optional: Animates scaling of the pie chart
+                        duration: 1000, // Duration of animation (1 seconds)
+                        easing: "easeInOutCubic", // Smooth easing effect
+                    },
+                },
+            });
+        }
     }
 
     function updateDoughnut(newData: CostItem[]) {
@@ -289,6 +298,13 @@
         doughnutChartInstance.update(); // Smoothly update the chart
     }
 
+    function calculateCosts() {
+        showCosts = true;
+        initializeDoughnut();
+        updateData();
+    }
+
+    //added to upscale chart in case of window-resizing
     window.addEventListener("resize", () => {
         if (doughnutChartInstance) {
             doughnutChartInstance.resize(); // Force the chart to resize
@@ -296,111 +312,171 @@
     });
 </script>
 
-<main class="w-1/2 mx-auto p-6 border rounded-lg shadow flex flex-col gap-4">
-    <h1 class="text-2xl font-bold text-center">🏡 House Cost Simulator</h1>
+<main class="w-full p-6 flex flex-row gap-8 items-start">
+    <!-- Inputs Section (Centered) -->
+    <section
+        class="w-1/3 mx-auto p-6 border rounded-lg shadow flex flex-col gap-6"
+        transition:scale={{ duration: 500 }}
+    >
+        <h1 class="text-2xl font-bold text-center">🏡 House Cost Simulator</h1>
 
-    <div class="flex flex-col gap-2">
-        <label for="price">House Price (€)</label>
-        <input
-            id="price"
-            type="number"
-            min="0"
-            step="10000"
-            bind:value={house_price}
-            on:input={updateChart}
-            class="w-full p-2 border rounded"
-        />
-        <input
-            type="range"
-            bind:value={house_price}
-            min="0"
-            max="800000"
-            step="1000"
-            on:input={updateChart}
-            class="w-full"
-        />
-    </div>
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+                <label for="price">House Price (€)</label>
+                <input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="10000"
+                    bind:value={house_price}
+                    on:input={updateData}
+                    class="w-full p-2 border rounded"
+                />
+                <input
+                    type="range"
+                    bind:value={house_price}
+                    min="0"
+                    max="800000"
+                    step="1000"
+                    on:input={updateData}
+                    class="w-full"
+                />
+            </div>
 
-    <label for="isFirstHouse">First house?</label>
-    <input
-        type="checkbox"
-        id="firstHouse"
-        bind:checked={is_fisrt_house}
-        on:change={updateChart}
-        class="w-5 h-5 border-2 rounded cursor-pointer"
-    />
-
-    <label for="isSoldByBuilder">Sold by builder within 5 years?</label>
-    <input
-        type="checkbox"
-        id="isSoldByBuilder"
-        bind:checked={is_sold_by_builder}
-        on:change={updateChart}
-        class="w-5 h-5 border-2 rounded cursor-pointer"
-    />
-
-    <label for="isSoldByAgency">Using agency?</label>
-    <div class="flex items-center space-x-2">
-        <input
-            type="checkbox"
-            id="isSoldByAgency"
-            bind:checked={is_sold_by_agency}
-            on:change={updateChart}
-            class="w-5 h-5 border-2 rounded cursor-pointer"
-        />
-        {#if is_sold_by_agency}
+            <label for="isFirstHouse">First house?</label>
             <input
-                id="agencyFee"
-                type="number"
-                min="0"
-                step="0.1"
-                bind:value={agencyFee}
-                on:input={updateChart}
-                class="w-24 h-8 p-2 border rounded"
+                type="checkbox"
+                id="firstHouse"
+                bind:checked={is_fisrt_house}
+                on:change={updateData}
+                class="w-5 h-5 border-2 rounded cursor-pointer"
             />
-            <label for="agencyFee">%</label>
+
+            <label for="isSoldByBuilder">Sold by builder within 5 years?</label>
+            <input
+                type="checkbox"
+                id="isSoldByBuilder"
+                bind:checked={is_sold_by_builder}
+                on:change={updateData}
+                class="w-5 h-5 border-2 rounded cursor-pointer"
+            />
+
+            <label for="isSoldByAgency">Using agency?</label>
+            <div class="flex items-center space-x-2">
+                <input
+                    type="checkbox"
+                    id="isSoldByAgency"
+                    bind:checked={is_sold_by_agency}
+                    on:change={updateData}
+                    class="w-5 h-5 border-2 rounded cursor-pointer"
+                />
+                {#if is_sold_by_agency}
+                    <input
+                        id="agencyFee"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        bind:value={agencyFee}
+                        on:input={updateData}
+                        class="w-24 h-8 p-2 border rounded"
+                    />
+                    <label for="agencyFee">%</label>
+                {/if}
+            </div>
+        </div>
+
+        {#if !showCosts}
+            <div class="flex items-center space-x-2">
+                <button on:click={calculateCosts} class="btn">
+                    {showCosts ? "Hide Costs" : "Quanto mi costi?"}
+                </button>
+            </div>
         {/if}
-    </div>
+    </section>
+    <!-- Costs & Chart Section -->
+    {#if showCosts}
+        <section
+            class="flex flex-grow flex-row gap-6"
+            transition:fade={{ duration: 500 }}
+        >
+            <!-- Cost Summary -->
+            <div class="flex flex-col gap-4 border p-6 rounded-lg shadow">
+                <div class="text-xl font-semibold text-center">
+                    <NumberFlow
+                        value={total_cost}
+                        format={{
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 0,
+                        }}
+                        locales={"it-IT"}
+                        suffix="/mo"
+                    />
+                </div>
 
-    <h2 class="text-xl font-semibold text-center">
-        Total Cost: €{Number(total_cost).toLocaleString().split(".")[0]}
-    </h2>
+                <h2>Chart Data</h2>
+                <table class="border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2">Name</th>
+                            <th class="border p-2">Category</th>
+                            <th class="border p-2">Value</th>
+                            <th class="border p-2">Estimate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each chartData as item, index}
+                            <tr>
+                                <td class="border p-2">{item.name}</td>
+                                <td class="border p-2">{item.category}</td>
+                                <td class="border p-2">
+                                    <input
+                                        type="number"
+                                        bind:value={chartData[index].value}
+                                    />
+                                </td>
+                                <td class="border p-2"
+                                    >{item.estimate ? "Yes" : "No"}</td
+                                >
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
 
-    <h2>Chart Data</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Value</th>
-                <th>Estimate</th>
-            </tr>
-        </thead>
-        <tbody>
-            {#each chartData as item, index}
-                <tr>
-                    <td>{item.name}</td>
-                    <td>{item.category}</td>
-                    <td>
-                        <input
-                            type="number"
-                            bind:value={chartData[index].value}
-                        />
-                    </td>
-                    <td>{item.estimate ? "Yes" : "No"}</td>
-                </tr>
-            {/each}
-        </tbody>
-    </table>
-    <div>
-        <canvas id="myChart"></canvas>
-    </div>
+            <!-- Chart -->
+            <div class="border p-6 rounded-lg shadow">
+                <canvas id="myChart"></canvas>
+            </div>
+        </section>
+    {/if}
 </main>
 
 <style>
     main {
         display: flex;
-        flex-direction: column;
-        gap: 1.5rem; /* Adjust the gap size as needed */
+        flex-direction: row;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .btn {
+        background-color: rgba(54, 158, 82, 0.8);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+        background-color: rgba(54, 158, 82, 1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
     }
 </style>
