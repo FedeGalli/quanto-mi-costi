@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import Chart from "chart.js/auto";
-    import { fade, scale, fly } from "svelte/transition";
-    import NumberFlow from "@number-flow/svelte";
+    import { fade, scale } from "svelte/transition";
+    import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
+    import Check from "../assets/check.svelte";
 
     // Define types for the house cost breakdown
     type CostItem = {
@@ -15,9 +16,12 @@
 
     // Reactive variables (Svelte reactivity)
     let house_price: number = 300000;
-    let is_fisrt_house: boolean = true;
-    let is_sold_by_builder: boolean = true;
+    let is_fisrt_house: boolean = false;
+    let is_fisrt_house_label: string = "First House?";
+    let is_sold_by_builder: boolean = false;
+    let is_sold_by_builder_label: string = "Sold by builder within 5 years?";
     let is_sold_by_agency: boolean = false;
+    let is_sold_by_agency_label: string = "Agency?";
 
     //20.5 is the number of mq to have a unit of "vani" for A/2 A/3 class
     //18.89 is a factor to obtain the estimate teriffe catastali which is divided by €/mq
@@ -33,7 +37,7 @@
     let imposta_catastale: number = 200;
 
     let agencyFee: number = 0;
-    let agencyAmount: number = (agencyFee * house_price) / 100;
+    let agencyAmount: number = agencyFee * house_price;
     let notaryAmount: number = house_price * 0.00085 * 1.22;
 
     let imposta_di_bollo = 230;
@@ -89,9 +93,7 @@
     $: vatAmount = (vat * house_price) / 100;
     $: notaryAmount = house_price * 0.0042 * 1.22;
 
-    $: agencyAmount = is_sold_by_agency
-        ? ((agencyFee * house_price) / 100) * 1.22
-        : 0;
+    $: agencyAmount = is_sold_by_agency ? agencyFee * house_price * 1.22 : 0;
 
     $: total_cost =
         house_price +
@@ -312,26 +314,29 @@
     });
 </script>
 
-<main class="w-full p-6 flex flex-row gap-8 items-start">
-    <!-- Inputs Section (Centered) -->
+<main class="w-full p-6 flex flex-col gap-8 items-center">
+    <!-- Inputs Section -->
     <section
-        class="w-1/3 mx-auto p-6 border rounded-lg shadow flex flex-col gap-6"
+        class="w-full max-w-3xl p-6 border rounded-lg shadow flex flex-col gap-6"
         transition:scale={{ duration: 500 }}
     >
-        <h1 class="text-2xl font-bold text-center">🏡 House Cost Simulator</h1>
+        <h1 class="text-2xl font-bold text-center">
+            🏡 Real House Cost Simulator
+        </h1>
 
         <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-                <label for="price">House Price (€)</label>
-                <input
-                    id="price"
-                    type="number"
-                    min="0"
-                    step="10000"
-                    bind:value={house_price}
-                    on:input={updateData}
-                    class="w-full p-2 border rounded"
-                />
+            <div class="flex flex-col gap-2 md:max-w-[360px]">
+                <label for="price"
+                    >House Price: <NumberFlow
+                        value={house_price}
+                        format={{
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 0,
+                        }}
+                        locales={"it-IT"}
+                    /></label
+                >
                 <input
                     type="range"
                     bind:value={house_price}
@@ -342,45 +347,48 @@
                     class="w-full"
                 />
             </div>
-
-            <label for="isFirstHouse">First house?</label>
-            <input
-                type="checkbox"
-                id="firstHouse"
-                bind:checked={is_fisrt_house}
-                on:change={updateData}
-                class="w-5 h-5 border-2 rounded cursor-pointer"
-            />
-
-            <label for="isSoldByBuilder">Sold by builder within 5 years?</label>
-            <input
-                type="checkbox"
-                id="isSoldByBuilder"
-                bind:checked={is_sold_by_builder}
-                on:change={updateData}
-                class="w-5 h-5 border-2 rounded cursor-pointer"
-            />
-
-            <label for="isSoldByAgency">Using agency?</label>
-            <div class="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    id="isSoldByAgency"
-                    bind:checked={is_sold_by_agency}
+            <div id="isFirstHouse">
+                <Check
+                    bind:label={is_fisrt_house_label}
+                    bind:bind={is_fisrt_house}
                     on:change={updateData}
-                    class="w-5 h-5 border-2 rounded cursor-pointer"
+                />
+            </div>
+            <div id="isSoldByBuilder">
+                <Check
+                    bind:label={is_sold_by_builder_label}
+                    bind:bind={is_sold_by_builder}
+                    on:change={updateData}
+                />
+            </div>
+            <div id="isSoldByAgency">
+                <Check
+                    bind:label={is_sold_by_agency_label}
+                    bind:bind={is_sold_by_agency}
+                    on:change={updateData}
                 />
                 {#if is_sold_by_agency}
-                    <input
-                        id="agencyFee"
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        bind:value={agencyFee}
-                        on:input={updateData}
-                        class="w-24 h-8 p-2 border rounded"
-                    />
-                    <label for="agencyFee">%</label>
+                    <div class="flex flex-col gap-2 md:max-w-[360px]">
+                        <label for="Fee"
+                            ><NumberFlow
+                                value={agencyFee}
+                                format={{
+                                    style: "percent",
+                                    minimumFractionDigits: 2,
+                                }}
+                                locales={"it-IT"}
+                            /></label
+                        >
+                        <input
+                            type="range"
+                            bind:value={agencyFee}
+                            min="0"
+                            max="0.1"
+                            step="0.001"
+                            on:input={updateData}
+                            class="w-full"
+                        />
+                    </div>
                 {/if}
             </div>
         </div>
@@ -393,59 +401,67 @@
             </div>
         {/if}
     </section>
+
     <!-- Costs & Chart Section -->
     {#if showCosts}
         <section
-            class="flex flex-grow flex-row gap-6"
-            transition:fade={{ duration: 500 }}
+            class="flex flex-col w-full max-w-3xl gap-6"
+            transition:fade={{ duration: 2000 }}
         >
             <!-- Cost Summary -->
-            <div class="flex flex-col gap-4 border p-6 rounded-lg shadow">
-                <div class="text-xl font-semibold text-center">
+            <div class="flex flex-col gap-3">
+                <div class="text-xl flex-row gap-3 font-semibold text-center">
+                    <NumberFlowGroup
+                        style="--number-flow-char-height: 0.85em"
+                        class="flex items-center gap-4 font-semibold"
+                    >
+                        <NumberFlow
+                            value={house_price}
+                            format={{
+                                style: "currency",
+                                currency: "EUR",
+                                maximumFractionDigits: 0,
+                            }}
+                            locales={"it-IT"}
+                        />
+                        <NumberFlow
+                            value={total_cost}
+                            format={{
+                                style: "currency",
+                                currency: "EUR",
+                                maximumFractionDigits: 0,
+                            }}
+                            class="text-3xl"
+                        />
+                        <NumberFlow
+                            value={total_cost / house_price - 1}
+                            format={{
+                                style: "percent",
+                                maximumFractionDigits: 2,
+                                signDisplay: "always",
+                            }}
+                            class="text-lg transition-colors duration-300 text-red-500"
+                        />
+                    </NumberFlowGroup>
+                </div>
+                {#each chartData as item, index}
+                    <h1>
+                        <b>{item.name}</b>
+                    </h1>
                     <NumberFlow
-                        value={total_cost}
+                        value={chartData[index].value}
                         format={{
                             style: "currency",
                             currency: "EUR",
                             maximumFractionDigits: 0,
                         }}
                         locales={"it-IT"}
-                        suffix="/mo"
                     />
-                </div>
-
-                <h2>Chart Data</h2>
-                <table class="border-collapse border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="border p-2">Name</th>
-                            <th class="border p-2">Category</th>
-                            <th class="border p-2">Value</th>
-                            <th class="border p-2">Estimate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each chartData as item, index}
-                            <tr>
-                                <td class="border p-2">{item.name}</td>
-                                <td class="border p-2">{item.category}</td>
-                                <td class="border p-2">
-                                    <input
-                                        type="number"
-                                        bind:value={chartData[index].value}
-                                    />
-                                </td>
-                                <td class="border p-2"
-                                    >{item.estimate ? "Yes" : "No"}</td
-                                >
-                            </tr>
-                        {/each}
-                    </tbody>
-                </table>
+                {/each}
             </div>
 
             <!-- Chart -->
-            <div class="border p-6 rounded-lg shadow">
+            <div class="border p-6 rounded-lg shadow w-full">
                 <canvas id="myChart"></canvas>
             </div>
         </section>
@@ -455,9 +471,9 @@
 <style>
     main {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         gap: 2rem;
-        align-items: flex-start;
+        align-items: center;
     }
 
     .btn {
@@ -473,10 +489,5 @@
 
     .btn:hover {
         background-color: rgba(54, 158, 82, 1);
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
     }
 </style>
