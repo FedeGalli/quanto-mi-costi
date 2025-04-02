@@ -405,25 +405,34 @@
     <!-- Costs & Chart Section -->
     {#if showCosts}
         <section
-            class="flex flex-col w-full max-w-3xl gap-6"
+            class="flex flex-col w-full max-w-3xl gap-2"
             transition:fade={{ duration: 2000 }}
         >
             <!-- Cost Summary -->
-            <div class="flex flex-col gap-3">
-                <div class="text-xl flex-row gap-3 font-semibold text-center">
+            <div class="flex flex-row gap-3 justify-center">
+                <div
+                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                >
+                    <h1>House price</h1>
+                    <NumberFlow
+                        value={house_price}
+                        format={{
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 0,
+                        }}
+                        locales={"it-IT"}
+                        class="text-3xl"
+                    />
+                </div>
+                <div
+                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                >
+                    <h1>Final price</h1>
                     <NumberFlowGroup
                         style="--number-flow-char-height: 0.85em"
                         class="flex items-center gap-4 font-semibold"
                     >
-                        <NumberFlow
-                            value={house_price}
-                            format={{
-                                style: "currency",
-                                currency: "EUR",
-                                maximumFractionDigits: 0,
-                            }}
-                            locales={"it-IT"}
-                        />
                         <NumberFlow
                             value={total_cost}
                             format={{
@@ -431,20 +440,25 @@
                                 currency: "EUR",
                                 maximumFractionDigits: 0,
                             }}
+                            locales={"it-IT"}
                             class="text-3xl"
                         />
                         <NumberFlow
-                            value={total_cost / house_price - 1}
+                            value={total_cost - house_price}
                             format={{
-                                style: "percent",
-                                maximumFractionDigits: 2,
-                                signDisplay: "always",
+                                style: "currency",
+                                currency: "EUR",
+
+                                maximumFractionDigits: 0,
                             }}
+                            prefix="+"
                             class="text-lg transition-colors duration-300 text-red-500"
                         />
                     </NumberFlowGroup>
                 </div>
-                {#each chartData as item, index}
+            </div>
+            {#each chartData as item, index}
+                <div class="flex flex-row gap-3">
                     <h1>
                         <b>{item.name}</b>
                     </h1>
@@ -457,8 +471,8 @@
                         }}
                         locales={"it-IT"}
                     />
-                {/each}
-            </div>
+                </div>
+            {/each}
 
             <!-- Chart -->
             <div class="border p-6 rounded-lg shadow w-full">
