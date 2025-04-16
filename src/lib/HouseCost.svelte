@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import Chart from "chart.js/auto";
-    import { fade, scale } from "svelte/transition";
+    import { fade, scale, slide } from "svelte/transition";
     import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
     import Check from "../assets/check.svelte";
 
@@ -14,482 +14,645 @@
         info: string;
     };
 
-    // Reactive variables (Svelte reactivity)
     let house_price: number = 300000;
     let is_fisrt_house: boolean = false;
-    let is_fisrt_house_label: string = "First House?";
+    let is_fisrt_house_label: string = "First house?";
     let is_sold_by_builder: boolean = false;
     let is_sold_by_builder_label: string = "Sold by builder within 5 years?";
     let is_sold_by_agency: boolean = false;
     let is_sold_by_agency_label: string = "Agency?";
+    let is_using_mortgage: boolean = false;
+    let is_using_mortgage_label: string = "Using mortgage?";
 
-    //20.5 is the number of mq to have a unit of "vani" for A/2 A/3 class
-    //18.89 is a factor to obtain the estimate teriffe catastali which is divided by €/mq
-    let rendita_catastale: number = house_price / 18.89 / 20.5;
-    let valore_catastale: number = 0;
-
-    let vat: number = 4;
-    let vatAmount: number = (vat * house_price) / 100;
-    let preliminare_pages: number = 4;
-    let registrazione_preliminare: number = 200 + (16 * preliminare_pages) / 4;
-    let imposta_di_registro: number = 200;
-    let imposta_ipotecaria: number = 200;
-    let imposta_catastale: number = 200;
-
+    //mortgage variable section
+    let taeg: number = 0;
+    let mortgageDuration: number = 0;
+    let mortgage_amount: number = 0;
+    let interestsVal: number = 0;
+    let mortgageInstallment: number = 0;
     let agencyFee: number = 0;
-    let agencyAmount: number = agencyFee * house_price;
-    let notaryAmount: number = house_price * 0.00085 * 1.22;
-
-    let imposta_di_bollo = 230;
-    let tassa_ipotecaria = 90;
-    let tassa_archivio = 60;
-    let visure_ipotecarie = 180;
     let showCosts = false;
 
-    //if the number is < 0 i assume is the integer one
-    $: house_price = house_price >= 0 ? house_price : house_price * -1;
-    $: agencyFee = agencyFee >= 0 ? agencyFee : agencyFee * -1;
+    let totalAmount: number = 0;
+    let barChartInstance: Chart | null = null; // Store chart instance globally
 
-    // Derived calculations (automatically update when dependencies change)
-    //estimate to calculate the tassa_archivio cost, min 27.1 max 139.4
-    $: tassa_archivio =
-        house_price * 0.0001614 < 27.1
-            ? 27.1
-            : house_price * 0.0001614 > 139.4
-              ? 139.4
-              : house_price * 0.0001614;
+    // Define category colors
+    const categoryColors: Record<string, string> = {
+        Tax: "rgba(255, 99, 132, 0.6)",
+        Agency: "rgba(54, 162, 235, 0.6)",
+        Notary: "rgba(201, 200, 115, 0.6)",
+        Interests: "rgba(152, 3, 252, 0.6)",
+        Bank: "rgba(66, 245, 126, 0.6)",
+    };
 
-    $: visure_ipotecarie = house_price * 0.000489 * 1.22; //estimate to calculate the visure_ipotecarie cost, can vary between notary
-
-    $: rendita_catastale = house_price / 18.89 / 20.5;
-    $: valore_catastale = is_sold_by_builder
-        ? 0
-        : is_fisrt_house
-          ? rendita_catastale * 1.05 * 110
-          : rendita_catastale * 1.05 * 120;
-
-    $: imposta_di_registro = is_fisrt_house
-        ? is_sold_by_builder
-            ? 200
-            : (2 * valore_catastale) / 100 > 1000
-              ? (2 * valore_catastale) / 100
-              : 1000
-        : is_sold_by_builder
-          ? 200
-          : (9 * valore_catastale) / 100 > 1000
-            ? (9 * valore_catastale) / 100
-            : 1000;
-
-    $: imposta_ipotecaria = is_fisrt_house ? 200 : 50;
-    $: imposta_catastale = is_fisrt_house ? 200 : 50;
-    $: vat = is_fisrt_house
-        ? is_sold_by_builder
-            ? 4
-            : 0
-        : is_sold_by_builder
-          ? 10
-          : 0;
-
-    $: vatAmount = (vat * house_price) / 100;
-    $: notaryAmount = house_price * 0.0042 * 1.22;
-
-    $: agencyAmount = is_sold_by_agency ? agencyFee * house_price * 1.22 : 0;
-
-    $: total_cost =
-        house_price +
-        agencyAmount +
-        vatAmount +
-        imposta_di_registro +
-        imposta_ipotecaria +
-        imposta_catastale +
-        notaryAmount +
-        tassa_archivio +
-        tassa_ipotecaria +
-        visure_ipotecarie +
-        imposta_di_bollo +
-        registrazione_preliminare;
-
-    // Chart Data
-    let chartData: CostItem[] = [];
-    let doughnutChartInstance: Chart | null = null; // Store chart instance globally
+    // Step 1: Group data by category and sum values
+    let groupedData: Record<string, number> = {};
 
     onMount(() => {});
 
-    function updateData() {
-        chartData = [
-            {
-                name: "Property Price",
-                category: "House price",
-                value: Math.round(house_price),
-                estimate: false,
-                info: "House buy price",
-            },
-            {
-                name: "Agency",
-                category: "Agency",
-                value: Math.round(agencyAmount),
-                estimate: false,
-                info: "Agency fee",
-            },
-            {
-                name: "VAT",
-                category: "Tax",
-                value: Math.round(vatAmount),
-                estimate: false,
-                info: "IVA dovuta al venditore, incide solamente se il venditore è passibile di IVA.",
-            },
-            {
-                name: "Imposta di registro",
-                category: "Tax",
-                value: Math.round(imposta_di_registro),
-                estimate: false,
-                info: "Imposta di registro, tassa che varia in base al tipo di venditore.",
-            },
-            {
-                name: "Imposta ipotecaria",
-                category: "Tax",
-                value: Math.round(imposta_ipotecaria),
-                estimate: false,
-                info: "Imposta ipotecaria, tassa fissa che varia in base al tipo di venditore.",
-            },
-            {
-                name: "Imposta catastale",
-                category: "Tax",
-                value: Math.round(imposta_catastale),
-                estimate: false,
-                info: "Imposta catastale, tassa fissa che varia in base al tipo di venditore.",
-            },
-            {
-                name: "Registrazione preliminare",
-                category: "Tax",
-                value: Math.round(registrazione_preliminare),
-                estimate: false,
-                info: "Registrazione preliminare, spesa da sostenere durante il preliminare",
-            },
-            {
-                name: "Notary",
-                category: "Notary",
-                value: Math.round(notaryAmount),
-                estimate: true,
-                info: "Compenso onorario notaio",
-            },
-            {
-                name: "Tassa di archivio",
-                category: "Notary",
-                value: Math.round(tassa_archivio),
-                estimate: true,
-                info: "Tassa di archivio, varia in relazione all'importo dell'immobile.",
-            },
-            {
-                name: "Tassa ipotecaria",
-                category: "Notary",
-                value: Math.round(tassa_ipotecaria),
-                estimate: false,
-                info: "Tassa ipotecaria, tassa fissa durante il rogito.",
-            },
-            {
-                name: "Visure ipotecarie",
-                category: "Notary",
-                value: Math.round(visure_ipotecarie),
-                estimate: true,
-                info: "Visure ipotecarie, spese variabile da sostenere per la consultazione delle visure ipotecarie da parte del notaio durante il rogito.",
-            },
-            {
-                name: "Imposta di bollo",
-                category: "Notary",
-                value: Math.round(imposta_di_bollo),
-                estimate: false,
-                info: "Imposta di bollo, tassa fissa durante il rogito.",
-            },
-        ];
+    function buildApiString(): string {
+        let apiStringUrl: string =
+            "http://localhost:8080/get_house_prices?house_price=" + house_price;
 
-        //charts
-        updateDoughnut(chartData);
+        if (is_sold_by_agency) apiStringUrl += "&agency_fee=" + agencyFee;
+        if (is_fisrt_house) apiStringUrl += "&is_first_house=" + is_fisrt_house;
+        if (is_sold_by_builder)
+            apiStringUrl += "&is_sold_by_builder=" + is_sold_by_builder;
+        if (is_using_mortgage)
+            apiStringUrl +=
+                "&mortgage_amount=" +
+                mortgage_amount +
+                "&mortgage_duration=" +
+                mortgageDuration +
+                "&mortgage_TAEG=" +
+                taeg;
+
+        return apiStringUrl;
     }
 
-    async function initializeDoughnut() {
+    async function updateData() {
+        let chartData = [];
+
+        const apiStringUrl: string = buildApiString();
+
+        try {
+            const response = await fetch(apiStringUrl);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            chartData = await response.json();
+            chartData = chartData["data"];
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
+
+        chartData.forEach((item: any) => {
+            if (item.name == "Mortgage Interests") interestsVal = item.value;
+        });
+
+        mortgageInstallment =
+            is_using_mortgage && mortgageDuration != 0
+                ? interestsVal / mortgageDuration / 12 +
+                  mortgage_amount / mortgageDuration / 12
+                : 0;
+
+        groupedData = {};
+        totalAmount = 0;
+
+        chartData.forEach((item: any) => {
+            if (item.value > 0 && item.category != "House price") {
+                groupedData[item.category] =
+                    (groupedData[item.category] || 0) + Math.round(item.value);
+            }
+            totalAmount += item.value;
+        });
+        //charts
+        updateBarChart(chartData);
+    }
+
+    async function initializeBarChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
 
-            const ctx = document.getElementById("myChart") as HTMLCanvasElement;
-
+            const ctx = document.getElementById(
+                "myChart",
+            ) as HTMLCanvasElement | null;
             if (!ctx) return; // Ensure ctx exists before using it
-            const ctx2D = ctx.getContext("2d"); // Get the 2D drawing context
 
+            const ctx2D = ctx.getContext("2d");
             if (!ctx2D) return; // Ensure context is available
 
-            const filteredData = chartData.filter(
-                (item) => item.value > 0 && item.name != "Property Price",
-            ); //filtering out 0 values
+            // Step 2: Convert grouped data into datasets
+            const categories = Object.keys(groupedData);
+            const values = Object.values(groupedData);
 
-            doughnutChartInstance = new Chart(ctx2D, {
-                type: "doughnut",
+            const datasets = categories.map((category, index) => ({
+                label: category,
+                data: [values[index]], // Single bar with stacked values
+                backgroundColor:
+                    categoryColors[category] || "rgba(100, 100, 100, 0.6)",
+                borderColor:
+                    categoryColors[category]?.replace("0.6", "1") ||
+                    "rgba(100, 100, 100, 1)",
+                borderWidth: 1,
+            }));
+
+            // Step 3: Destroy previous chart instance
+            if (barChartInstance) {
+                barChartInstance.destroy();
+            }
+
+            const max = Math.round(totalAmount - house_price);
+
+            // Step 4: Create the stacked bar chart
+            barChartInstance = new Chart(ctx2D, {
+                type: "bar",
                 data: {
-                    labels: filteredData.map((item) => item.name), // Names as labels
-                    datasets: [
-                        {
-                            label: "Cost Values",
-                            data: filteredData.map((item) => item.value), // Values as data
-                            backgroundColor: filteredData.map(
-                                (item) =>
-                                    item.category == "Tax"
-                                        ? "rgba(255, 99, 132, 0.6)"
-                                        : item.category == "Agency"
-                                          ? "rgba(54, 162, 235, 0.6)"
-                                          : "rgba(201, 200, 115, 0.6)", //notary category
-                            ),
-                            borderColor: filteredData.map(
-                                (item) =>
-                                    item.category == "Tax"
-                                        ? "rgba(255, 99, 132)"
-                                        : item.category == "Agency"
-                                          ? "rgba(54, 162, 235)"
-                                          : "rgba(201, 200, 115)", //notary category
-                            ),
-                            borderWidth: 1,
-                            //borderJoinStyle: "round",
-                            //borderRadius: 100,
-                        },
-                    ],
+                    labels: ["Total Costs"],
+                    datasets: datasets,
                 },
-
                 options: {
-                    responsive: true,
                     animation: {
-                        animateRotate: true, // Enable rotation animation
-                        animateScale: true, // Optional: Animates scaling of the pie chart
-                        duration: 1000, // Duration of animation (1 seconds)
-                        easing: "easeInOutCubic", // Smooth easing effect
+                        duration: 1500,
+                        easing: "easeOutBounce",
+                    },
+                    indexAxis: "x",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false },
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { display: false },
+                            afterBuildTicks: function (axis) {
+                                const ticks = [0];
+                                axis.ticks = ticks.map((v) => ({ value: v }));
+                            },
+                        },
                     },
                 },
             });
         }
     }
 
-    function updateDoughnut(newData: CostItem[]) {
-        if (!doughnutChartInstance) return; // Ensure the chart exists
+    function updateBarChart(newData: CostItem[]) {
+        if (!barChartInstance) return; // Ensure the chart exists
 
-        const filteredData = chartData.filter(
-            (item) => item.value > 0 && item.name != "Property Price",
-        ); //filtering out 0 values
+        // Step 2: Convert grouped data into datasets
+        const categories = Object.keys(groupedData);
+        const values = Object.values(groupedData);
 
-        doughnutChartInstance.data.labels = filteredData.map(
-            (item) => item.name,
-        ); // Update labels
-        doughnutChartInstance.data.datasets[0].data = filteredData.map(
-            (item) => item.value,
-        ); // Update values
-        doughnutChartInstance.data.datasets[0].backgroundColor =
-            filteredData.map(
-                (item) =>
-                    item.category == "Tax"
-                        ? "rgba(255, 99, 132,0.6)"
-                        : item.category == "Agency"
-                          ? "rgba(54, 162, 235, 0.6)"
-                          : "rgba(201, 200, 115, 0.6)", //notary category
-            ); // Update backgroud colors
-        doughnutChartInstance.data.datasets[0].borderColor = filteredData.map(
-            (item) =>
-                item.category == "Tax"
-                    ? "rgba(255, 99, 132)"
-                    : item.category == "Agency"
-                      ? "rgba(54, 162, 235)"
-                      : "rgba(201, 200, 115)", //notary category
-        ); // Update border colors
+        const datasets = categories.map((category, index) => ({
+            label: category,
+            data: [values[index]], // Single bar with stacked values
+            backgroundColor:
+                categoryColors[category] || "rgba(100, 100, 100, 0.6)",
+            borderColor:
+                categoryColors[category]?.replace("0.6", "1") ||
+                "rgba(100, 100, 100, 1)",
+            borderWidth: 1,
+        }));
+        barChartInstance.data.datasets = datasets; // Update dataset (values and colors)
 
-        doughnutChartInstance.update(); // Smoothly update the chart
+        let tickList: number[] = [];
+        tickList[0] = values[0];
+
+        values.forEach((item, i) => {
+            if (i != 0) tickList[i] = item + tickList[i - 1];
+        });
+
+        //adjusting the max bar size to the maximum
+        const max = Math.round(totalAmount - house_price);
+
+        barChartInstance!.options!.scales!.y!.max = max;
+        barChartInstance!.options!.scales!.y!.afterBuildTicks = function (
+            axis,
+        ) {
+            const ticks = tickList;
+            axis.ticks = ticks.map((v) => ({ value: v }));
+        };
+        barChartInstance.update(); // Smoothly update the chart
     }
 
     function calculateCosts() {
         showCosts = true;
-        initializeDoughnut();
+        initializeBarChart();
         updateData();
     }
 
     //added to upscale chart in case of window-resizing
     window.addEventListener("resize", () => {
-        if (doughnutChartInstance) {
-            doughnutChartInstance.resize(); // Force the chart to resize
+        if (barChartInstance) {
+            barChartInstance.resize(); // Force the chart to resize
         }
     });
 </script>
 
-<main class="w-full p-6 flex flex-col gap-8 items-center">
-    <!-- Inputs Section -->
-    <section
-        class="w-full max-w-3xl p-6 border rounded-lg shadow flex flex-col gap-6"
-        transition:scale={{ duration: 500 }}
-    >
-        <h1 class="text-2xl font-bold text-center">
-            🏡 Real House Cost Simulator
-        </h1>
-
-        <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2 md:max-w-[360px]">
-                <label for="price"
-                    >House Price: <NumberFlow
-                        value={house_price}
-                        format={{
-                            style: "currency",
-                            currency: "EUR",
-                            maximumFractionDigits: 0,
-                        }}
-                        locales={"it-IT"}
-                    /></label
-                >
-                <input
-                    type="range"
-                    bind:value={house_price}
-                    min="0"
-                    max="800000"
-                    step="1000"
-                    on:input={updateData}
-                    class="w-full"
-                />
-            </div>
-            <div id="isFirstHouse">
-                <Check
-                    bind:label={is_fisrt_house_label}
-                    bind:bind={is_fisrt_house}
-                    on:change={updateData}
-                />
-            </div>
-            <div id="isSoldByBuilder">
-                <Check
-                    bind:label={is_sold_by_builder_label}
-                    bind:bind={is_sold_by_builder}
-                    on:change={updateData}
-                />
-            </div>
-            <div id="isSoldByAgency">
-                <Check
-                    bind:label={is_sold_by_agency_label}
-                    bind:bind={is_sold_by_agency}
-                    on:change={updateData}
-                />
-                {#if is_sold_by_agency}
+<div class="h-screen overflow-hidden">
+    <div class="flex h-full">
+        <div class="w-86 bg-gray-700 text-white p-4 flex flex-col">
+            <h1 class="text-xl font-bold mb-6">🏡 Real House Cost Simulator</h1>
+            <!-- Inputs Section -->
+            <section
+                class="w-full max-w-3xl p-6 flex flex-col gap-6"
+                transition:fade={{ duration: 1000 }}
+            >
+                <div class="flex flex-col gap-4 mb-4">
                     <div class="flex flex-col gap-2 md:max-w-[360px]">
-                        <label for="Fee"
-                            ><NumberFlow
-                                value={agencyFee}
+                        <label for="price"
+                            ><b>House Price:</b>
+                            <NumberFlow
+                                value={house_price}
                                 format={{
-                                    style: "percent",
-                                    minimumFractionDigits: 2,
+                                    style: "currency",
+                                    currency: "EUR",
+                                    maximumFractionDigits: 0,
                                 }}
                                 locales={"it-IT"}
                             /></label
                         >
                         <input
-                            type="range"
-                            bind:value={agencyFee}
+                            type="number"
+                            bind:value={house_price}
                             min="0"
-                            max="0.1"
-                            step="0.001"
-                            on:input={updateData}
+                            max="1000000"
+                            step="1000"
+                            on:change={showCosts ? updateData : () => {}}
+                            on:mouseup={showCosts ? updateData : () => {}}
+                            class="border p-2 rounded w-full"
+                        />
+                        <input
+                            type="range"
+                            bind:value={house_price}
+                            min="0"
+                            max="1000000"
+                            step="1000"
+                            on:mouseup={showCosts ? updateData : () => {}}
                             class="w-full"
                         />
                     </div>
+                    <div id="isFirstHouse">
+                        <Check
+                            bind:label={is_fisrt_house_label}
+                            bind:bind={is_fisrt_house}
+                            on:change={showCosts ? updateData : () => {}}
+                        />
+                    </div>
+                    <div id="isSoldByBuilder">
+                        <Check
+                            bind:label={is_sold_by_builder_label}
+                            bind:bind={is_sold_by_builder}
+                            on:change={showCosts ? updateData : () => {}}
+                        />
+                    </div>
+                    <div id="isSoldByAgency">
+                        <Check
+                            bind:label={is_sold_by_agency_label}
+                            bind:bind={is_sold_by_agency}
+                            on:change={showCosts ? updateData : () => {}}
+                        />
+                        {#if is_sold_by_agency}
+                            <div
+                                class="flex flex-col gap-2 md:max-w-[360px]"
+                                transition:slide={{ duration: 300 }}
+                            >
+                                <label for="Fee"
+                                    >Fee: <NumberFlow
+                                        value={agencyFee}
+                                        format={{
+                                            style: "percent",
+                                            minimumFractionDigits: 2,
+                                        }}
+                                        locales={"it-IT"}
+                                    /></label
+                                >
+                                <input
+                                    type="range"
+                                    bind:value={agencyFee}
+                                    min="0"
+                                    max="0.07"
+                                    step="0.0005"
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    class="w-full"
+                                />
+                            </div>
+                        {/if}
+                    </div>
+                    <div id="isUsingMortgage">
+                        <Check
+                            bind:label={is_using_mortgage_label}
+                            bind:bind={is_using_mortgage}
+                            on:change={showCosts ? updateData : () => {}}
+                        />
+                        {#if is_using_mortgage}
+                            <div
+                                class="flex flex-col gap-2 md:max-w-[360px]"
+                                transition:slide={{ duration: 300 }}
+                            >
+                                <label for="mortgage_amount"
+                                    >Mortgage Amount: <NumberFlow
+                                        value={mortgage_amount}
+                                        format={{
+                                            style: "currency",
+                                            currency: "EUR",
+                                            maximumFractionDigits: 0,
+                                        }}
+                                        locales={"it-IT"}
+                                    /></label
+                                >
+                                <input
+                                    type="range"
+                                    bind:value={mortgage_amount}
+                                    min="0"
+                                    max={house_price}
+                                    step="5000"
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    class="w-full"
+                                />
+                                <label for="duration"
+                                    >Duration(Years): <NumberFlow
+                                        value={mortgageDuration}
+                                        format={{
+                                            minimumFractionDigits: 0,
+                                        }}
+                                        locales={"it-IT"}
+                                    /></label
+                                >
+                                <input
+                                    type="range"
+                                    bind:value={mortgageDuration}
+                                    min="5"
+                                    max="40"
+                                    step="5"
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    class="w-full"
+                                />
+                                <label for="TAEG"
+                                    >TAEG: <NumberFlow
+                                        value={taeg}
+                                        format={{
+                                            style: "percent",
+                                            minimumFractionDigits: 2,
+                                        }}
+                                        locales={"it-IT"}
+                                    /></label
+                                >
+                                <input
+                                    type="range"
+                                    bind:value={taeg}
+                                    min="0"
+                                    max="0.08"
+                                    step="0.0005"
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    class="w-full"
+                                />
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+                {#if !showCosts}
+                    <div
+                        transition:slide={{ duration: 300 }}
+                        class="overflow-hidden"
+                    >
+                        <div
+                            class="flex items-center space-x-2 transition-all duration-300"
+                        >
+                            <button on:click={calculateCosts} class="btn">
+                                {showCosts ? "Hide Costs" : "Quanto mi costi?"}
+                            </button>
+                        </div>
+                    </div>
                 {/if}
+            </section>
+            <div class="mt-auto pt-4 border-t border-gray-500">
+                <p class="text-sm text-gray-400">Footer content</p>
             </div>
         </div>
 
-        {#if !showCosts}
-            <div class="flex items-center space-x-2">
-                <button on:click={calculateCosts} class="btn">
-                    {showCosts ? "Hide Costs" : "Quanto mi costi?"}
-                </button>
-            </div>
-        {/if}
-    </section>
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <main class="flex-1 overflow-y-auto p-4">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Costs & Chart Section -->
+                    {#if showCosts}
+                        <section
+                            class="flex flex-col w-full gap-2"
+                            transition:fade={{ duration: 2000 }}
+                        >
+                            <!-- Cost Summary -->
+                            <div class="flex flex-row gap-3 justify-center">
+                                <div
+                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                >
+                                    <h1>Final total price</h1>
+                                    <NumberFlowGroup
+                                        style="--number-flow-char-height: 0.85em"
+                                        class="flex items-center gap-4 font-semibold"
+                                    >
+                                        <NumberFlow
+                                            value={totalAmount}
+                                            format={{
+                                                style: "currency",
+                                                currency: "EUR",
+                                                maximumFractionDigits: 0,
+                                            }}
+                                            locales={"it-IT"}
+                                            class="text-3xl"
+                                        />
+                                        <NumberFlow
+                                            value={totalAmount - house_price}
+                                            format={{
+                                                style: "currency",
+                                                currency: "EUR",
+                                                signDisplay: "always",
+                                                maximumFractionDigits: 0,
+                                            }}
+                                            class="text-lg transition-colors duration-300 text-red-500"
+                                        />
+                                    </NumberFlowGroup>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-3 justify-center">
+                                <!-- Chart -->
+                                <div
+                                    class="border p-6 rounded-lg shadow w-full"
+                                >
+                                    <canvas id="myChart" height="400"></canvas>
+                                </div>
+                                <div
+                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                >
+                                    <h1>Taxes</h1>
+                                    <NumberFlowGroup
+                                        style="--number-flow-char-height: 0.85em"
+                                        class="flex items-center gap-4 font-semibold"
+                                    >
+                                        <NumberFlow
+                                            value={groupedData["Tax"]}
+                                            format={{
+                                                style: "currency",
+                                                currency: "EUR",
+                                                maximumFractionDigits: 0,
+                                            }}
+                                            locales={"it-IT"}
+                                            class="text-3xl"
+                                        />
+                                        <NumberFlow
+                                            value={house_price == 0
+                                                ? 0
+                                                : groupedData["Tax"] /
+                                                  house_price}
+                                            format={{
+                                                style: "percent",
+                                                maximumFractionDigits: 2,
+                                                minimumFractionDigits: 2,
+                                                signDisplay: "always",
+                                            }}
+                                            class="text-lg transition-colors duration-300 text-red-500"
+                                        />
+                                    </NumberFlowGroup>
+                                </div>
+                                <div
+                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                >
+                                    <h1>Notary</h1>
+                                    <NumberFlowGroup
+                                        style="--number-flow-char-height: 0.85em"
+                                        class="flex items-center gap-4 font-semibold"
+                                    >
+                                        <NumberFlow
+                                            value={groupedData["Notary"]}
+                                            format={{
+                                                style: "currency",
+                                                currency: "EUR",
+                                                maximumFractionDigits: 0,
+                                            }}
+                                            locales={"it-IT"}
+                                            class="text-3xl"
+                                        />
+                                        <NumberFlow
+                                            value={house_price == 0
+                                                ? 0
+                                                : groupedData["Notary"] /
+                                                  house_price}
+                                            format={{
+                                                style: "percent",
+                                                maximumFractionDigits: 2,
+                                                minimumFractionDigits: 2,
+                                                signDisplay: "always",
+                                            }}
+                                            class="text-lg transition-colors duration-300 text-red-500"
+                                        />
+                                    </NumberFlowGroup>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-3 justify-center">
+                                {#if is_sold_by_agency}
+                                    <div
+                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                        transition:fade={{ duration: 300 }}
+                                    >
+                                        <h1>Agency</h1>
+                                        <NumberFlowGroup
+                                            style="--number-flow-char-height: 0.85em"
+                                            class="flex items-center gap-4 font-semibold"
+                                        >
+                                            <NumberFlow
+                                                value={groupedData["Agency"]
+                                                    ? groupedData["Agency"]
+                                                    : 0}
+                                                format={{
+                                                    style: "currency",
+                                                    currency: "EUR",
+                                                    maximumFractionDigits: 0,
+                                                }}
+                                                locales={"it-IT"}
+                                                class="text-3xl"
+                                            />
+                                            <NumberFlow
+                                                value={house_price <= 0 ||
+                                                !groupedData["Agency"]
+                                                    ? 0
+                                                    : groupedData["Agency"] /
+                                                      house_price}
+                                                format={{
+                                                    style: "percent",
+                                                    maximumFractionDigits: 2,
+                                                    minimumFractionDigits: 2,
+                                                    signDisplay: "always",
+                                                }}
+                                                class="text-lg transition-colors duration-300 text-red-500"
+                                            />
+                                        </NumberFlowGroup>
+                                    </div>
+                                {/if}
+                            </div>
 
-    <!-- Costs & Chart Section -->
-    {#if showCosts}
-        <section
-            class="flex flex-col w-full max-w-3xl gap-2"
-            transition:fade={{ duration: 2000 }}
-        >
-            <!-- Cost Summary -->
-            <div class="flex flex-row gap-3 justify-center">
-                <div
-                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                >
-                    <h1>House price</h1>
-                    <NumberFlow
-                        value={house_price}
-                        format={{
-                            style: "currency",
-                            currency: "EUR",
-                            maximumFractionDigits: 0,
-                        }}
-                        locales={"it-IT"}
-                        class="text-3xl"
-                    />
+                            <div class="flex flex-row gap-3 justify-center">
+                                {#if is_using_mortgage}
+                                    <div
+                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                        transition:fade={{ duration: 300 }}
+                                    >
+                                        <h1>Interests</h1>
+                                        <NumberFlowGroup
+                                            style="--number-flow-char-height: 0.85em"
+                                            class="flex items-center gap-4 font-semibold"
+                                        >
+                                            <NumberFlow
+                                                value={groupedData["Interests"]
+                                                    ? groupedData["Interests"]
+                                                    : 0}
+                                                format={{
+                                                    style: "currency",
+                                                    currency: "EUR",
+                                                    maximumFractionDigits: 0,
+                                                }}
+                                                locales={"it-IT"}
+                                                class="text-3xl"
+                                            />
+                                            <NumberFlow
+                                                value={house_price == 0 ||
+                                                !groupedData["Interests"]
+                                                    ? 0
+                                                    : groupedData["Interests"] /
+                                                      house_price}
+                                                format={{
+                                                    style: "percent",
+                                                    maximumFractionDigits: 2,
+                                                    minimumFractionDigits: 2,
+                                                    signDisplay: "always",
+                                                }}
+                                                class="text-lg transition-colors duration-300 text-red-500"
+                                            />
+                                        </NumberFlowGroup>
+                                    </div>
+                                    <div
+                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                                        transition:fade={{ duration: 300 }}
+                                    >
+                                        <h1>Mortgage installment</h1>
+                                        <NumberFlowGroup
+                                            style="--number-flow-char-height: 0.85em"
+                                            class="flex items-center gap-4 font-semibold"
+                                        >
+                                            <NumberFlow
+                                                value={mortgageInstallment}
+                                                format={{
+                                                    style: "currency",
+                                                    currency: "EUR",
+                                                    maximumFractionDigits: 0,
+                                                }}
+                                                locales={"it-IT"}
+                                                class="text-3xl"
+                                            />
+                                        </NumberFlowGroup>
+                                    </div>
+                                {/if}
+                            </div>
+                        </section>
+                    {/if}
                 </div>
-                <div
-                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                >
-                    <h1>Final price</h1>
-                    <NumberFlowGroup
-                        style="--number-flow-char-height: 0.85em"
-                        class="flex items-center gap-4 font-semibold"
-                    >
-                        <NumberFlow
-                            value={total_cost}
-                            format={{
-                                style: "currency",
-                                currency: "EUR",
-                                maximumFractionDigits: 0,
-                            }}
-                            locales={"it-IT"}
-                            class="text-3xl"
-                        />
-                        <NumberFlow
-                            value={total_cost - house_price}
-                            format={{
-                                style: "currency",
-                                currency: "EUR",
-
-                                maximumFractionDigits: 0,
-                            }}
-                            prefix="+"
-                            class="text-lg transition-colors duration-300 text-red-500"
-                        />
-                    </NumberFlowGroup>
-                </div>
-            </div>
-            {#each chartData as item, index}
-                <div class="flex flex-row gap-3">
-                    <h1>
-                        <b>{item.name}</b>
-                    </h1>
-                    <NumberFlow
-                        value={chartData[index].value}
-                        format={{
-                            style: "currency",
-                            currency: "EUR",
-                            maximumFractionDigits: 0,
-                        }}
-                        locales={"it-IT"}
-                    />
-                </div>
-            {/each}
-
-            <!-- Chart -->
-            <div class="border p-6 rounded-lg shadow w-full">
-                <canvas id="myChart"></canvas>
-            </div>
-        </section>
-    {/if}
-</main>
+            </main>
+        </div>
+    </div>
+</div>
 
 <style>
-    main {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-        align-items: center;
-    }
-
     .btn {
         background-color: rgba(54, 158, 82, 0.8);
         color: white;

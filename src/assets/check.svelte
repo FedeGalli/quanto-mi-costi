@@ -6,7 +6,7 @@
 <div class="checkbox-wrapper-42">
     <input id={label} type="checkbox" bind:checked={bind} on:change />
     <label class="cbx" for={label}></label>
-    <label class="lbl" for={label}>{label}</label>
+    <label class="lbl" for={label}><b>{label}</b></label>
 </div>
 
 <style>
