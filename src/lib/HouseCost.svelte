@@ -131,11 +131,15 @@
         totalAmount = 0;
 
         chartData.forEach((item: any) => {
-            if (item.value > 0 && item.category != "House price") {
+            if (
+                item.value > 0 &&
+                item.category != "House price" &&
+                item.category != "Interests"
+            ) {
                 groupedData[item.category] =
                     (groupedData[item.category] || 0) + Math.round(item.value);
+                totalAmount += item.value;
             }
-            totalAmount += item.value;
         });
         //charts
         updateBarChart(chartData);
@@ -234,7 +238,7 @@
         });
 
         //adjusting the max bar size to the maximum
-        const max = Math.round(totalAmount - house_price);
+        const max = Math.round(totalAmount);
 
         barChartInstance!.options!.scales!.y!.max = max;
         barChartInstance!.options!.scales!.y!.afterBuildTicks = function (
@@ -457,25 +461,13 @@
                                     class="flex flex-col w-full gap-6"
                                     transition:slide={{ duration: 500 }}
                                 >
-                                    <!-- Final Total Price on Top -->
-                                    <div class="flex justify-center">
-                                        <div
-                                            class="border p-6 rounded-lg shadow w-full max-w-md text-center"
-                                        >
-                                            <TotalPriceTile
-                                                number={totalAmount}
-                                                dif={totalAmount - house_price}
-                                            />
-                                        </div>
-                                    </div>
-
                                     <!-- Main Chart + Cost Breakdown Side-by-Side -->
                                     <div
                                         class="flex flex-row gap-6 justify-center items-stretch"
                                     >
                                         <!-- Chart -->
                                         <div
-                                            class="border p-6 rounded-lg shadow w-full flex items-center justify-center"
+                                            class="border p-6 rounded-lg shadow flex items-center justify-center flex-[1]"
                                         >
                                             <canvas
                                                 id="barChart"
@@ -485,67 +477,86 @@
 
                                         <!-- Cost Breakdown Column -->
                                         <div
-                                            class="flex flex-col gap-4 max-w-sm w-full"
+                                            class="flex flex-col flex-[2] max-w-lg w-full relative gap-6"
                                         >
-                                            <!-- Taxes -->
-                                            <DeltaPriceTile
-                                                name={"🇮🇹 Taxes"}
-                                                number={groupedData["Tax"]}
-                                                showVal={house_price != 0}
-                                                delta={groupedData["Tax"] /
-                                                    house_price}
-                                            />
-                                            <!-- Notary -->
-                                            <DeltaPriceTile
-                                                name={"💼 Notary"}
-                                                number={groupedData["Notary"]}
-                                                showVal={house_price != 0}
-                                                delta={groupedData["Notary"] /
-                                                    house_price}
+                                            <!-- Total (Main) Price -->
+                                            <TotalPriceTile
+                                                number={totalAmount}
+                                                dif={totalAmount}
                                             />
 
-                                            {#if is_sold_by_agency}
-                                                <!-- Agency -->
-                                                <DeltaPriceTile
-                                                    name={"🏘️ Agency"}
-                                                    number={groupedData[
-                                                        "Agency"
-                                                    ]}
-                                                    showVal={house_price > 0 &&
-                                                        groupedData["Agency"] !=
-                                                            null}
-                                                    delta={groupedData[
-                                                        "Agency"
-                                                    ] / house_price}
-                                                />
-                                            {/if}
+                                            <!-- Subtiles Container with Vertical Line -->
+                                            <div
+                                                class="relative ml-15 space-y-6"
+                                            >
+                                                <!-- Main Vertical Line -->
+                                                <div
+                                                    class="absolute left-0 top-0 bottom-7 w-px bg-gray-50"
+                                                ></div>
 
-                                            {#if is_using_mortgage}
-                                                <!-- Bank Costs -->
                                                 <DeltaPriceTile
-                                                    name={"🏦 Bank"}
-                                                    number={groupedData["Bank"]}
-                                                    showVal={groupedData[
-                                                        "Bank"
-                                                    ] != null}
-                                                    delta={groupedData["Bank"] /
+                                                    name={"🇮🇹 Taxes"}
+                                                    number={groupedData["Tax"]}
+                                                    showVal={house_price != 0}
+                                                    delta={groupedData["Tax"] /
                                                         house_price}
                                                 />
-                                                <!-- Interests -->
                                                 <DeltaPriceTile
-                                                    name={"📈 Interests"}
+                                                    name={"💼 Notary"}
                                                     number={groupedData[
-                                                        "Interests"
+                                                        "Notary"
                                                     ]}
-                                                    showVal={house_price > 0 &&
-                                                        groupedData[
-                                                            "Interests"
-                                                        ] != null}
+                                                    showVal={house_price != 0}
                                                     delta={groupedData[
-                                                        "Interests"
+                                                        "Notary"
                                                     ] / house_price}
                                                 />
-                                            {/if}
+
+                                                {#if is_sold_by_agency}
+                                                    <!-- Agency -->
+                                                    <DeltaPriceTile
+                                                        name={"🏘️ Agency"}
+                                                        number={groupedData[
+                                                            "Agency"
+                                                        ]}
+                                                        showVal={house_price >
+                                                            0 &&
+                                                            groupedData[
+                                                                "Agency"
+                                                            ] != null}
+                                                        delta={groupedData[
+                                                            "Agency"
+                                                        ] / house_price}
+                                                    />
+                                                {/if}
+
+                                                {#if is_using_mortgage}
+                                                    <!-- Bank Costs -->
+                                                    <DeltaPriceTile
+                                                        name={"🏦 Bank"}
+                                                        number={groupedData[
+                                                            "Bank"
+                                                        ]}
+                                                        showVal={groupedData[
+                                                            "Bank"
+                                                        ] != null}
+                                                        delta={groupedData[
+                                                            "Bank"
+                                                        ] / house_price}
+                                                    />
+                                                    <!-- Interests -->
+                                                    <DeltaPriceTile
+                                                        name={"📈 Interests"}
+                                                        number={interestsVal}
+                                                        showVal={house_price >
+                                                            0 &&
+                                                            interestsVal !=
+                                                                null}
+                                                        delta={interestsVal /
+                                                            house_price}
+                                                    />
+                                                {/if}
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
