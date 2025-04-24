@@ -1,9 +1,14 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import Chart from "chart.js/auto";
-    import { fade, scale, slide } from "svelte/transition";
+    import { fade, slide } from "svelte/transition";
     import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
-    import Check from "../assets/check.svelte";
+    import Check from "../assets/Check.svelte";
+    import NavBar from "../assets/NavBar.svelte";
+    import DetailTile from "../assets/DetailTile.svelte";
+    import { each } from "chart.js/helpers";
+    import TotalPriceTile from "../assets/TotalPriceTile.svelte";
+    import DeltaPriceTile from "../assets/DeltaPriceTile.svelte";
 
     // Define types for the house cost breakdown
     type CostItem = {
@@ -13,6 +18,8 @@
         estimate: boolean;
         info: string;
     };
+
+    let selectedTab = "summary";
 
     let house_price: number = 300000;
     let is_fisrt_house: boolean = false;
@@ -36,12 +43,18 @@
     let totalAmount: number = 0;
     let barChartInstance: Chart | null = null; // Store chart instance globally
 
+    let dataByCategory: any = {};
+
+    $: if (selectedTab == "summary") {
+        initializeBarChart();
+        updateData();
+    }
+
     // Define category colors
     const categoryColors: Record<string, string> = {
         Tax: "rgba(255, 99, 132, 0.6)",
         Agency: "rgba(54, 162, 235, 0.6)",
         Notary: "rgba(201, 200, 115, 0.6)",
-        Interests: "rgba(152, 3, 252, 0.6)",
         Bank: "rgba(66, 245, 126, 0.6)",
     };
 
@@ -88,9 +101,25 @@
             console.error("Fetch error:", error);
         }
 
+        dataByCategory = {};
+
         chartData.forEach((item: any) => {
-            if (item.name == "Mortgage Interests") interestsVal = item.value;
+            if (item.name == "Mortgage Interests") {
+                interestsVal = item.value;
+            }
+            item.value = Math.round(item.value);
+
+            //remove 0 values
+            if (item.value > 0) {
+                if (item.category in dataByCategory) {
+                    dataByCategory[item.category].push(item);
+                } else {
+                    dataByCategory[item.category] = [item];
+                }
+            }
         });
+
+        console.log(dataByCategory);
 
         mortgageInstallment =
             is_using_mortgage && mortgageDuration != 0
@@ -117,7 +146,7 @@
             await tick(); // Wait for DOM update before selecting the canvas
 
             const ctx = document.getElementById(
-                "myChart",
+                "barChart",
             ) as HTMLCanvasElement | null;
             if (!ctx) return; // Ensure ctx exists before using it
 
@@ -143,8 +172,6 @@
             if (barChartInstance) {
                 barChartInstance.destroy();
             }
-
-            const max = Math.round(totalAmount - house_price);
 
             // Step 4: Create the stacked bar chart
             barChartInstance = new Chart(ctx2D, {
@@ -224,13 +251,6 @@
         initializeBarChart();
         updateData();
     }
-
-    //added to upscale chart in case of window-resizing
-    window.addEventListener("resize", () => {
-        if (barChartInstance) {
-            barChartInstance.resize(); // Force the chart to resize
-        }
-    });
 </script>
 
 <div class="h-screen overflow-hidden">
@@ -240,7 +260,7 @@
             <!-- Inputs Section -->
             <section
                 class="w-full max-w-3xl p-6 flex flex-col gap-6"
-                transition:fade={{ duration: 1000 }}
+                transition:slide={{ duration: 500 }}
             >
                 <div class="flex flex-col gap-4 mb-4">
                     <div class="flex flex-col gap-2 md:max-w-[360px]">
@@ -370,8 +390,8 @@
                                 <input
                                     type="range"
                                     bind:value={mortgageDuration}
-                                    min="5"
-                                    max="40"
+                                    min="0"
+                                    max="50"
                                     step="5"
                                     on:mouseup={showCosts
                                         ? updateData
@@ -429,222 +449,143 @@
                 <div class="max-w-4xl mx-auto">
                     <!-- Costs & Chart Section -->
                     {#if showCosts}
-                        <section
-                            class="flex flex-col w-full gap-2"
-                            transition:fade={{ duration: 2000 }}
-                        >
-                            <!-- Cost Summary -->
-                            <div class="flex flex-row gap-3 justify-center">
-                                <div
-                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
+                        <div transition:fade={{ duration: 500 }}>
+                            <NavBar bind:selectedTab />
+                            {#if selectedTab == "summary"}
+                                <!-- Entire summary section -->
+                                <section
+                                    class="flex flex-col w-full gap-6"
+                                    transition:slide={{ duration: 500 }}
                                 >
-                                    <h1>Final total price</h1>
-                                    <NumberFlowGroup
-                                        style="--number-flow-char-height: 0.85em"
-                                        class="flex items-center gap-4 font-semibold"
-                                    >
-                                        <NumberFlow
-                                            value={totalAmount}
-                                            format={{
-                                                style: "currency",
-                                                currency: "EUR",
-                                                maximumFractionDigits: 0,
-                                            }}
-                                            locales={"it-IT"}
-                                            class="text-3xl"
-                                        />
-                                        <NumberFlow
-                                            value={totalAmount - house_price}
-                                            format={{
-                                                style: "currency",
-                                                currency: "EUR",
-                                                signDisplay: "always",
-                                                maximumFractionDigits: 0,
-                                            }}
-                                            class="text-lg transition-colors duration-300 text-red-500"
-                                        />
-                                    </NumberFlowGroup>
-                                </div>
-                            </div>
-                            <div class="flex flex-row gap-3 justify-center">
-                                <!-- Chart -->
-                                <div
-                                    class="border p-6 rounded-lg shadow w-full"
-                                >
-                                    <canvas id="myChart" height="400"></canvas>
-                                </div>
-                                <div
-                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                                >
-                                    <h1>Taxes</h1>
-                                    <NumberFlowGroup
-                                        style="--number-flow-char-height: 0.85em"
-                                        class="flex items-center gap-4 font-semibold"
-                                    >
-                                        <NumberFlow
-                                            value={groupedData["Tax"]}
-                                            format={{
-                                                style: "currency",
-                                                currency: "EUR",
-                                                maximumFractionDigits: 0,
-                                            }}
-                                            locales={"it-IT"}
-                                            class="text-3xl"
-                                        />
-                                        <NumberFlow
-                                            value={house_price == 0
-                                                ? 0
-                                                : groupedData["Tax"] /
-                                                  house_price}
-                                            format={{
-                                                style: "percent",
-                                                maximumFractionDigits: 2,
-                                                minimumFractionDigits: 2,
-                                                signDisplay: "always",
-                                            }}
-                                            class="text-lg transition-colors duration-300 text-red-500"
-                                        />
-                                    </NumberFlowGroup>
-                                </div>
-                                <div
-                                    class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                                >
-                                    <h1>Notary</h1>
-                                    <NumberFlowGroup
-                                        style="--number-flow-char-height: 0.85em"
-                                        class="flex items-center gap-4 font-semibold"
-                                    >
-                                        <NumberFlow
-                                            value={groupedData["Notary"]}
-                                            format={{
-                                                style: "currency",
-                                                currency: "EUR",
-                                                maximumFractionDigits: 0,
-                                            }}
-                                            locales={"it-IT"}
-                                            class="text-3xl"
-                                        />
-                                        <NumberFlow
-                                            value={house_price == 0
-                                                ? 0
-                                                : groupedData["Notary"] /
-                                                  house_price}
-                                            format={{
-                                                style: "percent",
-                                                maximumFractionDigits: 2,
-                                                minimumFractionDigits: 2,
-                                                signDisplay: "always",
-                                            }}
-                                            class="text-lg transition-colors duration-300 text-red-500"
-                                        />
-                                    </NumberFlowGroup>
-                                </div>
-                            </div>
-                            <div class="flex flex-row gap-3 justify-center">
-                                {#if is_sold_by_agency}
-                                    <div
-                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                                        transition:fade={{ duration: 300 }}
-                                    >
-                                        <h1>Agency</h1>
-                                        <NumberFlowGroup
-                                            style="--number-flow-char-height: 0.85em"
-                                            class="flex items-center gap-4 font-semibold"
+                                    <!-- Final Total Price on Top -->
+                                    <div class="flex justify-center">
+                                        <div
+                                            class="border p-6 rounded-lg shadow w-full max-w-md text-center"
                                         >
-                                            <NumberFlow
-                                                value={groupedData["Agency"]
-                                                    ? groupedData["Agency"]
-                                                    : 0}
-                                                format={{
-                                                    style: "currency",
-                                                    currency: "EUR",
-                                                    maximumFractionDigits: 0,
-                                                }}
-                                                locales={"it-IT"}
-                                                class="text-3xl"
+                                            <TotalPriceTile
+                                                number={totalAmount}
+                                                dif={totalAmount - house_price}
                                             />
-                                            <NumberFlow
-                                                value={house_price <= 0 ||
-                                                !groupedData["Agency"]
-                                                    ? 0
-                                                    : groupedData["Agency"] /
-                                                      house_price}
-                                                format={{
-                                                    style: "percent",
-                                                    maximumFractionDigits: 2,
-                                                    minimumFractionDigits: 2,
-                                                    signDisplay: "always",
-                                                }}
-                                                class="text-lg transition-colors duration-300 text-red-500"
-                                            />
-                                        </NumberFlowGroup>
+                                        </div>
                                     </div>
-                                {/if}
-                            </div>
 
-                            <div class="flex flex-row gap-3 justify-center">
-                                {#if is_using_mortgage}
+                                    <!-- Main Chart + Cost Breakdown Side-by-Side -->
                                     <div
-                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                                        transition:fade={{ duration: 300 }}
+                                        class="flex flex-row gap-6 justify-center items-stretch"
                                     >
-                                        <h1>Interests</h1>
-                                        <NumberFlowGroup
-                                            style="--number-flow-char-height: 0.85em"
-                                            class="flex items-center gap-4 font-semibold"
+                                        <!-- Chart -->
+                                        <div
+                                            class="border p-6 rounded-lg shadow w-full flex items-center justify-center"
                                         >
-                                            <NumberFlow
-                                                value={groupedData["Interests"]
-                                                    ? groupedData["Interests"]
-                                                    : 0}
-                                                format={{
-                                                    style: "currency",
-                                                    currency: "EUR",
-                                                    maximumFractionDigits: 0,
-                                                }}
-                                                locales={"it-IT"}
-                                                class="text-3xl"
-                                            />
-                                            <NumberFlow
-                                                value={house_price == 0 ||
-                                                !groupedData["Interests"]
-                                                    ? 0
-                                                    : groupedData["Interests"] /
-                                                      house_price}
-                                                format={{
-                                                    style: "percent",
-                                                    maximumFractionDigits: 2,
-                                                    minimumFractionDigits: 2,
-                                                    signDisplay: "always",
-                                                }}
-                                                class="text-lg transition-colors duration-300 text-red-500"
-                                            />
-                                        </NumberFlowGroup>
-                                    </div>
-                                    <div
-                                        class="border p-6 rounded-lg shadow w-full max-w-sm text-center"
-                                        transition:fade={{ duration: 300 }}
-                                    >
-                                        <h1>Mortgage installment</h1>
-                                        <NumberFlowGroup
-                                            style="--number-flow-char-height: 0.85em"
-                                            class="flex items-center gap-4 font-semibold"
+                                            <canvas
+                                                id="barChart"
+                                                class="w-full h-full"
+                                            ></canvas>
+                                        </div>
+
+                                        <!-- Cost Breakdown Column -->
+                                        <div
+                                            class="flex flex-col gap-4 max-w-sm w-full"
                                         >
-                                            <NumberFlow
-                                                value={mortgageInstallment}
-                                                format={{
-                                                    style: "currency",
-                                                    currency: "EUR",
-                                                    maximumFractionDigits: 0,
-                                                }}
-                                                locales={"it-IT"}
-                                                class="text-3xl"
+                                            <!-- Taxes -->
+                                            <DeltaPriceTile
+                                                name={"🇮🇹 Taxes"}
+                                                number={groupedData["Tax"]}
+                                                showVal={house_price != 0}
+                                                delta={groupedData["Tax"] /
+                                                    house_price}
                                             />
-                                        </NumberFlowGroup>
+                                            <!-- Notary -->
+                                            <DeltaPriceTile
+                                                name={"💼 Notary"}
+                                                number={groupedData["Notary"]}
+                                                showVal={house_price != 0}
+                                                delta={groupedData["Notary"] /
+                                                    house_price}
+                                            />
+
+                                            {#if is_sold_by_agency}
+                                                <!-- Agency -->
+                                                <DeltaPriceTile
+                                                    name={"🏘️ Agency"}
+                                                    number={groupedData[
+                                                        "Agency"
+                                                    ]}
+                                                    showVal={house_price > 0 &&
+                                                        groupedData["Agency"] !=
+                                                            null}
+                                                    delta={groupedData[
+                                                        "Agency"
+                                                    ] / house_price}
+                                                />
+                                            {/if}
+
+                                            {#if is_using_mortgage}
+                                                <!-- Bank Costs -->
+                                                <DeltaPriceTile
+                                                    name={"🏦 Bank"}
+                                                    number={groupedData["Bank"]}
+                                                    showVal={groupedData[
+                                                        "Bank"
+                                                    ] != null}
+                                                    delta={groupedData["Bank"] /
+                                                        house_price}
+                                                />
+                                                <!-- Interests -->
+                                                <DeltaPriceTile
+                                                    name={"📈 Interests"}
+                                                    number={groupedData[
+                                                        "Interests"
+                                                    ]}
+                                                    showVal={house_price > 0 &&
+                                                        groupedData[
+                                                            "Interests"
+                                                        ] != null}
+                                                    delta={groupedData[
+                                                        "Interests"
+                                                    ] / house_price}
+                                                />
+                                            {/if}
+                                        </div>
                                     </div>
-                                {/if}
-                            </div>
-                        </section>
+                                </section>
+                            {/if}
+                            {#if selectedTab == "base"}
+                                <div class="flex flex-wrap gap-6">
+                                    <div class="w-full md:w-[48%] mb-6">
+                                        <DetailTile
+                                            data={dataByCategory["Tax"]}
+                                        />
+                                    </div>
+                                    <div class="w-full md:w-[48%] mb-6">
+                                        <DetailTile
+                                            data={dataByCategory["Notary"]}
+                                        />
+                                    </div>
+                                    {#if "Agency" in dataByCategory}
+                                        <div
+                                            class="w-full md:w-[48%] mb-6"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            <DetailTile
+                                                data={dataByCategory["Agency"]}
+                                            />
+                                        </div>
+                                    {/if}
+                                    {#if "Bank" in dataByCategory}
+                                        <div
+                                            class="w-full md:w-[48%] mb-6"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            <DetailTile
+                                                data={dataByCategory["Bank"]}
+                                            />
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/if}
+                            {#if selectedTab == "mortgage"}{/if}
+                        </div>
                     {/if}
                 </div>
             </main>

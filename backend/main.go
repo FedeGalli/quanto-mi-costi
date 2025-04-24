@@ -105,6 +105,10 @@ func main() {
 		var notaryAmountMortage float64 = mortgageAmount * 0.0042 * 1.22
 		var impostaDiBolloMotgage float64 = mortgageAmount * 0.0025
 
+		if !isFirstHouse {
+			impostaDiBolloMotgage = mortgageAmount * 0.02
+		}
+
 		var agencyAmount float64 = 0
 		if agencyFee > 0 {
 			agencyAmount = agencyFee * housePrice * 1.22
