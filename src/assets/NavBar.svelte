@@ -1,6 +1,5 @@
 <script>
     export let selectedTab = "summary";
-    import { fade } from "svelte/transition";
 </script>
 
 <div class="tabs">
@@ -26,8 +25,8 @@
         on:click={() => (selectedTab = "mortgage")}
         type="button"
     >
-        💸
-        <span>Mortgage Costs</span>
+        💰
+        <span>Mortgage</span>
     </button>
 </div>
 

@@ -35,20 +35,14 @@ func ToFloat64(val string) float64 {
 	return myFloat
 }
 
-func CalculateTotalInterests(amount float64, duration float64, TAEG float64) float64 {
-	if amount == 0 {
+func CalculateMonthlyInstallment(amount float64, duration float64, TAEG float64) float64 {
+	if amount == 0 || duration == 0 || TAEG == 0 {
 		return 0
 	}
 
-	var interestsVal float64 = 0
-	var yearlyCapitalAmount float64 = amount / duration
-	for duration >= 0 {
-		interestsVal += amount * TAEG
-		amount -= yearlyCapitalAmount
-		duration--
-	}
+	var monthlyInterestsVal float64 = amount * (TAEG / 12 * math.Pow(1+TAEG/12, duration*12)) / (math.Pow(1+TAEG/12, duration*12) - 1)
 
-	return interestsVal
+	return monthlyInterestsVal
 }
 
 func ToBool(val string) bool {

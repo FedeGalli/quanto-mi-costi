@@ -36,11 +36,11 @@ func main() {
 
 		var istruttoriaCost float64 = 0
 		var expertiseCost float64 = 0
-		var interestsVal float64 = 0
+		var mortgageInstalment float64 = 0
 
 		if mortgageAmount > 0 {
 			istruttoriaCost = mortgageAmount * 0.007
-			interestsVal = utils.CalculateTotalInterests(mortgageAmount, mortgageDuration, mortgageTAEG)
+			mortgageInstalment = utils.CalculateMonthlyInstallment(mortgageAmount, mortgageDuration, mortgageTAEG)
 
 			if mortgageAmount > 0 {
 				expertiseCost = 300*1.03 + 50
@@ -129,9 +129,9 @@ func main() {
 			},
 
 			{
-				Name:     "Mortgage Interests",
-				Category: "Interests",
-				Value:    interestsVal,
+				Name:     "Monthly Mortgage Installment",
+				Category: "Installment",
+				Value:    mortgageInstalment,
 				Estimate: false,
 				Info:     "Mortgage intrests",
 			},
