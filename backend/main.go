@@ -3,10 +3,9 @@ package main
 import (
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"quanto.mi.costi.com/utils"
-
-	"github.com/gin-contrib/cors"
 )
 
 type CostItem struct {
@@ -119,6 +118,8 @@ func main() {
 		var tassaIpotecariaMortgage float64 = 35
 		var impostaDiBollo float64 = 230
 
+		var certificatoStatoLibero float64 = 16
+
 		responseData := []CostItem{
 			{
 				Name:     "Property Price",
@@ -211,6 +212,13 @@ func main() {
 				Value:    impostaDiBollo,
 				Estimate: false,
 				Info:     "Imposta di bollo, tassa fissa durante il rogito.",
+			},
+			{
+				Name:     "Certificato stato libero",
+				Category: "Notary",
+				Value:    certificatoStatoLibero,
+				Estimate: false,
+				Info:     "Certificato stato libero, necessario per dare valenza legale all'atto di rogito.",
 			},
 			{
 				Name:     "Compenso notaio (mutuo)",

@@ -7,14 +7,7 @@
     export let name: string;
 </script>
 
-<!-- Tile with mirrored curved connector -->
 <div class="relative pl-10" transition:fade={{ duration: 300 }}>
-    <!-- Curved Connector -->
-    <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-6 h-7">
-        <div
-            class="w-6 h-6 border-l-1 border-b-1 border-gray-50 rounded-bl-lg"
-        ></div>
-    </div>
     <div
         class="border p-2 rounded-lg shadow text-center"
         transition:slide={{ duration: 500 }}

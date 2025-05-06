@@ -9,6 +9,11 @@
     import TotalPriceTile from "../assets/TotalPriceTile.svelte";
     import SummaryDeltaPriceTile from "../assets/SummaryDeltaPriceTile.svelte";
     import DeltaPriceTile from "../assets/DeltaPriceTile.svelte";
+    import TooltipFirstHouse from "../assets/TooltipFirstHouse.svelte";
+    import TooltipVat from "../assets/TooltipVAT.svelte";
+    import TooltipAgency from "../assets/TooltipAgency.svelte";
+    import TooltipMortgage from "../assets/TooltipMortgage.svelte";
+    import CustomButton from "../assets/CustomButton.svelte";
 
     // Define types for the house cost breakdown
     type CostItem = {
@@ -24,13 +29,13 @@
 
     let house_price: number = 300000;
     let is_fisrt_house: boolean = false;
-    let is_fisrt_house_label: string = "First house?";
+    let is_fisrt_house_label: string = "Agevolazione prima casa?";
     let is_sold_by_builder: boolean = false;
-    let is_sold_by_builder_label: string = "Sold by builder within 5 years?";
+    let is_sold_by_builder_label: string = "Vendita soggetta a IVA?";
     let is_sold_by_agency: boolean = false;
-    let is_sold_by_agency_label: string = "Agency?";
+    let is_sold_by_agency_label: string = "Acquisto tramite agenzia?";
     let is_using_mortgage: boolean = false;
-    let is_using_mortgage_label: string = "Using mortgage?";
+    let is_using_mortgage_label: string = "Utilizzi un mutuo?";
 
     //mortgage variable section
     let taeg: number = 0;
@@ -39,7 +44,8 @@
     let interestsVal: number = 0;
     let mortgageInstallment: number = 0;
     let agencyFee: number = 0;
-    let showCosts = false;
+    let showCosts: boolean = false;
+    let showTooltip: boolean[] = [false, false, false, false];
 
     let totalAmount: number = 0;
     let barChartInstance: Chart | null = null; // Store chart instance globally
@@ -88,21 +94,30 @@
     onMount(() => {});
 
     function buildApiString(): string {
+        console.log(house_price);
         let apiStringUrl: string =
-            "http://localhost:8080/get_house_prices?house_price=" + house_price;
+            "http://localhost:8080/get_house_prices?house_price=" +
+            (house_price != null ? house_price : 0);
 
-        if (is_sold_by_agency) apiStringUrl += "&agency_fee=" + agencyFee;
-        if (is_fisrt_house) apiStringUrl += "&is_first_house=" + is_fisrt_house;
+        if (is_sold_by_agency)
+            apiStringUrl +=
+                "&agency_fee=" + (agencyFee != null ? agencyFee / 100 : 0);
+        if (is_fisrt_house)
+            apiStringUrl +=
+                "&is_first_house=" +
+                (is_fisrt_house != null ? is_fisrt_house : false);
         if (is_sold_by_builder)
-            apiStringUrl += "&is_sold_by_builder=" + is_sold_by_builder;
+            apiStringUrl +=
+                "&is_sold_by_builder=" +
+                (is_sold_by_builder != null ? is_sold_by_builder : false);
         if (is_using_mortgage)
             apiStringUrl +=
                 "&mortgage_amount=" +
-                mortgage_amount +
+                (mortgage_amount != null ? mortgage_amount : 0) +
                 "&mortgage_duration=" +
-                mortgageDuration +
+                (mortgageDuration != null ? mortgageDuration : 0) +
                 "&mortgage_TAEG=" +
-                taeg;
+                (taeg != null ? taeg / 100 : 0);
 
         return apiStringUrl;
     }
@@ -375,7 +390,7 @@
                 let interests: number = 0;
                 let capital: number = 0;
 
-                interests = (residualCapital * taeg) / 12;
+                interests = (residualCapital * taeg) / 100 / 12;
                 interestsSum += interests;
                 interestsVal += interests;
 
@@ -387,8 +402,8 @@
                     labels.push(
                         (new Date().getFullYear() + (i / 12 - 1)).toString(),
                     );
-                    interestsData.push(interestsSum);
-                    capitalData.push(capitalSum);
+                    interestsData.push(Math.round(interestsSum));
+                    capitalData.push(Math.round(capitalSum));
 
                     interestsSum = 0;
                     capitalSum = 0;
@@ -418,207 +433,256 @@
     }
 </script>
 
-<div class="h-screen overflow-hidden">
-    <div class="flex h-full">
-        <div class="w-86 bg-gray-700 text-white p-4 flex flex-col">
-            <h1 class="text-xl font-bold mb-6">🏡 Real House Cost Simulator</h1>
-            <!-- Inputs Section -->
-            <section
-                class="w-full max-w-3xl p-6 flex flex-col gap-6"
-                transition:slide={{ duration: 500 }}
-            >
-                <div
-                    class="flex flex-col gap-4 mb-4"
-                    transition:fade={{ duration: 500 }}
-                >
-                    <div class="flex flex-col gap-2 md:max-w-[360px]">
-                        <label for="price"
-                            ><b>House Price:</b>
-                            <NumberFlow
-                                value={house_price}
-                                format={{
-                                    style: "currency",
-                                    currency: "EUR",
-                                    maximumFractionDigits: 0,
-                                }}
-                                locales={"it-IT"}
-                            /></label
-                        >
-                        <input
-                            type="number"
-                            bind:value={house_price}
-                            min="0"
-                            max="1000000"
-                            step="1000"
-                            on:change={showCosts ? updateData : () => {}}
-                            on:mouseup={showCosts ? updateData : () => {}}
-                            class="border p-2 rounded w-full"
-                        />
-                        <input
-                            type="range"
-                            bind:value={house_price}
-                            min="0"
-                            max="1000000"
-                            step="1000"
-                            on:mouseup={showCosts ? updateData : () => {}}
-                            class="w-full"
-                        />
-                    </div>
-                    <div id="isFirstHouse">
-                        <Check
-                            bind:label={is_fisrt_house_label}
-                            bind:bind={is_fisrt_house}
-                            on:change={showCosts ? updateData : () => {}}
-                        />
-                    </div>
-                    <div id="isSoldByBuilder">
-                        <Check
-                            bind:label={is_sold_by_builder_label}
-                            bind:bind={is_sold_by_builder}
-                            on:change={showCosts ? updateData : () => {}}
-                        />
-                    </div>
-                    <div id="isSoldByAgency">
-                        <Check
-                            bind:label={is_sold_by_agency_label}
-                            bind:bind={is_sold_by_agency}
-                            on:change={showCosts ? updateData : () => {}}
-                        />
-                        {#if is_sold_by_agency}
-                            <div
-                                class="flex flex-col gap-2 md:max-w-[360px]"
-                                transition:slide={{ duration: 300 }}
-                            >
-                                <label for="Fee"
-                                    >Fee: <NumberFlow
-                                        value={agencyFee}
-                                        format={{
-                                            style: "percent",
-                                            minimumFractionDigits: 2,
-                                        }}
-                                        locales={"it-IT"}
-                                    /></label
-                                >
-                                <input
-                                    type="range"
-                                    bind:value={agencyFee}
-                                    min="0"
-                                    max="0.07"
-                                    step="0.0005"
-                                    on:mouseup={showCosts
-                                        ? updateData
-                                        : () => {}}
-                                    class="w-full"
-                                />
-                            </div>
-                        {/if}
-                    </div>
-                    <div id="isUsingMortgage">
-                        <Check
-                            bind:label={is_using_mortgage_label}
-                            bind:bind={is_using_mortgage}
-                            on:change={showCosts ? updateData : () => {}}
-                        />
-                        {#if is_using_mortgage}
-                            <div
-                                class="flex flex-col gap-2 md:max-w-[360px]"
-                                transition:slide={{ duration: 300 }}
-                            >
-                                <label for="mortgage_amount"
-                                    >Mortgage Amount: <NumberFlow
-                                        value={mortgage_amount}
-                                        format={{
-                                            style: "currency",
-                                            currency: "EUR",
-                                            maximumFractionDigits: 0,
-                                        }}
-                                        locales={"it-IT"}
-                                    /></label
-                                >
-                                <input
-                                    type="range"
-                                    bind:value={mortgage_amount}
-                                    min="0"
-                                    max={house_price}
-                                    step="5000"
-                                    on:mouseup={showCosts
-                                        ? updateData
-                                        : () => {}}
-                                    class="w-full"
-                                />
-                                <label for="duration"
-                                    >Duration(Years): <NumberFlow
-                                        value={mortgageDuration}
-                                        format={{
-                                            minimumFractionDigits: 0,
-                                        }}
-                                        locales={"it-IT"}
-                                    /></label
-                                >
-                                <input
-                                    type="range"
-                                    bind:value={mortgageDuration}
-                                    min="0"
-                                    max="50"
-                                    step="5"
-                                    on:mouseup={showCosts
-                                        ? updateData
-                                        : () => {}}
-                                    class="w-full"
-                                />
-                                <label for="TAEG"
-                                    >TAEG: <NumberFlow
-                                        value={taeg}
-                                        format={{
-                                            style: "percent",
-                                            minimumFractionDigits: 2,
-                                        }}
-                                        locales={"it-IT"}
-                                    /></label
-                                >
-                                <input
-                                    type="range"
-                                    bind:value={taeg}
-                                    min="0"
-                                    max="0.08"
-                                    step="0.0005"
-                                    on:mouseup={showCosts
-                                        ? updateData
-                                        : () => {}}
-                                    class="w-full"
-                                />
-                            </div>
-                        {/if}
+<div
+    class="h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-center justify-center p-6"
+>
+    <div
+        class="relative flex w-[90%] max-w-8xl h-[80vh] transition-all duration-700 ease-in-out gap-6"
+    >
+        <!-- Left Tile: 40% -->
+        <div
+            class="basis-[40%] bg-[#1e1f25] text-white rounded-2xl shadow-lg p-8 space-y-6 overflow-auto transition-all duration-700 ease-in-out"
+        >
+            <h1 class="text-4xl font-bold leading-tight">
+                Scopri quanto costa,<br />
+                <span class="text-purple-400"> per davvero, </span><br />
+                la casa dei tuoi sogni. 🏡
+            </h1>
+            <p class="text-gray-400 text-sm">
+                Il prezzo finale della casa comprende tutte le spese accessorie
+                per l'acquisto ed il totale delle tasse dovute. Per spese come
+                il notaio è stata fatta una stima accurata su tutte le voci di
+                costo.
+            </p>
+
+            <div class="flex flex-col gap-2 md:max-w-[200px]">
+                <h1 class="text-base font-bold leading-tight">House Price:</h1>
+                <div class="relative">
+                    <input
+                        type="number"
+                        class="w-full border border-white rounded px-4 pr-10 py-2 text-left font-medium text-white"
+                        min="0"
+                        max="1000000"
+                        step="5000"
+                        bind:value={house_price}
+                        on:change={showCosts ? updateData : () => {}}
+                        on:mouseup={showCosts ? updateData : () => {}}
+                    />
+                    <!-- Separator Line -->
+                    <div class="absolute inset-y-0 right-9 w-px bg-white"></div>
+                    <!-- Euro Symbol -->
+                    <div
+                        class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                    >
+                        €
                     </div>
                 </div>
-                {#if !showCosts}
+            </div>
+            <div id="isFirstHouse">
+                <Check
+                    bind:label={is_fisrt_house_label}
+                    bind:bind={is_fisrt_house}
+                    bind:showTooltip
+                    element={0}
+                    on:change={showCosts ? updateData : () => {}}
+                />
+            </div>
+            <div id="isSoldByBuilder">
+                <Check
+                    bind:label={is_sold_by_builder_label}
+                    bind:bind={is_sold_by_builder}
+                    bind:showTooltip
+                    element={1}
+                    on:change={showCosts ? updateData : () => {}}
+                />
+            </div>
+            <div id="isSoldByAgency">
+                <Check
+                    bind:label={is_sold_by_agency_label}
+                    bind:bind={is_sold_by_agency}
+                    bind:showTooltip
+                    element={2}
+                    on:change={showCosts ? updateData : () => {}}
+                />
+                {#if is_sold_by_agency}
                     <div
+                        class="flex flex-col gap-2 md:max-w-[200px]"
                         transition:slide={{ duration: 300 }}
-                        class="overflow-hidden"
                     >
-                        <div
-                            class="flex items-center space-x-2 transition-all duration-300"
-                        >
-                            <button
-                                on:click={() => {
-                                    showCosts = true;
-                                }}
-                                class="btn"
-                            >
-                                {showCosts ? "Hide Costs" : "Quanto mi costi?"}
-                            </button>
+                        <div class="ml-6">
+                            <h1 class="text-base font-bold leading-tight mt-3">
+                                Provvigione:
+                            </h1>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    class="w-full border border-white rounded px-4 pr-10 py-2 text-left font-medium text-white"
+                                    min="0"
+                                    max="7"
+                                    step="0.1"
+                                    bind:value={agencyFee}
+                                    on:change={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                />
+                                <!-- Separator Line -->
+                                <div
+                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                ></div>
+                                <!-- % Symbol -->
+                                <div
+                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                >
+                                    %
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {/if}
-            </section>
-            <div class="mt-auto pt-4 border-t border-gray-500">
-                <p class="text-sm text-gray-400">Footer content</p>
             </div>
-        </div>
+            <div id="isUsingMortgage">
+                <Check
+                    bind:label={is_using_mortgage_label}
+                    bind:bind={is_using_mortgage}
+                    bind:showTooltip
+                    element={3}
+                    on:change={showCosts ? updateData : () => {}}
+                />
+                {#if is_using_mortgage}
+                    <div
+                        class="flex flex-col gap-2 md:max-w-[200px]"
+                        transition:slide={{ duration: 300 }}
+                    >
+                        <div class="ml-6">
+                            <h1 class="text-base font-bold leading-tight mt-3">
+                                Importo mutuo:
+                            </h1>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    class="w-full border border-white rounded px-4 pr-10 py-2 text-left font-medium text-white"
+                                    min="0"
+                                    max={house_price}
+                                    step="5000"
+                                    bind:value={mortgage_amount}
+                                    on:change={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                />
+                                <!-- Separator Line -->
+                                <div
+                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                ></div>
+                                <!-- % Symbol -->
+                                <div
+                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                >
+                                    €
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <main class="flex-1 overflow-y-auto p-4">
+                        <div class="ml-6">
+                            <h1 class="text-base font-bold leading-tight mt-3">
+                                Durata (Anni):
+                            </h1>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    class="w-full border border-white rounded px-4 pr-10 py-2 text-left font-medium text-white"
+                                    min="0"
+                                    bind:value={mortgageDuration}
+                                    on:change={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                />
+                                <!-- Separator Line -->
+                                <div
+                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                ></div>
+                                <!-- % Symbol -->
+                                <div
+                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                >
+                                    €
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ml-6">
+                            <h1 class="text-base font-bold leading-tight mt-3">
+                                TAEG:
+                            </h1>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    class="w-full border border-white rounded px-4 pr-10 py-2 text-left font-medium text-white"
+                                    min="0"
+                                    step="0.1"
+                                    bind:value={taeg}
+                                    on:change={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                    on:mouseup={showCosts
+                                        ? updateData
+                                        : () => {}}
+                                />
+                                <!-- Separator Line -->
+                                <div
+                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                ></div>
+                                <!-- % Symbol -->
+                                <div
+                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                >
+                                    %
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+            {#if !showCosts}
+                <div
+                    transition:slide={{ duration: 300 }}
+                    class="overflow-hidden"
+                >
+                    <div
+                        class="flex items-center space-x-2 transition-all duration-300"
+                    >
+                        <CustomButton
+                            title={"Quanto mi costi?"}
+                            onClick={() => {
+                                for (let i = 0; i < showTooltip.length; i++) {
+                                    showTooltip[i] = false;
+                                }
+                                showCosts = true;
+                            }}
+                        ></CustomButton>
+                    </div>
+                </div>
+            {/if}
+        </div>
+        <!-- Right Tile + Tooltip Wrapper -->
+        <div class="relative basis-[60%]">
+            <!-- Right Tile: 60% -->
+            <div
+                class="bg-[#1e1f25] rounded-2xl shadow-lg p-8 overflow-auto w-full h-full transition-all duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)]"
+                class:opacity-100={showCosts}
+                class:opacity-0={!showCosts}
+                class:-translate-y-500={!showCosts}
+                class:translate-y-0={showCosts}
+                class:pointer-events-none={!showCosts}
+            >
                 <div class="max-w-4xl mx-auto">
                     <!-- Costs & Chart Section -->
                     {#if showCosts}
@@ -638,7 +702,9 @@
                                         <!-- Chart -->
                                         <div
                                             class="border p-6 rounded-lg shadow flex items-center justify-center flex-[1]"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:slide={{
+                                                duration: 500,
+                                            }}
                                         >
                                             <canvas
                                                 id="barChart"
@@ -662,11 +728,6 @@
                                             <div
                                                 class="relative ml-15 space-y-6"
                                             >
-                                                <!-- Main Vertical Line -->
-                                                <div
-                                                    class="absolute left-0 top-0 bottom-7 w-px bg-gray-50"
-                                                ></div>
-
                                                 <SummaryDeltaPriceTile
                                                     name={"🇮🇹 Taxes"}
                                                     number={groupedData["Tax"]}
@@ -675,7 +736,7 @@
                                                         house_price}
                                                 />
                                                 <SummaryDeltaPriceTile
-                                                    name={"💼 Notary"}
+                                                    name={"📜 Notary"}
                                                     number={groupedData[
                                                         "Notary"
                                                     ]}
@@ -743,13 +804,15 @@
                                     >
                                         <DetailTile
                                             data={dataByCategory["Notary"]}
-                                            title={"💼 Notary"}
+                                            title={"📜 Notary"}
                                         />
                                     </div>
                                     {#if "Agency" in dataByCategory}
                                         <div
                                             class="w-full md:w-[48%] mb-6"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:slide={{
+                                                duration: 500,
+                                            }}
                                         >
                                             <DetailTile
                                                 data={dataByCategory["Agency"]}
@@ -760,7 +823,9 @@
                                     {#if "Bank" in dataByCategory}
                                         <div
                                             class="w-full md:w-[48%] mb-6"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:slide={{
+                                                duration: 500,
+                                            }}
                                         >
                                             <DetailTile
                                                 data={dataByCategory["Bank"]}
@@ -779,7 +844,9 @@
                                     <div transition:fade={{ duration: 500 }}>
                                         <div
                                             class="flex flex-wrap gap-6"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:slide={{
+                                                duration: 500,
+                                            }}
                                         >
                                             <div
                                                 class="w-full md:w-[48%] mb-6"
@@ -808,14 +875,18 @@
                                                     delta={interestsVal /
                                                         mortgage_amount}
                                                     showVal={mortgage_amount !=
-                                                        0 && is_using_mortgage}
+                                                        null &&
+                                                        mortgage_amount != 0 &&
+                                                        is_using_mortgage}
                                                 />
                                             </div>
                                         </div>
                                         <!-- Chart -->
                                         <div
                                             class="border p-6 rounded-lg mt-6 shadow flex items-center justify-center"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:slide={{
+                                                duration: 500,
+                                            }}
                                         >
                                             <canvas
                                                 id="interestsBarChart"
@@ -828,7 +899,12 @@
                         </div>
                     {/if}
                 </div>
-            </main>
+            </div>
+            <!-- Tooltip (Overlay) -->
+            <TooltipFirstHouse showTooltip={showTooltip[0]} />
+            <TooltipVat showTooltip={showTooltip[1]} />
+            <TooltipAgency showTooltip={showTooltip[2]} />
+            <TooltipMortgage showTooltip={showTooltip[3]} />
         </div>
     </div>
 </div>

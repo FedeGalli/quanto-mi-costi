@@ -30,7 +30,7 @@
 
     {#each data as item}
         <div
-            class="flex justify-between text-sm"
+            class="flex justify-between text-sm p-1"
             transition:slide={{ duration: 500 }}
         >
             <span>{item.name}</span>

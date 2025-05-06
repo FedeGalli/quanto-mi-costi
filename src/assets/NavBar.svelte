@@ -9,7 +9,7 @@
         type="button"
     >
         📊
-        <span>Summary</span>
+        <span><h1 class="text-xs font-bold leading-tight">Summary</h1></span>
     </button>
     <button
         class="tab {selectedTab === 'base' ? 'active' : ''}"
@@ -17,7 +17,7 @@
         type="button"
     >
         📦
-        <span>Base Costs</span>
+        <span><h1 class="text-xs font-bold leading-tight">Base Costs</h1></span>
     </button>
 
     <button
@@ -26,7 +26,7 @@
         type="button"
     >
         💰
-        <span>Mortgage</span>
+        <span><h1 class="text-xs font-bold leading-tight">Mortgage</h1></span>
     </button>
 </div>
 
@@ -45,7 +45,7 @@
         flex-direction: column;
         align-items: center;
         cursor: pointer;
-        padding: 0.5rem;
+        padding: 0.2rem;
         flex: 1;
         border-radius: 12px;
         color: #ccc;
@@ -57,11 +57,10 @@
         background: #2a2a2a;
     }
     .tab.active {
-        background: rgba(54, 65, 83, 1);
+        background: rgba(186, 126, 254, 0.7);
         color: #fff;
     }
     .tab span {
-        margin-top: 0.2rem;
         font-size: 0.9rem;
     }
 </style>
