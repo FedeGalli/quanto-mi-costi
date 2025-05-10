@@ -242,8 +242,8 @@ func main() {
 				Info:     "Tassa di archivio, varia in relazione all'importo del mutuo.",
 			},
 			{
-				Name:     "Imposta di bollo (mutuo)",
-				Category: "Tax",
+				Name:     "Imposta di bollo",
+				Category: "Bank",
 				Value:    impostaDiBolloMotgage,
 				Estimate: false,
 				Info:     "Imposta di bollo, tassa da pagare in relazione all'importo del mutuo richiesto.",

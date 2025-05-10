@@ -1,5 +1,7 @@
-<script>
+<script lang="ts">
+    import { fade, slide } from "svelte/transition";
     export let selectedTab = "summary";
+    export let is_using_mortgage;
 </script>
 
 <div class="tabs">
@@ -20,14 +22,19 @@
         <span><h1 class="text-xs font-bold leading-tight">Base Costs</h1></span>
     </button>
 
-    <button
-        class="tab {selectedTab === 'mortgage' ? 'active' : ''}"
-        on:click={() => (selectedTab = "mortgage")}
-        type="button"
-    >
-        💰
-        <span><h1 class="text-xs font-bold leading-tight">Mortgage</h1></span>
-    </button>
+    {#if is_using_mortgage}
+        <button
+            class="tab {selectedTab === 'mortgage' ? 'active' : ''}"
+            on:click={() => (selectedTab = "mortgage")}
+            type="button"
+            transition:slide={{ duration: 500 }}
+        >
+            💰
+            <span
+                ><h1 class="text-xs font-bold leading-tight">Mortgage</h1></span
+            >
+        </button>
+    {/if}
 </div>
 
 <style>
@@ -35,7 +42,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 2rem;
-        background: #121212;
+        background: rgba(23, 23, 23, 1);
         border-radius: 16px;
         padding: 0.5rem;
         gap: 0.5rem;

@@ -1,20 +1,15 @@
 <script lang="ts">
     import NumberFlow, { NumberFlowGroup } from "@number-flow/svelte";
-    import { slide } from "svelte/transition";
     export let number: number;
     export let dif: number;
     export let name: string;
 </script>
 
 <div
-    class="border p-2 rounded-lg shadow text-center"
-    transition:slide={{ duration: 500 }}
+    class="bg-neutral-900 border border-purple-400 p-6 rounded-xl text-center w-full max-w-sm flex-grow"
 >
-    <h1 class="text-xl font-bold mb-3">{name}</h1>
-    <NumberFlowGroup
-        style="--number-flow-char-height: 0.85em"
-        class="flex items-center gap-4 font-semibold"
-    >
+    <h1 class="text-3xl font-extrabold mb-10 leading-tight">{name}</h1>
+    <NumberFlowGroup class="flex gap-4 font-extrabold">
         <NumberFlow
             value={number}
             format={{
@@ -23,9 +18,9 @@
                 maximumFractionDigits: 0,
             }}
             locales={"it-IT"}
-            class="text-3xl"
+            class="text-5xl font-extrabold"
         />
-
+        <br />
         {#if dif}
             <NumberFlow
                 value={dif}
@@ -35,8 +30,9 @@
                     signDisplay: "always",
                     maximumFractionDigits: 0,
                 }}
-                class="text-lg transition-colors duration-300 text-red-500"
+                class="text-lg transition-colors duration-300 text-red-500 font-bold"
             />
+            <span class="text-xs">vs costo casa</span>
         {/if}
     </NumberFlowGroup>
 </div>
