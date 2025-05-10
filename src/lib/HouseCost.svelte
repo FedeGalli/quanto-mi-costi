@@ -2,7 +2,6 @@
     import { onMount, tick } from "svelte";
     import Chart from "chart.js/auto";
     import { fade, slide } from "svelte/transition";
-    import NumberFlow from "@number-flow/svelte";
     import Check from "../assets/Check.svelte";
     import NavBar from "../assets/NavBar.svelte";
     import DetailTile from "../assets/DetailTile.svelte";
@@ -14,15 +13,6 @@
     import TooltipAgency from "../assets/TooltipAgency.svelte";
     import TooltipMortgage from "../assets/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
-
-    // Define types for the house cost breakdown
-    type CostItem = {
-        name: string;
-        category: string;
-        value: number;
-        estimate: boolean;
-        info: string;
-    };
 
     let selectedTab = "summary";
     let prevSelectedTab = "";
@@ -54,10 +44,16 @@
 
     // Define category colors
     const categoryColors: Record<string, string> = {
-        Tax: "rgba(255, 99, 132, 0.6)",
-        Agency: "rgba(54, 162, 235, 0.6)",
-        Notary: "rgba(201, 200, 115, 0.6)",
-        Bank: "rgba(66, 245, 126, 0.6)",
+        Tax: "rgba(133, 81, 182, 1)",
+        Agency: "rgba(249, 166, 0, 1)",
+        Notary: "rgba(98, 182, 170, 1)",
+        Bank: "rgba(76, 51, 141, 1)",
+    };
+    const categoryBorderColors: Record<string, string> = {
+        Tax: "rgba(76, 51, 141, 1)",
+        Agency: "rgba(249, 166, 0, 1)",
+        Notary: "rgba(98, 182, 170, 1)",
+        Bank: "rgba(76, 51, 141, 1)",
     };
 
     // Step 1: Group data by category and sum values
@@ -71,7 +67,7 @@
     ) {
         prevSelectedTab = selectedTab;
         tick().then(() => {
-            initializeBarChart();
+            initializeDoughnutChart();
             updateData();
         });
     }
@@ -91,10 +87,10 @@
     $: if (selectedTab == "base") {
         prevSelectedTab = selectedTab;
     }
+
     onMount(() => {});
 
     function buildApiString(): string {
-        console.log(house_price);
         let apiStringUrl: string =
             "http://localhost:8080/get_house_prices?house_price=" +
             (house_price != null ? house_price : 0);
@@ -160,7 +156,6 @@
                     }
                 }
             });
-
             groupedData = {};
             totalAmount = 0;
 
@@ -176,12 +171,12 @@
                     totalAmount += item.value;
                 }
             });
-            updateBarChart();
+            updateDoughnutChart();
             updateInterestsBarChart();
         });
     }
 
-    async function initializeBarChart() {
+    async function initializeDoughnutChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
 
@@ -198,43 +193,29 @@
                 barChartInstance.destroy();
             }
 
+            const categories = Object.keys(groupedData);
+            const values = Object.values(groupedData);
+
             // Step 4: Create the stacked bar chart
             barChartInstance = new Chart(ctx2D, {
-                type: "bar",
+                type: "doughnut",
                 data: {
-                    labels: ["Total Costs"],
-                    datasets: [],
+                    labels: categories,
+                    datasets: [
+                        {
+                            label: "Costo",
+                            data: values,
+                            backgroundColor: categories.map(
+                                (cat) =>
+                                    categoryColors[cat] ||
+                                    "rgba(200, 200, 200, 0.6)",
+                            ), // fallback color
+                            borderWidth: 1,
+                        },
+                    ],
                 },
                 options: {
-                    indexAxis: "x",
                     responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: { display: false },
-                            ticks: {
-                                color: "white",
-                                font: {
-                                    weight: "bold",
-                                },
-                            },
-                        },
-                        y: {
-                            stacked: true,
-                            grid: { display: false },
-                            afterBuildTicks: function (axis) {
-                                const ticks = [0];
-                                axis.ticks = ticks.map((v) => ({ value: v }));
-                            },
-                            ticks: {
-                                color: "white",
-                                font: {
-                                    weight: "bold",
-                                },
-                            },
-                        },
-                    },
                     plugins: {
                         legend: {
                             position: "bottom",
@@ -249,6 +230,22 @@
                         tooltip: {
                             mode: "index",
                             intersect: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.dataset.label || "";
+                                    const value = context.parsed;
+                                    const formatted = new Intl.NumberFormat(
+                                        "it-IT",
+                                        {
+                                            style: "currency",
+                                            currency: "EUR",
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        },
+                                    ).format(value);
+                                    return `${label}: ${formatted}`;
+                                },
+                            },
                         },
                     },
                 },
@@ -280,15 +277,15 @@
                         {
                             label: "Interests",
                             data: [],
-                            backgroundColor: ["rgba(255, 99, 132, 0.5)"],
-                            borderColor: ["rgba(255, 99, 132, 1)"],
+                            backgroundColor: ["rgba(133, 81, 182, 1)"],
+                            borderColor: ["rgba(133, 81, 182, 1)"],
                             borderWidth: 1,
                         },
                         {
                             label: "Capital",
                             data: [],
-                            backgroundColor: ["rgba(32, 128, 212, 0.5)"],
-                            borderColor: ["rgba(32, 128, 212, 1)"],
+                            backgroundColor: ["rgba(249, 166, 0, 1)"],
+                            borderColor: ["rgba(249, 166, 0, 1)"],
                             borderWidth: 1,
                         },
                     ],
@@ -298,11 +295,29 @@
                         y: {
                             stacked: true,
                             beginAtZero: true,
+                            min: 0,
+                            max: mortgageInstallment * 12,
                             ticks: {
+                                stepSize: mortgageInstallment * 12,
                                 color: "white",
                                 font: {
                                     weight: "bold",
                                 },
+                                callback: function (value) {
+                                    // Only show the max value
+                                    if (value === mortgageInstallment * 12) {
+                                        return new Intl.NumberFormat("it-IT", {
+                                            style: "currency",
+                                            currency: "EUR",
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        }).format(value);
+                                    }
+                                    return "";
+                                },
+                            },
+                            grid: {
+                                display: false,
                             },
                         },
                         x: {
@@ -312,6 +327,9 @@
                                 font: {
                                     weight: "bold",
                                 },
+                            },
+                            grid: {
+                                display: false,
                             },
                         },
                     },
@@ -328,6 +346,22 @@
                         tooltip: {
                             mode: "index",
                             intersect: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.dataset.label || "";
+                                    const value = context.parsed.y;
+                                    const formatted = new Intl.NumberFormat(
+                                        "it-IT",
+                                        {
+                                            style: "currency",
+                                            currency: "EUR",
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        },
+                                    ).format(value);
+                                    return `${label}: ${formatted}`;
+                                },
+                            },
                         },
                     },
                 },
@@ -335,42 +369,22 @@
         }
     }
 
-    function updateBarChart() {
+    function updateDoughnutChart() {
         if (!barChartInstance) return; // Ensure the chart exists
 
         // Step 2: Convert grouped data into datasets
         const categories = Object.keys(groupedData);
         const values = Object.values(groupedData);
 
-        const datasets = categories.map((category, index) => ({
-            label: category,
-            data: [values[index]], // Single bar with stacked values
-            backgroundColor:
-                categoryColors[category] || "rgba(100, 100, 100, 0.6)",
-            borderColor:
-                categoryColors[category]?.replace("0.6", "1") ||
-                "rgba(100, 100, 100, 1)",
-            borderWidth: 1,
-        }));
-        barChartInstance.data.datasets = datasets; // Update dataset (values and colors)
+        barChartInstance.data.labels = categories;
 
-        let tickList: number[] = [];
-        tickList[0] = values[0];
-
-        values.forEach((item, i) => {
-            if (i != 0) tickList[i] = item + tickList[i - 1];
-        });
-
-        //adjusting the max bar size to the maximum
-        const max = Math.round(totalAmount);
-
-        barChartInstance!.options!.scales!.y!.max = max;
-        barChartInstance!.options!.scales!.y!.afterBuildTicks = function (
-            axis,
-        ) {
-            const ticks = tickList;
-            axis.ticks = ticks.map((v) => ({ value: v }));
-        };
+        barChartInstance.data.datasets[0].data = values; // Update dataset (values and colors)
+        barChartInstance.data.datasets[0].backgroundColor = categories.map(
+            (cat) => categoryColors[cat] || "rgba(200, 200, 200, 0.6)", // fallback
+        );
+        barChartInstance.data.datasets[0].borderColor = categories.map(
+            (cat) => categoryBorderColors[cat] || "rgba(200, 200, 200, 0.6)", // fallback
+        );
         barChartInstance.update(); // Smoothly update the chart
     }
 
@@ -416,21 +430,28 @@
             {
                 label: "Interests",
                 data: interestsData,
-                backgroundColor: ["rgba(255, 99, 132, 0.5)"],
-                borderColor: ["rgba(255, 99, 132, 1)"],
+                backgroundColor: ["rgba(249, 166, 0, 0.9)"],
+                borderColor: ["rgba(249, 166, 0, 1)"],
                 borderWidth: 1,
             },
             {
                 label: "Capital",
                 data: capitalData,
-                backgroundColor: ["rgba(32, 128, 212, 0.5)"],
-                borderColor: ["rgba(32, 128, 212, 1)"],
+                backgroundColor: ["rgba(133, 81, 182, 0.9)"],
+                borderColor: ["rgba(133, 81, 182, 1)"],
                 borderWidth: 1,
             },
         ];
 
         interestsBarChart.update(); // Smoothly update the chart
     }
+
+    //added to upscale chart in case of window-resizing
+    window.addEventListener("resize", () => {
+        if (barChartInstance) {
+            barChartInstance.resize(); // Force the chart to resize
+        }
+    });
 </script>
 
 <div
@@ -456,7 +477,7 @@
             </p>
 
             <div class="flex flex-col gap-2 md:max-w-[200px]">
-                <h1 class="text-base font-bold leading-tight">House Price:</h1>
+                <h1 class="text-base font-bold leading-tight">Costo casa:</h1>
                 <div class="relative">
                     <input
                         type="number"
@@ -683,156 +704,110 @@
                 class:translate-y-0={showCosts}
                 class:pointer-events-none={!showCosts}
             >
-                <div class="max-w-4xl mx-auto">
+                <div class="max-w-6xl mx-auto">
                     <!-- Costs & Chart Section -->
                     {#if showCosts}
                         <div transition:fade={{ duration: 500 }}>
-                            <NavBar bind:selectedTab />
+                            <NavBar bind:selectedTab {is_using_mortgage} />
                             {#if selectedTab == "summary"}
-                                <!-- Entire summary section -->
-                                <section
-                                    class="flex flex-col w-full gap-6"
-                                    transition:slide={{ duration: 500 }}
-                                >
-                                    <!-- Main Chart + Cost Breakdown Side-by-Side -->
+                                <!-- Main Chart + Cost Breakdown Side-by-Side -->
+                                <div transition:fade={{ duration: 500 }}>
                                     <div
-                                        class="flex flex-row gap-6 justify-center items-stretch"
-                                        transition:fade={{ duration: 500 }}
+                                        class="flex flex-wrap gap-8 justify-center items-center w-full h-full"
+                                        transition:slide={{ duration: 500 }}
                                     >
                                         <!-- Chart -->
                                         <div
-                                            class="border p-6 rounded-lg shadow flex items-center justify-center flex-[1]"
-                                            transition:slide={{
-                                                duration: 500,
-                                            }}
+                                            class="flex justify-center w-full max-w-70 h-[150px] sm:h-[200px] md:h-[250px] lg:h-[300px]"
                                         >
-                                            <canvas
-                                                id="barChart"
-                                                class="w-full h-full"
-                                            ></canvas>
+                                            <canvas id="barChart"></canvas>
                                         </div>
-
-                                        <!-- Cost Breakdown Column -->
-                                        <div
-                                            class="flex flex-col flex-[2] max-w-lg w-full relative gap-6"
-                                        >
-                                            <!-- Total (Main) Price -->
-                                            <TotalPriceTile
-                                                number={totalAmount +
-                                                    house_price}
-                                                dif={totalAmount}
-                                                name={"💸 Final Total Price"}
-                                            />
-
-                                            <!-- Subtiles Container with Vertical Line -->
-                                            <div
-                                                class="relative ml-15 space-y-6"
-                                            >
-                                                <SummaryDeltaPriceTile
-                                                    name={"🇮🇹 Taxes"}
-                                                    number={groupedData["Tax"]}
-                                                    showVal={house_price != 0}
-                                                    delta={groupedData["Tax"] /
-                                                        house_price}
-                                                />
-                                                <SummaryDeltaPriceTile
-                                                    name={"📜 Notary"}
-                                                    number={groupedData[
-                                                        "Notary"
-                                                    ]}
-                                                    showVal={house_price != 0}
-                                                    delta={groupedData[
-                                                        "Notary"
-                                                    ] / house_price}
-                                                />
-
-                                                {#if is_sold_by_agency}
-                                                    <!-- Agency -->
-                                                    <SummaryDeltaPriceTile
-                                                        name={"🏘️ Agency"}
-                                                        number={groupedData[
-                                                            "Agency"
-                                                        ]}
-                                                        showVal={house_price >
-                                                            0 &&
-                                                            groupedData[
-                                                                "Agency"
-                                                            ] != null}
-                                                        delta={groupedData[
-                                                            "Agency"
-                                                        ] / house_price}
-                                                    />
-                                                {/if}
-
-                                                {#if is_using_mortgage}
-                                                    <!-- Bank Costs -->
-                                                    <SummaryDeltaPriceTile
-                                                        name={"🏦 Bank"}
-                                                        number={groupedData[
-                                                            "Bank"
-                                                        ]}
-                                                        showVal={groupedData[
-                                                            "Bank"
-                                                        ] != null}
-                                                        delta={groupedData[
-                                                            "Bank"
-                                                        ] / house_price}
-                                                    />
-                                                {/if}
-                                            </div>
-                                        </div>
+                                        <!-- Total (Main) Price -->
+                                        <TotalPriceTile
+                                            number={totalAmount + house_price}
+                                            dif={totalAmount}
+                                            name={"💰 Spesa totale"}
+                                        />
                                     </div>
-                                </section>
+
+                                    <div
+                                        class="flex flex-wrap gap-4 mt-8 w-full"
+                                        transition:slide={{ duration: 500 }}
+                                    >
+                                        <SummaryDeltaPriceTile
+                                            name={"🇮🇹 Tasse"}
+                                            number={groupedData["Tax"]}
+                                            showVal={house_price != 0}
+                                            delta={groupedData["Tax"] /
+                                                house_price}
+                                        />
+                                        <!-- Subtiles Container with Vertical Line -->
+
+                                        <SummaryDeltaPriceTile
+                                            name={"📜 Notaio"}
+                                            number={groupedData["Notary"]}
+                                            showVal={house_price != 0}
+                                            delta={groupedData["Notary"] /
+                                                house_price}
+                                        />
+                                        {#if is_sold_by_agency}
+                                            <!-- Agency -->
+                                            <SummaryDeltaPriceTile
+                                                name={"🏘️ Agenzia"}
+                                                number={groupedData["Agency"]}
+                                                showVal={house_price > 0 &&
+                                                    groupedData["Agency"] !=
+                                                        null}
+                                                delta={groupedData["Agency"] /
+                                                    house_price}
+                                            />
+                                        {/if}
+                                        {#if is_using_mortgage}
+                                            <!-- Bank Costs -->
+                                            <SummaryDeltaPriceTile
+                                                name={"🏦 Banca"}
+                                                number={groupedData["Bank"]}
+                                                showVal={groupedData["Bank"] !=
+                                                    null}
+                                                delta={groupedData["Bank"] /
+                                                    house_price}
+                                            />
+                                        {/if}
+                                    </div>
+                                </div>
                             {/if}
                             {#if selectedTab == "base"}
-                                <div
-                                    class="flex flex-wrap gap-6"
-                                    transition:slide={{ duration: 500 }}
-                                >
+                                <div transition:fade={{ duration: 500 }}>
                                     <div
-                                        class="w-full md:w-[48%] mb-6"
+                                        class="flex flex-wrap gap-1"
                                         transition:slide={{ duration: 500 }}
                                     >
                                         <DetailTile
-                                            data={dataByCategory["Tax"]}
+                                            data={dataByCategory}
+                                            element={"Tax"}
                                             title={"🇮🇹 Taxes"}
                                         />
-                                    </div>
-                                    <div
-                                        class="w-full md:w-[48%] mb-6"
-                                        transition:slide={{ duration: 500 }}
-                                    >
                                         <DetailTile
-                                            data={dataByCategory["Notary"]}
+                                            data={dataByCategory}
+                                            element={"Notary"}
                                             title={"📜 Notary"}
                                         />
-                                    </div>
-                                    {#if "Agency" in dataByCategory}
-                                        <div
-                                            class="w-full md:w-[48%] mb-6"
-                                            transition:slide={{
-                                                duration: 500,
-                                            }}
-                                        >
+
+                                        {#if "Agency" in dataByCategory}
                                             <DetailTile
-                                                data={dataByCategory["Agency"]}
+                                                data={dataByCategory}
+                                                element={"Agency"}
                                                 title={"🏘️ Agency"}
                                             />
-                                        </div>
-                                    {/if}
-                                    {#if "Bank" in dataByCategory}
-                                        <div
-                                            class="w-full md:w-[48%] mb-6"
-                                            transition:slide={{
-                                                duration: 500,
-                                            }}
-                                        >
+                                        {/if}
+                                        {#if "Bank" in dataByCategory}
                                             <DetailTile
-                                                data={dataByCategory["Bank"]}
+                                                data={dataByCategory}
+                                                element={"Bank"}
                                                 title={"🏦 Bank"}
                                             />
-                                        </div>
-                                    {/if}
+                                        {/if}
+                                    </div>
                                 </div>
                             {/if}
                             {#if selectedTab == "mortgage"}
@@ -854,10 +829,12 @@
                                                     duration: 500,
                                                 }}
                                             >
-                                                <TotalPriceTile
+                                                <SummaryDeltaPriceTile
                                                     number={mortgageInstallment}
-                                                    name={"Monthly installment"}
-                                                    dif={0}
+                                                    name={"Rata mutuo"}
+                                                    showVal={mortgageInstallment !=
+                                                        null}
+                                                    delta={null}
                                                 />
                                             </div>
                                             <div
@@ -883,7 +860,7 @@
                                         </div>
                                         <!-- Chart -->
                                         <div
-                                            class="border p-6 rounded-lg mt-6 shadow flex items-center justify-center"
+                                            class="flex items-center justify-center"
                                             transition:slide={{
                                                 duration: 500,
                                             }}
@@ -910,18 +887,4 @@
 </div>
 
 <style>
-    .btn {
-        background-color: rgba(54, 158, 82, 0.8);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s;
-    }
-
-    .btn:hover {
-        background-color: rgba(54, 158, 82, 1);
-    }
 </style>
