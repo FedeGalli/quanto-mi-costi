@@ -11,7 +11,7 @@
         type="button"
     >
         📊
-        <span><h1 class="text-xs font-bold leading-tight">Summary</h1></span>
+        <span><h1 class="text-xs font-bold leading-tight">Riepilogo</h1></span>
     </button>
     <button
         class="tab {selectedTab === 'base' ? 'active' : ''}"
@@ -19,7 +19,7 @@
         type="button"
     >
         📦
-        <span><h1 class="text-xs font-bold leading-tight">Base Costs</h1></span>
+        <span><h1 class="text-xs font-bold leading-tight">Costi Base</h1></span>
     </button>
 
     {#if is_using_mortgage}
@@ -30,9 +30,7 @@
             transition:slide={{ duration: 500 }}
         >
             💰
-            <span
-                ><h1 class="text-xs font-bold leading-tight">Mortgage</h1></span
-            >
+            <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
         </button>
     {/if}
 </div>
