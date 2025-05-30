@@ -14,7 +14,7 @@
     import TooltipMortgage from "../assets/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
     import type { fa3 } from "@fortawesome/free-solid-svg-icons";
-    import ColoredSummaryPrice from "../assets/coloredSummaryPrice.svelte";
+    import ColoredSummaryPrice from "../assets/ColoredSummaryPrice.svelte";
 
     let selectedTab = "summary";
     let prevSelectedTab = "";
