@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { fade, slide } from "svelte/transition";
+    import { slide } from "svelte/transition";
     export let selectedTab = "summary";
     export let is_using_mortgage;
 </script>
@@ -31,6 +31,20 @@
         >
             💰
             <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
+        </button>
+
+        <button
+            class="tab {selectedTab === 'mortgage_compare' ? 'active' : ''}"
+            on:click={() => (selectedTab = "mortgage_compare")}
+            type="button"
+            transition:slide={{ duration: 500 }}
+        >
+            ⚖️
+            <span
+                ><h1 class="text-xs font-bold leading-tight">
+                    Comparatore
+                </h1></span
+            >
         </button>
     {/if}
 </div>

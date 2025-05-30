@@ -13,6 +13,8 @@
     import TooltipAgency from "../assets/TooltipAgency.svelte";
     import TooltipMortgage from "../assets/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
+    import type { fa3 } from "@fortawesome/free-solid-svg-icons";
+    import ColoredSummaryPrice from "../assets/coloredSummaryPrice.svelte";
 
     let selectedTab = "summary";
     let prevSelectedTab = "";
@@ -32,7 +34,7 @@
 
     //mortgage variable section
     let taeg: number = 0;
-    let mortgageDuration: number = 0;
+    let mortgage_duration: number = 0;
     let mortgage_amount: number = 0;
     let displayed_mortgage_amount: number = 1000;
     let interestsVal: number = 0;
@@ -44,17 +46,22 @@
     let totalAmount: number = 0;
     let doughnutChartInstance: Chart | null = null; // Store chart instance globally
     let interestsBarChartInstance: Chart | null = null; // Store chart instance globally
+    let lineChartInstance: Chart | null = null;
     let dataByCategory: any = {};
+
+    let wealth: number[] = [];
+    let yearlySaving: number = 20000;
+    let yearlyGrowthgRate: number = 3;
 
     // Define category colors
     const categoryColors: Record<string, string> = {
-        Tax: "rgba(133, 81, 182, 1)",
-        Agency: "rgba(249, 166, 0, 1)",
-        Notary: "rgba(98, 182, 170, 1)",
-        Bank: "rgba(76, 51, 141, 1)",
+        Tax: "rgba(133, 81, 182, 0.7)",
+        Agency: "rgba(249, 166, 0, 0.7)",
+        Notary: "rgba(98, 182, 170, 0.7)",
+        Bank: "rgba(76, 51, 141, 0.7)",
     };
     const categoryBorderColors: Record<string, string> = {
-        Tax: "rgba(76, 51, 141, 1)",
+        Tax: "rgba(133, 81, 182, 1)",
         Agency: "rgba(249, 166, 0, 1)",
         Notary: "rgba(98, 182, 170, 1)",
         Bank: "rgba(76, 51, 141, 1)",
@@ -98,21 +105,36 @@
         });
     }
 
+    $: if (
+        selectedTab == "mortgage_compare" &&
+        prevSelectedTab != "mortgage_compare" &&
+        showCosts
+    ) {
+        prevSelectedTab = selectedTab;
+        tick().then(() => {
+            initializeLineChart();
+            updatePremiumData();
+        });
+    }
+
     $: if (selectedTab == "base") {
         prevSelectedTab = selectedTab;
     }
 
-    $: if (selectedTab == "mortgage" && !is_using_mortgage) {
+    $: if (
+        (selectedTab == "mortgage" || selectedTab == "mortgage_compare") &&
+        !is_using_mortgage
+    ) {
         prevSelectedTab = selectedTab;
         selectedTab = "summary";
     }
 
-    $: if (mortgageDuration < 0) {
-        mortgageDuration = 0;
+    $: if (mortgage_duration < 0) {
+        mortgage_duration = 0;
     }
 
-    $: if (mortgageDuration > 50) {
-        mortgageDuration = 50;
+    $: if (mortgage_duration > 50) {
+        mortgage_duration = 50;
     }
 
     $: if (taeg < 0) {
@@ -138,6 +160,19 @@
         house_price = 1500000;
     }
 
+    $: if (yearlySaving > 200000) {
+        yearlySaving = 200000;
+    }
+    $: if (yearlySaving < 0) {
+        yearlySaving = 0;
+    }
+    $: if (yearlyGrowthgRate > 50) {
+        yearlySaving = 50;
+    }
+    $: if (yearlyGrowthgRate < -10) {
+        yearlySaving = -10;
+    }
+
     onMount(() => {});
 
     function buildApiString(): string {
@@ -161,7 +196,7 @@
                 "&mortgage_amount=" +
                 (mortgage_amount != null ? mortgage_amount : 0) +
                 "&mortgage_duration=" +
-                (mortgageDuration != null ? mortgageDuration : 0) +
+                (mortgage_duration != null ? mortgage_duration : 0) +
                 "&mortgage_TAEG=" +
                 (taeg != null ? taeg / 100 : 0);
 
@@ -235,6 +270,72 @@
         });
     }
 
+    async function updatePremiumData() {
+        let chartData: any = [];
+
+        const apiStringUrl: string = buildApiString();
+        let responseCode: string = "200";
+
+        const apiCall = async () => {
+            try {
+                const response = await fetch(apiStringUrl);
+
+                if (!response.ok || response.status == 429) {
+                    throw new Error(`${response.status}`);
+                }
+                chartData = await response.json();
+                chartData = chartData["data"];
+            } catch (error: any) {
+                responseCode = error.message;
+            }
+        };
+
+        apiCall().then(() => {
+            if (responseCode == "200") {
+                dataByCategory = {};
+
+                chartData.forEach((item: any) => {
+                    if (item.category == "Installment") {
+                        mortgageInstallment = item.value;
+                    }
+                    if (item.category == "House price") {
+                        displayed_house_price = item.value;
+                    }
+                    item.value = Math.round(item.value);
+
+                    //remove 0 values
+                    if (item.value > 0) {
+                        if (item.category in dataByCategory) {
+                            dataByCategory[item.category].push(item);
+                        } else {
+                            dataByCategory[item.category] = [item];
+                        }
+                    }
+                });
+                groupedData = {};
+                totalAmount = 0;
+
+                chartData.forEach((item: any) => {
+                    if (
+                        item.value > 0 &&
+                        item.category != "House price" &&
+                        item.category != "Installment"
+                    ) {
+                        groupedData[item.category] =
+                            (groupedData[item.category] || 0) +
+                            Math.round(item.value);
+                        totalAmount += item.value;
+                    }
+                });
+                updateLineChart();
+            } else if (responseCode == "429") {
+                showRateLimitPopup = true;
+            } else {
+                showErrorPopup = true;
+            }
+        });
+    }
+
     async function initializeDoughnutChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
@@ -267,9 +368,14 @@
                             backgroundColor: categories.map(
                                 (cat) =>
                                     categoryColors[cat] ||
-                                    "rgba(200, 200, 200, 0.6)",
+                                    "rgba(200, 200, 200, 1)",
                             ), // fallback color
-                            borderWidth: 1,
+                            borderColor: categories.map(
+                                (cat) =>
+                                    categoryBorderColors[cat] ||
+                                    "rgba(200, 200, 200, 0.6)",
+                            ),
+                            borderWidth: 2,
                         },
                     ],
                 },
@@ -337,16 +443,16 @@
                         {
                             label: "Interests",
                             data: [],
-                            backgroundColor: ["rgba(133, 81, 182, 1)"],
+                            backgroundColor: ["rgba(133, 81, 182, 0.7)"],
                             borderColor: ["rgba(133, 81, 182, 1)"],
-                            borderWidth: 1,
+                            borderWidth: 2,
                         },
                         {
                             label: "Capital",
                             data: [],
-                            backgroundColor: ["rgba(249, 166, 0, 1)"],
+                            backgroundColor: ["rgba(249, 166, 0, 0.7)"],
                             borderColor: ["rgba(249, 166, 0, 1)"],
-                            borderWidth: 1,
+                            borderWidth: 2,
                         },
                     ],
                 },
@@ -440,6 +546,187 @@
         }
     }
 
+    function simulateSavings(
+        yearlyIncome: number[],
+        installment: number,
+        duration: number,
+        taeg: number,
+        yearlyGrowthgRate: number,
+    ): number[] {
+        let savings = 0;
+        const savingsOverTime: number[] = [];
+        let houseSaving = house_price - mortgage_amount;
+        let totalMortgageAmount = mortgage_amount;
+
+        yearlyGrowthgRate = yearlyGrowthgRate / 100;
+        taeg = taeg / 100;
+
+        for (let year = 0; year < yearlyIncome.length; year++) {
+            let leftover = 0;
+            if (year < duration) {
+                leftover = yearlyIncome[year] - installment;
+                houseSaving += installment - totalMortgageAmount * taeg;
+                totalMortgageAmount -= installment - totalMortgageAmount * taeg;
+            } else {
+                leftover = yearlyIncome[year];
+            }
+
+            savings =
+                savings + leftover >= 0
+                    ? (savings + leftover) * (1 + yearlyGrowthgRate)
+                    : savings + leftover;
+            savingsOverTime.push(Math.round(savings + houseSaving));
+        }
+
+        return savingsOverTime;
+    }
+
+    function calculateYearlyInstallment(
+        amount: number,
+        duration: number,
+        TAEG: number,
+    ): number {
+        if (amount === 0 || duration === 0 || TAEG === 0) {
+            return 0;
+        }
+
+        const monthlyRate = TAEG / 12 / 100;
+        const numberOfPayments = duration * 12;
+        const numerator =
+            amount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments);
+        const denominator = Math.pow(1 + monthlyRate, numberOfPayments) - 1;
+
+        return (numerator / denominator) * 12;
+    }
+
+    async function initializeLineChart() {
+        if (showCosts) {
+            await tick(); // Wait for DOM update before selecting the canvas
+            const ctx = document.getElementById(
+                "lineChart",
+            ) as HTMLCanvasElement | null;
+            if (!ctx) return; // Ensure ctx exists before using it
+            const ctx2D = ctx.getContext("2d");
+            if (!ctx2D) return; // Ensure context is available
+
+            // Step 3: Destroy previous chart instance
+            if (lineChartInstance) {
+                lineChartInstance.destroy();
+            }
+
+            if (mortgage_amount == 0 || taeg == 0) {
+            }
+
+            const durations: number[] = [10, 20, 30];
+            const years = 30;
+
+            // Simulated monthly income – replace this with your actual array if dynamic
+            const yearlyIncome = Array.from(
+                { length: years },
+                (_, i) => yearlySaving,
+            );
+
+            // Example mortgage installments – adjust based on your input logic
+            const installments: { [key: number]: number } = {
+                [durations[0]]: calculateYearlyInstallment(
+                    mortgage_amount,
+                    durations[0],
+                    taeg,
+                ),
+                [durations[1]]: calculateYearlyInstallment(
+                    mortgage_amount,
+                    durations[1],
+                    taeg,
+                ),
+                [durations[2]]: calculateYearlyInstallment(
+                    mortgage_amount,
+                    durations[2],
+                    taeg,
+                ),
+            };
+
+            const datasets = durations.map((duration, idx) => {
+                const data = simulateSavings(
+                    yearlyIncome,
+                    installments[duration],
+                    duration,
+                    taeg,
+                    yearlyGrowthgRate,
+                );
+                return {
+                    label: `${duration}-year mortgage`,
+                    data,
+                    borderColor: [
+                        "rgba(98, 182, 170, 1)",
+                        "rgba(133, 81, 182, 1)",
+                        "rgba(249, 166, 0, 1)",
+                    ][idx],
+                    backgroundColor: [
+                        "rgba(98, 182, 170, 0.7)",
+                        "rgba(133, 81, 182, 0.7)",
+                        "rgba(249, 166, 0, 0.7)",
+                    ][idx],
+                    pointRadius: 1, // <<< smaller dots
+                    pointHoverRadius: 4, // <<< slightly bigger on hover
+                    tension: 0.3,
+                };
+            });
+
+            wealth[0] = datasets[0].data[datasets[0].data.length - 1];
+            wealth[1] = datasets[1].data[datasets[1].data.length - 1];
+            wealth[2] = datasets[2].data[datasets[2].data.length - 1];
+
+            lineChartInstance = new Chart(ctx2D, {
+                type: "line",
+                data: {
+                    labels: Array.from(
+                        { length: years },
+                        (_, i) => `Month ${i + 1}`,
+                    ),
+                    datasets,
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Patrimonio Posseduto (€)",
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                callback: function (value, index, ticks) {
+                                    if ((index + 1) % 2 === 0) {
+                                        return this.getLabelForValue(
+                                            value as number,
+                                        );
+                                    }
+                                    // Show every Nth tick if needed or return ''
+                                    return "";
+                                },
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "bottom",
+                            labels: {
+                                color: "white",
+                                font: {
+                                    weight: "bold",
+                                    lineHeight: 1.25,
+                                },
+                                padding: 20,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+    }
+
     function updateDoughnutChart() {
         if (!doughnutChartInstance) return; // Ensure the chart exists
 
@@ -471,7 +758,7 @@
         let capitalSum = 0;
 
         if (is_using_mortgage) {
-            for (let i = 1; i <= mortgageDuration * 12; i++) {
+            for (let i = 1; i <= mortgage_duration * 12; i++) {
                 let interests: number = 0;
                 let capital: number = 0;
 
@@ -501,16 +788,16 @@
             {
                 label: "Interessi",
                 data: interestsData,
-                backgroundColor: ["rgba(249, 166, 0, 0.9)"],
+                backgroundColor: ["rgba(249, 166, 0, 0.7)"],
                 borderColor: ["rgba(249, 166, 0, 1)"],
-                borderWidth: 1,
+                borderWidth: 2,
             },
             {
                 label: "Capitale",
                 data: capitalData,
-                backgroundColor: ["rgba(133, 81, 182, 0.9)"],
+                backgroundColor: ["rgba(133, 81, 182, 0.7)"],
                 borderColor: ["rgba(133, 81, 182, 1)"],
-                borderWidth: 1,
+                borderWidth: 2,
             },
         ];
         interestsBarChartInstance.options!.scales!.y!.max =
@@ -529,6 +816,79 @@
                 return "";
             };
         interestsBarChartInstance.update(); // Smoothly update the chart
+    }
+
+    function updateLineChart() {
+        if (!lineChartInstance) return;
+
+        const durations: number[] = [10, 20, 30];
+        const years = 30;
+
+        // Simulated monthly income – replace this with your actual array if dynamic
+        const yearlyIncome = Array.from(
+            { length: years },
+            (_, i) => yearlySaving,
+        );
+
+        // Example mortgage installments – adjust based on your input logic
+        const installments: { [key: number]: number } = {
+            [durations[0]]: calculateYearlyInstallment(
+                mortgage_amount,
+                durations[0],
+                taeg,
+            ),
+            [durations[1]]: calculateYearlyInstallment(
+                mortgage_amount,
+                durations[1],
+                taeg,
+            ),
+            [durations[2]]: calculateYearlyInstallment(
+                mortgage_amount,
+                durations[2],
+                taeg,
+            ),
+        };
+
+        const updatedDatasets = durations.map((duration, idx) => {
+            const data = simulateSavings(
+                yearlyIncome,
+                installments[duration],
+                duration,
+                taeg,
+                yearlyGrowthgRate,
+            );
+
+            console.log(data);
+
+            return {
+                label: `Mutuo ${duration}-anni`,
+                data,
+                borderColor: [
+                    "rgba(98, 182, 170, 1)",
+                    "rgba(133, 81, 182, 1)",
+                    "rgba(249, 166, 0, 1)",
+                ][idx],
+                backgroundColor: [
+                    "rgba(98, 182, 170, 0.7)",
+                    "rgba(133, 81, 182, 0.7)",
+                    "rgba(249, 166, 0, 0.7)",
+                ][idx],
+                pointRadius: 2, // <<< smaller dots
+                pointHoverRadius: 4, // <<< slightly bigger on hover
+                tension: 0.3,
+            };
+        });
+
+        wealth[0] = updatedDatasets[0].data[updatedDatasets[0].data.length - 1];
+        wealth[1] = updatedDatasets[1].data[updatedDatasets[1].data.length - 1];
+        wealth[2] = updatedDatasets[2].data[updatedDatasets[2].data.length - 1];
+
+        lineChartInstance.data.labels = Array.from(
+            { length: years },
+            (_, i) => `${i + 1}`,
+        );
+        lineChartInstance.data.datasets = updatedDatasets;
+        lineChartInstance.update();
     }
 </script>
 
@@ -572,7 +932,7 @@
             </h1>
             <p class="text-gray-400 text-[0.8rem] mt-2 mb-2">
                 Il prezzo finale mostrato indica il costo totale il giorno del
-                rogito. Per spese variabili come il notaio/banca è stata fatta
+                rogito. *Per spese variabili come il notaio/banca è stata fatta
                 una stima veritiera su tutte le voci di costo.
             </p>
             <div class="space-y-4">
@@ -698,7 +1058,10 @@
                                         step="5000"
                                         bind:value={mortgage_amount}
                                         on:change={showCosts
-                                            ? updateData
+                                            ? () => {
+                                                  updateData();
+                                                  updatePremiumData();
+                                              }
                                             : () => {}}
                                     />
                                     <!-- Separator Line -->
@@ -725,7 +1088,7 @@
                                         type="number"
                                         class="w-full border border-white rounded px-4 pr-10 py-1 text-left font-medium text-white"
                                         min="0"
-                                        bind:value={mortgageDuration}
+                                        bind:value={mortgage_duration}
                                         on:change={showCosts
                                             ? updateData
                                             : () => {}}
@@ -757,7 +1120,10 @@
                                         step="0.1"
                                         bind:value={taeg}
                                         on:change={showCosts
-                                            ? updateData
+                                            ? () => {
+                                                  updateData();
+                                                  updatePremiumData();
+                                              }
                                             : () => {}}
                                     />
                                     <!-- Separator Line -->
@@ -890,26 +1256,26 @@
                                         <DetailTile
                                             data={dataByCategory}
                                             element={"Tax"}
-                                            title={"🇮🇹 Taxes"}
+                                            title={"🇮🇹 Tasse"}
                                         />
                                         <DetailTile
                                             data={dataByCategory}
                                             element={"Notary"}
-                                            title={"📜 Notary"}
+                                            title={"📜 Notaio"}
                                         />
 
                                         {#if "Agency" in dataByCategory}
                                             <DetailTile
                                                 data={dataByCategory}
                                                 element={"Agency"}
-                                                title={"🏘️ Agency"}
+                                                title={"🏘️ Agenzia"}
                                             />
                                         {/if}
                                         {#if "Bank" in dataByCategory}
                                             <DetailTile
                                                 data={dataByCategory}
                                                 element={"Bank"}
-                                                title={"🏦 Bank"}
+                                                title={"🏦 Banca"}
                                             />
                                         {/if}
                                     </div>
@@ -936,7 +1302,7 @@
                                                 ? interestsVal
                                                 : 0}
                                             name={"📈 Interessi in"}
-                                            duration={mortgageDuration}
+                                            duration={mortgage_duration}
                                             delta={interestsVal /
                                                 displayed_mortgage_amount}
                                             showVal={mortgage_amount != null &&
@@ -945,9 +1311,16 @@
                                                 is_using_mortgage}
                                         />
                                     </div>
-                                    <h1 class="font-bold leading-tight">
-                                        Cosa restituisco ogni anno?
-                                    </h1>
+                                    <div
+                                        transition:slide={{
+                                            duration: 500,
+                                        }}
+                                    >
+                                        <h1 class="font-bold leading-tight">
+                                            Cosa restituisco ogni anno?
+                                        </h1>
+                                    </div>
+
                                     <!-- Chart -->
                                     <div
                                         class="w-full md:h-[350px] h-[350px] relative"
@@ -957,6 +1330,133 @@
                                             id="interestsBarChart"
                                             class="absolute top-0 left-0 w-full h-full"
                                         ></canvas>
+                                    </div>
+                                </div>
+                            {/if}
+                            {#if selectedTab == "mortgage_compare"}
+                                <!-- Entire mortgage compare section -->
+                                <div transition:fade={{ duration: 500 }}>
+                                    <div
+                                        class="flex items-center gap-1"
+                                        transition:slide={{ duration: 500 }}
+                                    >
+                                        <div
+                                            class="flex items-center gap-1 flex-wrap"
+                                        >
+                                            <!-- Text before first input -->
+                                            <h1
+                                                class="font-bold text-white whitespace-nowrap"
+                                            >
+                                                Ad oggi risparmio/amo all'anno:
+                                            </h1>
+
+                                            <!-- First input with € -->
+                                            <div class="relative w-32">
+                                                <input
+                                                    type="number"
+                                                    class="w-full border border-white rounded px-2 pr-10 py-0.1 text-left font-medium text-white bg-transparent"
+                                                    min="0"
+                                                    step="2500"
+                                                    bind:value={yearlySaving}
+                                                    on:change={showCosts
+                                                        ? updatePremiumData
+                                                        : () => {}}
+                                                />
+                                                <div
+                                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                                ></div>
+                                                <div
+                                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                >
+                                                    €
+                                                </div>
+                                            </div>
+
+                                            <!-- Middle text -->
+                                            <h1
+                                                class="font-bold text-white whitespace-nowrap"
+                                            >
+                                                e fruttano il :
+                                            </h1>
+
+                                            <!-- Second input with % -->
+                                            <div class="relative w-24">
+                                                <input
+                                                    type="number"
+                                                    class="w-full border border-white rounded px-2 pr-10 py-0.1 text-left font-medium text-white bg-transparent"
+                                                    min="0"
+                                                    step="0.1"
+                                                    bind:value={
+                                                        yearlyGrowthgRate
+                                                    }
+                                                    on:change={showCosts
+                                                        ? updatePremiumData
+                                                        : () => {}}
+                                                />
+                                                <div
+                                                    class="absolute inset-y-0 right-9 w-px bg-white"
+                                                ></div>
+                                                <div
+                                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                >
+                                                    %
+                                                </div>
+                                            </div>
+
+                                            <!-- Final text -->
+                                            <h1
+                                                class="font-bold text-white whitespace-nowrap"
+                                            >
+                                                annuo.
+                                            </h1>
+                                            <h1
+                                                class="font-bold text-white leading-tight mb-2 mt-2"
+                                            >
+                                                Qual è la durata del mutuo che
+                                                più mi farà avere più patrimono
+                                                fra 30 anni?
+                                            </h1>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chart -->
+
+                                    <div transition:slide={{ duration: 500 }}>
+                                        <canvas
+                                            id="lineChart"
+                                            class="w-full h-full"
+                                        ></canvas>
+                                    </div>
+                                    <div
+                                        class="flex flex-wrap gap-6 mt-2"
+                                        transition:slide={{
+                                            duration: 500,
+                                        }}
+                                    >
+                                        <ColoredSummaryPrice
+                                            number={wealth[0]}
+                                            name={"Mutuo 10 Anni"}
+                                            showVal={mortgageInstallment !=
+                                                null}
+                                            delta={null}
+                                            color={"rgba(98, 182, 170, 1)"}
+                                        />
+                                        <ColoredSummaryPrice
+                                            number={wealth[1]}
+                                            name={"Mutuo 20 Anni"}
+                                            showVal={mortgageInstallment !=
+                                                null}
+                                            delta={null}
+                                            color={"rgba(133, 81, 182, 1)"}
+                                        />
+                                        <ColoredSummaryPrice
+                                            number={wealth[2]}
+                                            name={"Mutuo 30 Anni"}
+                                            showVal={mortgageInstallment !=
+                                                null}
+                                            delta={null}
+                                            color={"rgba(249, 166, 0, 1)"}
+                                        />
                                     </div>
                                 </div>
                             {/if}

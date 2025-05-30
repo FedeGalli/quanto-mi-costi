@@ -24,7 +24,6 @@
             return updated;
         });
     }
-
     $: isOpen = $collapsedDetailTiles[element];
 </script>
 
@@ -67,12 +66,19 @@
         {#if isOpen}
             <div class="overflow-hidden" transition:slide={{ duration: 500 }}>
                 <div class="border-b mt-1 mb-1"></div>
+
                 {#each data[element] as item}
                     <div
-                        class="flex justify-between text-sm p-0.5"
+                        class="flex justify-between text-sm p-0.5 relative"
                         transition:slide={{ duration: 500 }}
                     >
-                        <span class="font-bold">{item.name}</span>
+                        <!-- Group wrapper for name + tooltip -->
+                        <div class="relative group">
+                            <span class="font-bold">
+                                {item.estimate ? item.name + "*" : item.name}
+                            </span>
+                        </div>
+
                         <NumberFlow
                             value={item.value}
                             format={{
