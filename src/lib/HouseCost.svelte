@@ -176,7 +176,7 @@
 
     function buildApiString(): string {
         let apiStringUrl: string =
-            "http://192.168.1.31:8080/get_house_costs?house_price=" +
+            "http://18.156.158.53:8080/get_house_costs?house_price=" +
             (house_price != null ? house_price : 0);
 
         if (is_sold_by_agency)
