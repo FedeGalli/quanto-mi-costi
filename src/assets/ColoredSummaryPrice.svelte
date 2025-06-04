@@ -10,7 +10,7 @@
 
 <div class="flex-1 min-w-[160px]">
     <div
-        class="bg-neutral-900 border rounded-xl p-1 flex-1 text-center"
+        class="bg-neutral-900 border rounded-xl p-3 flex-1 text-center"
         style="border: 1px solid {color};"
         transition:slide={{ duration: 500 }}
     >
