@@ -695,7 +695,7 @@
                         },
                         x: {
                             ticks: {
-                                callback: function (value, index, ticks) {
+                                callback: function (value, index) {
                                     if ((index + 1) % 2 === 0) {
                                         return this.getLabelForValue(
                                             value as number,
@@ -948,7 +948,9 @@
                             max="1000000"
                             step="5000"
                             bind:value={house_price}
-                            on:mouseup={showCosts ? updateData : () => {}}
+                            on:mouseup={showCosts && selectedTab != "mortgage"
+                                ? updateData
+                                : () => {}}
                         />
                         <!-- Separator Line -->
                         <div
@@ -968,7 +970,9 @@
                         bind:bind={is_fisrt_house}
                         bind:showTooltip
                         element={0}
-                        on:change={showCosts ? updateData : () => {}}
+                        on:change={showCosts && selectedTab != "mortgage"
+                            ? updateData
+                            : () => {}}
                     />
                 </div>
                 <div id="isSoldByBuilder">
@@ -977,7 +981,9 @@
                         bind:bind={is_sold_by_builder}
                         bind:showTooltip
                         element={1}
-                        on:change={showCosts ? updateData : () => {}}
+                        on:change={showCosts && selectedTab != "mortgage"
+                            ? updateData
+                            : () => {}}
                     />
                 </div>
                 <div id="isSoldByAgency">
@@ -986,7 +992,9 @@
                         bind:bind={is_sold_by_agency}
                         bind:showTooltip
                         element={2}
-                        on:change={showCosts ? updateData : () => {}}
+                        on:change={showCosts && selectedTab != "mortgage"
+                            ? updateData
+                            : () => {}}
                     />
                     {#if is_sold_by_agency}
                         <div
