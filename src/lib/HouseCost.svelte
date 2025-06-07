@@ -42,6 +42,12 @@
     let showCosts: boolean = false;
     let showTooltip: boolean[] = [false, false, false, false];
 
+    let isValidMortgage = new Map<number, boolean>([
+        [10, true],
+        [20, true],
+        [30, true],
+    ]);
+
     let totalAmount: number = 0;
     let doughnutChartInstance: Chart | null = null; // Store chart instance globally
     let interestsBarChartInstance: Chart | null = null; // Store chart instance globally
@@ -484,10 +490,10 @@
                                 },
                             },
                             grid: {
-                                display: true,
+                                display: false,
                             },
                             border: {
-                                display: true, // ❌ remove x-axis border
+                                display: false, // ❌ remove x-axis border
                             },
                         },
                         x: {
@@ -559,6 +565,14 @@
 
         yearlyGrowthgRate = yearlyGrowthgRate / 100;
         taeg = taeg / 100;
+
+        if (installment > yearlyIncome[0] * 0.35) {
+            isValidMortgage.set(duration, false);
+            isValidMortgage = isValidMortgage;
+        } else {
+            isValidMortgage.set(duration, true);
+            isValidMortgage = isValidMortgage;
+        }
 
         for (let year = 0; year < yearlyIncome.length; year++) {
             let leftover = 0;
@@ -878,14 +892,26 @@
                 label: `Mutuo ${duration}-anni`,
                 data,
                 borderColor: [
-                    "rgba(98, 182, 170, 1)",
-                    "rgba(133, 81, 182, 1)",
-                    "rgba(249, 166, 0, 1)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(98, 182, 170, 1)"
+                        : "rgba(98, 182, 170, 0.2)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(133, 81, 182, 1)"
+                        : "rgba(133, 81, 182, 0.2)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(249, 166, 0, 1)"
+                        : "rgba(249, 166, 0, 0.2)",
                 ][idx],
                 backgroundColor: [
-                    "rgba(98, 182, 170, 0.7)",
-                    "rgba(133, 81, 182, 0.7)",
-                    "rgba(249, 166, 0, 0.7)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(98, 182, 170, 1)"
+                        : "rgba(98, 182, 170, 0.1)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(133, 81, 182, 1)"
+                        : "rgba(133, 81, 182, 0.1)",
+                    isValidMortgage.get(duration)
+                        ? "rgba(249, 166, 0, 1)"
+                        : "rgba(249, 166, 0, 0.1)",
                 ][idx],
                 pointRadius: 2, // <<< smaller dots
                 pointHoverRadius: 4, // <<< slightly bigger on hover
@@ -1467,51 +1493,76 @@
                                     <div transition:fade={{ duration: 500 }}>
                                         <!-- Summary tiles - responsive grid -->
                                         <div
-                                            class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6"
                                             transition:slide={{ duration: 500 }}
                                         >
-                                            <SummaryDeltaPriceTile
-                                                number={mortgageInstallment}
-                                                name={"💸 Rata mutuo mensile"}
-                                                showVal={mortgageInstallment !=
-                                                    null}
-                                                delta={null}
-                                            />
-                                            <DeltaPriceTile
-                                                number={is_using_mortgage
-                                                    ? interestsVal
-                                                    : 0}
-                                                name={"📈 Interessi in"}
-                                                duration={mortgage_duration}
-                                                delta={interestsVal /
-                                                    displayed_mortgage_amount}
-                                                showVal={mortgage_amount !=
-                                                    null &&
-                                                    displayed_mortgage_amount !=
-                                                        0 &&
-                                                    is_using_mortgage}
-                                            />
-                                        </div>
-
-                                        <!-- Chart title -->
-                                        <div
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <h2
-                                                class="font-bold leading-tight text-lg sm:text-xl mb-4"
+                                            <div
+                                                class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
-                                                Cosa restituisco ogni anno?
+                                                <SummaryDeltaPriceTile
+                                                    number={mortgageInstallment}
+                                                    name={"💸 Rata mutuo mensile"}
+                                                    showVal={mortgageInstallment !=
+                                                        null}
+                                                    delta={null}
+                                                />
+                                                <DeltaPriceTile
+                                                    number={is_using_mortgage
+                                                        ? interestsVal
+                                                        : 0}
+                                                    name={"📈 Interessi in"}
+                                                    duration={mortgage_duration}
+                                                    delta={interestsVal /
+                                                        displayed_mortgage_amount}
+                                                    showVal={mortgage_amount !=
+                                                        null &&
+                                                        displayed_mortgage_amount !=
+                                                            0 &&
+                                                        is_using_mortgage}
+                                                />
+                                            </div>
+
+                                            <!-- Chart title -->
+                                            <h2
+                                                class="font-bold text-white leading-tight text-base sm:text-lg mt-4 sm:mt-2 mb-2 text-center"
+                                            >
+                                                Cosa vado a <span
+                                                    class="font-bold text-purple-400"
+                                                    >restituire</span
+                                                > ogni anno?
                                             </h2>
 
                                             <!-- Chart - responsive sizing -->
-
                                             <div
-                                                class="w-full h-[300px] sm:h-[350px] lg:h-[350px] relative"
+                                                class="w-full h-[300px] sm:h-[350px] relative"
                                             >
-                                                <!-- Subtle background enhancement -->
                                                 <div
                                                     class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                                 ></div>
+
+                                                {#if mortgage_amount == 0 || taeg == 0 || mortgage_duration == 0}
+                                                    <div
+                                                        class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                    >
+                                                        <p
+                                                            class="text-gray-500 text-sm sm:text-base"
+                                                        >
+                                                            Inserisci <strong
+                                                                >Importo Mutuo</strong
+                                                            >,
+                                                            <strong
+                                                                >Durata</strong
+                                                            >
+                                                            e
+                                                            <strong>TAEG</strong
+                                                            > per visualizzare il
+                                                            grafico.
+                                                        </p>
+                                                    </div>
+                                                {/if}
+
                                                 <canvas
                                                     id="interestsBarChart"
                                                     class="absolute top-0 left-0 w-full h-full"
@@ -1525,94 +1576,98 @@
                                     <!-- Mortgage comparison section -->
                                     <div transition:fade={{ duration: 500 }}>
                                         <!-- Input section - responsive layout -->
+                                        <!-- Simple Mortgage comparison section -->
                                         <div
-                                            class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-1 mb-6"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:fade={{ duration: 500 }}
                                         >
+                                            <!-- Input section -->
                                             <div
-                                                class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-1"
+                                                class="flex flex-col items-center gap-4 mb-8"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
-                                                <h3
-                                                    class="font-bold text-white text-sm sm:text-base"
-                                                >
-                                                    Ad oggi risparmio/amo
-                                                    all'anno:
-                                                </h3>
-
-                                                <!-- First input with € - enhanced -->
+                                                <!-- Text labels and inputs aligned -->
                                                 <div
-                                                    class="relative w-full sm:w-32 group"
+                                                    class="flex justify-center items-center gap-8"
                                                 >
-                                                    <input
-                                                        type="number"
-                                                        class="w-full border border-white rounded px-3 pr-10 py-2 text-left font-medium text-white bg-transparent transition-all duration-200 hover:border-white/80 focus:border-white focus:shadow-lg focus:shadow-white/20"
-                                                        min="0"
-                                                        step="2500"
-                                                        bind:value={
-                                                            yearlySaving
-                                                        }
-                                                        on:change={showCosts
-                                                            ? updatePremiumData
-                                                            : () => {}}
-                                                    />
+                                                    <!-- First column: Euro input with label -->
                                                     <div
-                                                        class="absolute inset-y-0 right-9 w-px bg-white transition-colors duration-200 group-focus-within:bg-white/80"
-                                                    ></div>
-                                                    <div
-                                                        class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                        class="flex flex-col items-center gap-2"
                                                     >
-                                                        €
+                                                        <h3
+                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        >
+                                                            Risparmio annuale
+                                                            senza rata mutuo
+                                                        </h3>
+                                                        <div class="relative">
+                                                            <input
+                                                                type="number"
+                                                                class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                min="0"
+                                                                step="2500"
+                                                                bind:value={
+                                                                    yearlySaving
+                                                                }
+                                                                on:change={showCosts
+                                                                    ? updatePremiumData
+                                                                    : () => {}}
+                                                            />
+                                                            <span
+                                                                class="absolute right-3 top-2 text-white font-semibold"
+                                                                >€</span
+                                                            >
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Second column: Percentage input with label -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-2"
+                                                    >
+                                                        <h3
+                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        >
+                                                            I miei risparmi
+                                                            fruttano ogni anno
+                                                        </h3>
+                                                        <div class="relative">
+                                                            <input
+                                                                type="number"
+                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                min="0"
+                                                                step="0.1"
+                                                                bind:value={
+                                                                    yearlyGrowthgRate
+                                                                }
+                                                                on:change={showCosts
+                                                                    ? updatePremiumData
+                                                                    : () => {}}
+                                                            />
+                                                            <span
+                                                                class="absolute right-3 top-2 text-white font-semibold"
+                                                                >%</span
+                                                            >
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <h3
-                                                    class="font-bold text-white text-sm sm:text-base"
-                                                >
-                                                    e fruttano il :
-                                                </h3>
-
-                                                <!-- Second input with % - enhanced -->
-                                                <div
-                                                    class="relative w-full sm:w-24 group"
-                                                >
-                                                    <input
-                                                        type="number"
-                                                        class="w-full border border-white rounded px-3 pr-10 py-2 text-left font-medium text-white bg-transparent transition-all duration-200 hover:border-white/80 focus:border-white focus:shadow-lg focus:shadow-white/20"
-                                                        min="0"
-                                                        step="0.1"
-                                                        bind:value={
-                                                            yearlyGrowthgRate
-                                                        }
-                                                        on:change={showCosts
-                                                            ? updatePremiumData
-                                                            : () => {}}
-                                                    />
-                                                    <div
-                                                        class="absolute inset-y-0 right-9 w-px bg-white transition-colors duration-200 group-focus-within:bg-white/80"
-                                                    ></div>
-                                                    <div
-                                                        class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
-                                                    >
-                                                        %
-                                                    </div>
-                                                </div>
-
-                                                <h3
-                                                    class="font-bold text-white text-sm sm:text-base"
-                                                >
-                                                    annuo.
-                                                </h3>
                                             </div>
-
-                                            <h2
-                                                class="font-bold text-white leading-tight text-base sm:text-lg mt-4 sm:mt-2"
-                                            >
-                                                Qual è la durata del mutuo che
-                                                più mi farà avere più patrimonio
-                                                fra 30 anni?
-                                            </h2>
                                         </div>
 
+                                        <!-- Question -->
+                                        <h2
+                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center"
+                                        >
+                                            Come cresce il mio <span
+                                                class="font-bold text-purple-400"
+                                                >patrimonio</span
+                                            >
+                                            con
+                                            <span
+                                                class="font-bold text-purple-400"
+                                                >differenti durate di mutuo</span
+                                            >?
+                                        </h2>
                                         <!-- Chart - responsive sizing with subtle enhancement -->
                                         <div
                                             class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
@@ -1651,6 +1706,9 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(98, 182, 170, 1)"}
+                                                        isValid={isValidMortgage.get(
+                                                            10,
+                                                        )}
                                                     />
                                                 </div>
                                             </div>
@@ -1663,7 +1721,7 @@
                                                 >
                                                     <!-- Subtle gradient overlay -->
                                                     <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                                     ></div>
                                                     <ColoredSummaryPrice
                                                         number={wealth[1]}
@@ -1672,6 +1730,9 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(133, 81, 182, 1)"}
+                                                        isValid={isValidMortgage.get(
+                                                            20,
+                                                        )}
                                                     />
                                                 </div>
                                             </div>
@@ -1693,6 +1754,9 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(249, 166, 0, 1)"}
+                                                        isValid={isValidMortgage.get(
+                                                            30,
+                                                        )}
                                                     />
                                                 </div>
                                             </div>
