@@ -16,7 +16,18 @@ type CostItem struct {
 	Info     string  `json:"info"`
 }
 
-func calculateAllCosts(housePrice float64, agencyFee float64, isFirstHouse bool, isSoldByBuilder bool, mortgageAmount float64, mortgageDuration float64, mortgageTAEG float64) []CostItem {
+type CashVsMortgageItem struct {
+	Percentage int       `json:"percentage"`
+	Value      []float64 `json:"value"`
+}
+
+func calculateAllCosts(housePrice float64,
+	agencyFee float64,
+	isFirstHouse bool,
+	isSoldByBuilder bool,
+	mortgageAmount float64,
+	mortgageDuration int,
+	mortgageTAEG float64) []CostItem {
 
 	var istruttoriaCost float64 = 0
 	var expertiseCost float64 = 0
@@ -260,6 +271,42 @@ func calculateAllCosts(housePrice float64, agencyFee float64, isFirstHouse bool,
 	return responseData
 }
 
+func calculateCashVsMortgage(
+	yearlySaving float64,
+	mortgageDuration int,
+	taeg float64,
+	yearlyGrowthgRate float64,
+	yearlySavingRate float64,
+	morgagePercentages []float64,
+	housePrice float64) []CashVsMortgageItem {
+
+	installment := 0.0
+
+	yearlyIncome := make([]float64, mortgageDuration)
+	incomeValue := (yearlySaving * yearlySavingRate) / 100
+	for i := range yearlyIncome {
+		yearlyIncome[i] = incomeValue
+	}
+
+	myData := make([]CashVsMortgageItem, len(morgagePercentages))
+
+	for i, percentage := range morgagePercentages {
+		installment = utils.CalculateYearlyInstallment((housePrice*morgagePercentages[i])/100, mortgageDuration, taeg)
+		myData[i].Percentage = int(percentage)
+		myData[i].Value = utils.SimulateSavingsCashVsMortgage(
+			yearlyIncome,
+			installment,
+			mortgageDuration,
+			taeg,
+			yearlyGrowthgRate,
+			housePrice*morgagePercentages[i]/100,
+			housePrice)
+
+	}
+
+	return myData
+}
+
 func main() {
 	router := gin.Default()
 
@@ -276,12 +323,30 @@ func main() {
 		isSoldByBuilder := utils.ToBool(c.DefaultQuery("is_sold_by_builder", "false"))
 
 		mortgageAmount := utils.ToFloat64(c.DefaultQuery("mortgage_amount", "0"))
-		mortgageDuration := utils.ToFloat64(c.DefaultQuery("mortgage_duration", "0"))
+		mortgageDuration := utils.ToInt(c.DefaultQuery("mortgage_duration", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
 
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
 				"data": calculateAllCosts(housePrice, agencyFee, isFirstHouse, isSoldByBuilder, mortgageAmount, mortgageDuration, mortgageTAEG),
+			})
+		} else {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
+		}
+
+	})
+	router.GET("/get_cash_vs_mortgage", func(c *gin.Context) {
+		housePrice := utils.ToFloat64(c.DefaultQuery("house_price", "300000"))
+		yearlySaving := utils.ToFloat64(c.DefaultQuery("yearly_saving", "20000"))
+		yearlyGrowthRate := utils.ToFloat64(c.DefaultQuery("yearly_growthg_rate", "3"))
+		yearlySavingRate := utils.ToFloat64(c.DefaultQuery("yearly_saving_rate", "30"))
+		mortgageDuration := utils.ToInt(c.DefaultQuery("mortgage_duration", "0"))
+		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
+		mortgagePercentages := utils.ToFloatArray(c.DefaultQuery("mortgage_percentage", "25,50,75,100"), []float64{25, 50, 75, 100})
+
+		if utils.IsAllowed(c.ClientIP()) {
+			c.JSON(http.StatusOK, gin.H{
+				"data": calculateCashVsMortgage(yearlySaving, mortgageDuration, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, mortgagePercentages, housePrice),
 			})
 		} else {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})

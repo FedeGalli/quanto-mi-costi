@@ -22,6 +22,20 @@
         <span><h1 class="text-xs font-bold leading-tight">Costi Base</h1></span>
     </button>
 
+    <button
+        class="tab {selectedTab === 'cash_vs_mortgage' ? 'active' : ''}"
+        on:click={() => (selectedTab = "cash_vs_mortgage")}
+        type="button"
+        transition:slide={{ duration: 500 }}
+    >
+        🔮
+        <span
+            ><h1 class="text-xs font-bold leading-tight">
+                Cash vs Mutuo
+            </h1></span
+        >
+    </button>
+
     {#if is_using_mortgage}
         <button
             class="tab {selectedTab === 'mortgage' ? 'active' : ''}"

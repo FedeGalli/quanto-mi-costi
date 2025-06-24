@@ -41,6 +41,11 @@
     let agencyFee: number = 0;
     let showCosts: boolean = false;
     let showTooltip: boolean[] = [false, false, false, false];
+    let installments: { [key: number]: number } = { 10: 0, 20: 0, 30: 0 };
+    let mortgageInterestRate = 3; // Default 3% TAEG
+    let mortgageDuration = 30; // Default 30 years
+    let showMortgageParams = false; // Toggle state for mortgage parameters
+    let mortgage_percentage: number[] = [0, 25, 50, 100];
 
     let isValidMortgage = new Map<number, boolean>([
         [10, true],
@@ -52,11 +57,14 @@
     let doughnutChartInstance: Chart | null = null; // Store chart instance globally
     let interestsBarChartInstance: Chart | null = null; // Store chart instance globally
     let lineChartInstance: Chart | null = null;
+    let cashVsMortgageChartInstance: Chart | null = null;
     let dataByCategory: any = {};
 
     let wealth: number[] = [];
+    let wealth_cash_vs_mortgage: number[] = [];
     let yearlySaving: number = 20000;
     let yearlyGrowthgRate: number = 3;
+    let yearlySavingRate: number = 30;
 
     // Define category colors
     const categoryColors: Record<string, string> = {
@@ -122,6 +130,18 @@
         });
     }
 
+    $: if (
+        selectedTab == "cash_vs_mortgage" &&
+        prevSelectedTab != "cash_vs_mortgage" &&
+        showCosts
+    ) {
+        prevSelectedTab = selectedTab;
+        tick().then(() => {
+            initializeCashVsMortgageChart(); // to modify
+            updatePremiumData();
+        });
+    }
+
     $: if (selectedTab == "base") {
         prevSelectedTab = selectedTab;
     }
@@ -171,18 +191,25 @@
     $: if (yearlySaving < 0) {
         yearlySaving = 0;
     }
+    $: if (yearlySavingRate > 100) {
+        yearlySavingRate = 100;
+    }
+    $: if (yearlySavingRate < 0) {
+        yearlySavingRate = 0;
+    }
     $: if (yearlyGrowthgRate > 50) {
-        yearlySaving = 50;
+        yearlyGrowthgRate = 50;
     }
     $: if (yearlyGrowthgRate < -10) {
-        yearlySaving = -10;
+        yearlyGrowthgRate = -10;
     }
 
     onMount(() => {});
 
-    function buildApiString(): string {
+    function buildCostApiString(): string {
         let apiStringUrl: string =
-            "https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
+            //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
+            "http://localhost:8080/get_house_costs?house_price=" +
             (house_price != null ? house_price : 0);
 
         if (is_sold_by_agency)
@@ -208,10 +235,31 @@
         return apiStringUrl;
     }
 
+    function buildCashVsMortgageApiString(): string {
+        let apiStringUrl: string =
+            //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
+            "http://localhost:8080/get_cash_vs_mortgage?mortgage_percentage=" +
+            (mortgage_percentage != null ? mortgage_percentage.join(",") : "") +
+            "&house_price=" +
+            (house_price != null ? house_price : 0) +
+            "&yearly_saving=" +
+            (yearlySaving != null ? yearlySaving : 0) +
+            "&yearly_growthg_rate=" +
+            (yearlyGrowthgRate != null ? yearlyGrowthgRate : 0) +
+            "&yearly_saving_rate=" +
+            (yearlySavingRate != null ? yearlySavingRate : 0) +
+            "&mortgage_duration=" +
+            (mortgageDuration != null ? mortgageDuration : 0) +
+            "&mortgage_TAEG=" +
+            (mortgageInterestRate != null ? mortgageInterestRate / 100 : 0);
+
+        return apiStringUrl;
+    }
+
     async function updateData() {
         let chartData: any = [];
 
-        const apiStringUrl: string = buildApiString();
+        const apiStringUrl: string = buildCostApiString();
         let responseCode: string = "200";
 
         const apiCall = async () => {
@@ -277,13 +325,11 @@
 
     async function updatePremiumData() {
         let chartData: any = [];
-
-        const apiStringUrl: string = buildApiString();
         let responseCode: string = "200";
 
-        const apiCall = async () => {
+        const costApiCall = async () => {
             try {
-                const response = await fetch(apiStringUrl);
+                const response = await fetch(buildCostApiString());
 
                 if (!response.ok || response.status == 429) {
                     throw new Error(`${response.status}`);
@@ -295,7 +341,7 @@
             }
         };
 
-        apiCall().then(() => {
+        costApiCall().then(() => {
             if (responseCode == "200") {
                 dataByCategory = {};
 
@@ -333,6 +379,32 @@
                     }
                 });
                 updateLineChart();
+            } else if (responseCode == "429") {
+                showRateLimitPopup = true;
+            } else {
+                showErrorPopup = true;
+            }
+        });
+
+        const cashVsMortgageApiCall = async () => {
+            try {
+                const response = await fetch(buildCashVsMortgageApiString());
+
+                if (!response.ok || response.status == 429) {
+                    throw new Error(`${response.status}`);
+                }
+                let cashVsMortgageData = await response.json();
+                cashVsMortgageData = cashVsMortgageData["data"];
+
+                console.log(cashVsMortgageData);
+            } catch (error: any) {
+                responseCode = error.message;
+            }
+        };
+
+        cashVsMortgageApiCall().then(() => {
+            if (responseCode == "200") {
+                updateCashVsMortgageChart();
             } else if (responseCode == "429") {
                 showRateLimitPopup = true;
             } else {
@@ -557,16 +629,17 @@
         duration: number,
         taeg: number,
         yearlyGrowthgRate: number,
+        mortgageAmount: number,
     ): number[] {
         let savings = 0;
         const savingsOverTime: number[] = [];
-        let houseSaving = house_price - mortgage_amount;
-        let totalMortgageAmount = mortgage_amount;
+        let houseSaving = house_price - mortgageAmount;
+        let totalMortgageAmount = mortgageAmount;
 
         yearlyGrowthgRate = yearlyGrowthgRate / 100;
         taeg = taeg / 100;
 
-        if (installment > yearlyIncome[0] * 0.35) {
+        if (installment > yearlySaving * 0.35) {
             isValidMortgage.set(duration, false);
             isValidMortgage = isValidMortgage;
         } else {
@@ -583,6 +656,38 @@
             } else {
                 leftover = yearlyIncome[year];
             }
+
+            savings =
+                savings + leftover >= 0
+                    ? (savings + leftover) * (1 + yearlyGrowthgRate)
+                    : savings + leftover;
+            savingsOverTime.push(Math.round(savings + houseSaving));
+        }
+
+        return savingsOverTime;
+    }
+
+    function simulateSavingsCashVsMortgage(
+        yearlyIncome: number[],
+        installment: number,
+        duration: number,
+        taeg: number,
+        yearlyGrowthgRate: number,
+        mortgageAmount: number,
+    ): number[] {
+        let savings = mortgageAmount;
+        const savingsOverTime: number[] = [];
+        let houseSaving = house_price - mortgageAmount; //add the mortgage expenses based on the type of mortgage
+        let totalMortgageAmount = mortgageAmount;
+
+        yearlyGrowthgRate = yearlyGrowthgRate / 100;
+        taeg = taeg / 100;
+
+        for (let year = 0; year < yearlyIncome.length; year++) {
+            let leftover = 0;
+            leftover = yearlyIncome[year] - installment;
+            houseSaving += installment - totalMortgageAmount * taeg;
+            totalMortgageAmount -= installment - totalMortgageAmount * taeg;
 
             savings =
                 savings + leftover >= 0
@@ -627,20 +732,17 @@
                 lineChartInstance.destroy();
             }
 
-            if (mortgage_amount == 0 || taeg == 0) {
-            }
-
             const durations: number[] = [10, 20, 30];
             const years = 30;
 
             // Simulated monthly income – replace this with your actual array if dynamic
             const yearlyIncome = Array.from(
                 { length: years },
-                (_, i) => yearlySaving,
+                (_, i) => (yearlySaving * yearlySavingRate) / 100,
             );
 
             // Example mortgage installments – adjust based on your input logic
-            const installments: { [key: number]: number } = {
+            installments = {
                 [durations[0]]: calculateYearlyInstallment(
                     mortgage_amount,
                     durations[0],
@@ -665,6 +767,7 @@
                     duration,
                     taeg,
                     yearlyGrowthgRate,
+                    mortgage_amount,
                 );
                 return {
                     label: `${duration}-year mortgage`,
@@ -700,6 +803,10 @@
                 },
                 options: {
                     responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: "index",
+                    },
                     scales: {
                         y: {
                             title: {
@@ -747,6 +854,201 @@
                                     lineHeight: 1.25,
                                 },
                                 padding: 20,
+                            },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function (context) {
+                                    // Get the index from the first tooltip item
+                                    const dataIndex = context[0].dataIndex;
+                                    // Calculate the year (assuming 12 months per year)
+                                    const year = Math.floor(dataIndex) + 1;
+
+                                    // You can choose one of these formats:
+                                    // Option 1: Just show the year
+                                    return `Anno ${year}`;
+
+                                    // Option 2: Show year and month
+                                    // return `Anno ${year}, Mese ${month}`;
+
+                                    // Option 3: Show year and month in different format
+                                    // return `Anno ${year} - Mese ${month}`;
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        }
+    }
+
+    async function initializeCashVsMortgageChart() {
+        if (showCosts) {
+            await tick(); // Wait for DOM update before selecting the canvas
+            const ctx = document.getElementById(
+                "cashVsMortgageChart",
+            ) as HTMLCanvasElement | null;
+            if (!ctx) return; // Ensure ctx exists before using it
+            const ctx2D = ctx.getContext("2d");
+            if (!ctx2D) return; // Ensure context is available
+
+            // Step 3: Destroy previous chart instance
+            if (cashVsMortgageChartInstance) {
+                cashVsMortgageChartInstance.destroy();
+            }
+
+            const mortgage_percentage: number[] = [0, 25, 50, 100];
+            const years = 30;
+
+            // Simulated monthly income – replace this with your actual array if dynamic
+            const yearlyIncome = Array.from(
+                { length: years },
+                (_, i) => (yearlySaving * yearlySavingRate) / 100,
+            );
+
+            // Example mortgage installments – adjust based on your input logic
+            const installments: { [key: number]: number } = {
+                [mortgage_percentage[0]]: 0,
+                [mortgage_percentage[1]]: calculateYearlyInstallment(
+                    (house_price * mortgage_percentage[1]) / 100,
+                    30,
+                    3,
+                ),
+                [mortgage_percentage[2]]: calculateYearlyInstallment(
+                    (house_price * mortgage_percentage[2]) / 100,
+                    30,
+                    3,
+                ),
+                [mortgage_percentage[3]]: calculateYearlyInstallment(
+                    (house_price * mortgage_percentage[3]) / 100,
+                    30,
+                    3,
+                ),
+            };
+
+            const datasets = mortgage_percentage.map(
+                (mortgage_percentage, idx) => {
+                    const data = simulateSavingsCashVsMortgage(
+                        yearlyIncome,
+                        installments[mortgage_percentage],
+                        30,
+                        3,
+                        yearlyGrowthgRate,
+                        (house_price * mortgage_percentage) / 100,
+                    );
+                    return {
+                        label: `${mortgage_percentage}% mutuo`,
+                        data,
+                        borderColor: [
+                            "rgba(178, 178, 178, 1)",
+                            "rgba(98, 182, 170, 1)",
+                            "rgba(133, 81, 182, 1)",
+                            "rgba(249, 166, 0, 1)",
+                        ][idx],
+                        backgroundColor: [
+                            "rgba(178, 178, 178, 0.7)",
+                            "rgba(98, 182, 170, 0.7)",
+                            "rgba(133, 81, 182, 0.7)",
+                            "rgba(249, 166, 0, 0.7)",
+                        ][idx],
+                        pointRadius: 1, // <<< smaller dots
+                        pointHoverRadius: 4, // <<< slightly bigger on hover
+                        tension: 0.3,
+                    };
+                },
+            );
+
+            wealth_cash_vs_mortgage[0] =
+                datasets[0].data[datasets[0].data.length - 1];
+            wealth_cash_vs_mortgage[1] =
+                datasets[1].data[datasets[1].data.length - 1];
+            wealth_cash_vs_mortgage[2] =
+                datasets[2].data[datasets[2].data.length - 1];
+            wealth_cash_vs_mortgage[3] =
+                datasets[3].data[datasets[3].data.length - 1];
+
+            cashVsMortgageChartInstance = new Chart(ctx2D, {
+                type: "line",
+                data: {
+                    labels: Array.from(
+                        { length: years },
+                        (_, i) => `Month ${i + 1}`,
+                    ),
+                    datasets,
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: "index",
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Patrimonio Posseduto (€)",
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    var y: number = +value;
+                                    if (y >= 1000000) {
+                                        return (
+                                            (y / 1000000)
+                                                .toFixed(1)
+                                                .replace(".0", "") + "M"
+                                        );
+                                    } else if (y >= 1000) {
+                                        return (y / 1000).toFixed(0) + "k";
+                                    }
+                                    return y;
+                                },
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                callback: function (value, index) {
+                                    if ((index + 1) % 2 === 0) {
+                                        return this.getLabelForValue(
+                                            value as number,
+                                        );
+                                    }
+                                    // Show every Nth tick if needed or return ''
+                                    return "";
+                                },
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "bottom",
+                            labels: {
+                                color: "white",
+                                font: {
+                                    weight: "bold",
+                                    lineHeight: 1.25,
+                                },
+                                padding: 20,
+                            },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function (context) {
+                                    // Get the index from the first tooltip item
+                                    const dataIndex = context[0].dataIndex;
+                                    // Calculate the year (assuming 12 months per year)
+                                    const year = Math.floor(dataIndex) + 1;
+
+                                    // You can choose one of these formats:
+                                    // Option 1: Just show the year
+                                    return `Anno ${year}`;
+
+                                    // Option 2: Show year and month
+                                    // return `Anno ${year}, Mese ${month}`;
+
+                                    // Option 3: Show year and month in different format
+                                    // return `Anno ${year} - Mese ${month}`;
+                                },
                             },
                         },
                     },
@@ -855,11 +1157,11 @@
         // Simulated monthly income – replace this with your actual array if dynamic
         const yearlyIncome = Array.from(
             { length: years },
-            (_, i) => yearlySaving,
+            (_, i) => (yearlySaving * yearlySavingRate) / 100,
         );
 
         // Example mortgage installments – adjust based on your input logic
-        const installments: { [key: number]: number } = {
+        installments = {
             [durations[0]]: calculateYearlyInstallment(
                 mortgage_amount,
                 durations[0],
@@ -877,6 +1179,8 @@
             ),
         };
 
+        installments = installments;
+
         const updatedDatasets = durations.map((duration, idx) => {
             const data = simulateSavings(
                 yearlyIncome,
@@ -884,12 +1188,11 @@
                 duration,
                 taeg,
                 yearlyGrowthgRate,
+                mortgage_amount,
             );
 
-            console.log(data);
-
             return {
-                label: `Mutuo ${duration}-anni`,
+                label: `Mutuo ${duration} anni`,
                 data,
                 borderColor: [
                     isValidMortgage.get(duration)
@@ -929,6 +1232,91 @@
         );
         lineChartInstance.data.datasets = updatedDatasets;
         lineChartInstance.update();
+    }
+    function updateCashVsMortgageChart() {
+        if (!cashVsMortgageChartInstance) return;
+
+        // Use dynamic mortgage duration instead of hardcoded 30
+        const years = mortgageDuration;
+
+        // Simulated monthly income – replace this with your actual array if dynamic
+        const yearlyIncome = Array.from(
+            { length: years },
+            (_, i) => (yearlySaving * yearlySavingRate) / 100,
+        );
+
+        // Use dynamic mortgage interest rate and duration
+        const installments: { [key: number]: number } = {
+            [mortgage_percentage[0]]: 0,
+            [mortgage_percentage[1]]: calculateYearlyInstallment(
+                (house_price * mortgage_percentage[1]) / 100,
+                mortgageDuration, // Use dynamic duration
+                mortgageInterestRate, // Use dynamic interest rate
+            ),
+            [mortgage_percentage[2]]: calculateYearlyInstallment(
+                (house_price * mortgage_percentage[2]) / 100,
+                mortgageDuration, // Use dynamic duration
+                mortgageInterestRate, // Use dynamic interest rate
+            ),
+            [mortgage_percentage[3]]: calculateYearlyInstallment(
+                (house_price * mortgage_percentage[3]) / 100,
+                mortgageDuration, // Use dynamic duration
+                mortgageInterestRate, // Use dynamic interest rate
+            ),
+        };
+
+        const updatedDatasets = mortgage_percentage.map(
+            (mortgage_percentage, idx) => {
+                const data = simulateSavingsCashVsMortgage(
+                    yearlyIncome,
+                    installments[mortgage_percentage],
+                    mortgageDuration, // Use dynamic duration
+                    mortgageInterestRate, // Use dynamic interest rate
+                    yearlyGrowthgRate,
+                    (house_price * mortgage_percentage) / 100,
+                );
+                return {
+                    label:
+                        mortgage_percentage == 0
+                            ? `Cash`
+                            : `${mortgage_percentage}% mutuo`,
+                    data,
+                    borderColor: [
+                        "rgba(178, 178, 178, 1)",
+                        "rgba(98, 182, 170, 1)",
+                        "rgba(133, 81, 182, 1)",
+                        "rgba(249, 166, 0, 1)",
+                    ][idx],
+                    backgroundColor: [
+                        "rgba(178, 178, 178, 0.7)",
+                        "rgba(98, 182, 170, 0.7)",
+                        "rgba(133, 81, 182, 0.7)",
+                        "rgba(249, 166, 0, 0.7)",
+                    ][idx],
+                    pointRadius: 2, // <<< smaller dots
+                    pointHoverRadius: 4, // <<< slightly bigger on hover
+                    tension: 0.3,
+                };
+            },
+        );
+
+        console.log(updatedDatasets);
+
+        wealth_cash_vs_mortgage[0] =
+            updatedDatasets[0].data[updatedDatasets[0].data.length - 1];
+        wealth_cash_vs_mortgage[1] =
+            updatedDatasets[1].data[updatedDatasets[1].data.length - 1];
+        wealth_cash_vs_mortgage[2] =
+            updatedDatasets[2].data[updatedDatasets[2].data.length - 1];
+        wealth_cash_vs_mortgage[3] =
+            updatedDatasets[3].data[updatedDatasets[3].data.length - 1];
+
+        cashVsMortgageChartInstance.data.labels = Array.from(
+            { length: years },
+            (_, i) => `${i + 1}`,
+        );
+        cashVsMortgageChartInstance.data.datasets = updatedDatasets;
+        cashVsMortgageChartInstance.update();
     }
 </script>
 
@@ -999,7 +1387,17 @@
                                 bind:value={house_price}
                                 on:mouseup={showCosts &&
                                 selectedTab != "mortgage"
-                                    ? updateData
+                                    ? () => {
+                                          updateData();
+                                          updatePremiumData();
+                                      }
+                                    : () => {}}
+                                on:change={showCosts &&
+                                selectedTab != "mortgage"
+                                    ? () => {
+                                          updateData();
+                                          updatePremiumData();
+                                      }
                                     : () => {}}
                             />
                             <!-- Separator Line -->
@@ -1582,14 +1980,14 @@
                                         >
                                             <!-- Input section -->
                                             <div
-                                                class="flex flex-col items-center gap-4 mb-8"
+                                                class="flex flex-col items-center gap-4 mb-4"
                                                 transition:slide={{
                                                     duration: 500,
                                                 }}
                                             >
                                                 <!-- Text labels and inputs aligned -->
                                                 <div
-                                                    class="flex justify-center items-center gap-8"
+                                                    class="flex justify-center items-center gap-4"
                                                 >
                                                     <!-- First column: Euro input with label -->
                                                     <div
@@ -1598,8 +1996,9 @@
                                                         <h3
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
-                                                            Risparmio annuale
-                                                            senza rata mutuo
+                                                            Quanto guadagno/amo <br
+                                                            />
+                                                            ogni anno?
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -1621,15 +2020,90 @@
                                                         </div>
                                                     </div>
 
-                                                    <!-- Second column: Percentage input with label -->
+                                                    <!-- First Arrow with Icon -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-1 mt-8"
+                                                    >
+                                                        <!-- Piggy bank icon for savings -->
+                                                        💰
+                                                        <!-- Arrow -->
+                                                        <svg
+                                                            class="w-6 h-6 text-white/70"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                            />
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- Second column: Savings rate input -->
                                                     <div
                                                         class="flex flex-col items-center gap-2"
                                                     >
                                                         <h3
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
-                                                            I miei risparmi
-                                                            fruttano ogni anno
+                                                            Di cui riesco/amo a <br
+                                                            />risparmiare un...
+                                                        </h3>
+                                                        <div class="relative">
+                                                            <input
+                                                                type="number"
+                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                min="0"
+                                                                step="1"
+                                                                bind:value={
+                                                                    yearlySavingRate
+                                                                }
+                                                                on:change={showCosts
+                                                                    ? updatePremiumData
+                                                                    : () => {}}
+                                                            />
+                                                            <span
+                                                                class="absolute right-3 top-2 text-white font-semibold"
+                                                                >%</span
+                                                            >
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Second Arrow with Icon -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-1 mt-8"
+                                                    >
+                                                        <!-- Growth/chart icon for investment returns -->
+                                                        💸
+                                                        <!-- Arrow -->
+                                                        <svg
+                                                            class="w-6 h-6 text-white/70"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                            />
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- Third column: Investment growth rate -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-2"
+                                                    >
+                                                        <h3
+                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        >
+                                                            Quanto fruttano i
+                                                            risparmi <br />ogni
+                                                            anno?
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -1654,19 +2128,20 @@
                                             </div>
                                         </div>
 
-                                        <!-- Question -->
+                                        <!-- Question with reduced top margin -->
                                         <h2
-                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center"
+                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
+                                            transition:slide={{ duration: 500 }}
                                         >
-                                            Come cresce il mio <span
+                                            Come cresce il mio/nostro <span
                                                 class="font-bold text-purple-400"
                                                 >patrimonio</span
                                             >
                                             con
                                             <span
                                                 class="font-bold text-purple-400"
-                                                >differenti durate di mutuo</span
-                                            >?
+                                                >il mutuo selezionato</span
+                                            >, ma con diverse durate?
                                         </h2>
                                         <!-- Chart - responsive sizing with subtle enhancement -->
                                         <div
@@ -1709,6 +2184,9 @@
                                                         isValid={isValidMortgage.get(
                                                             10,
                                                         )}
+                                                        secondaryNumber={installments[10] /
+                                                            12}
+                                                        secondaryLabel={"rata"}
                                                     />
                                                 </div>
                                             </div>
@@ -1733,6 +2211,9 @@
                                                         isValid={isValidMortgage.get(
                                                             20,
                                                         )}
+                                                        secondaryNumber={installments[20] /
+                                                            12}
+                                                        secondaryLabel={"rata"}
                                                     />
                                                 </div>
                                             </div>
@@ -1757,6 +2238,402 @@
                                                         isValid={isValidMortgage.get(
                                                             30,
                                                         )}
+                                                        secondaryNumber={installments[30] /
+                                                            12}
+                                                        secondaryLabel={"rata"}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/if}
+                                {#if selectedTab == "cash_vs_mortgage"}
+                                    <!-- Mortgage comparison section -->
+                                    <div transition:fade={{ duration: 500 }}>
+                                        <!-- Input section -->
+                                        <div
+                                            class="flex flex-col items-center gap-4 mb-4"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            <!-- First row: Main financial inputs -->
+                                            <div
+                                                class="flex justify-center items-center gap-4"
+                                            >
+                                                <!-- Annual income input -->
+                                                <div
+                                                    class="flex flex-col items-center gap-2"
+                                                >
+                                                    <h3
+                                                        class="font-bold text-white text-sm sm:text-base text-center"
+                                                    >
+                                                        Quanto guadagno/amo <br
+                                                        />ogni anno?
+                                                    </h3>
+                                                    <div class="relative">
+                                                        <input
+                                                            type="number"
+                                                            class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                            min="0"
+                                                            step="2500"
+                                                            bind:value={
+                                                                yearlySaving
+                                                            }
+                                                            on:change={showCosts
+                                                                ? updatePremiumData
+                                                                : () => {}}
+                                                        />
+                                                        <span
+                                                            class="absolute right-3 top-2 text-white font-semibold"
+                                                            >€</span
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <!-- Arrow -->
+                                                <div
+                                                    class="flex flex-col items-center gap-1 mt-8"
+                                                >
+                                                    💰
+                                                    <svg
+                                                        class="w-6 h-6 text-white/70"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                        />
+                                                    </svg>
+                                                </div>
+
+                                                <!-- Savings rate input -->
+                                                <div
+                                                    class="flex flex-col items-center gap-2"
+                                                >
+                                                    <h3
+                                                        class="font-bold text-white text-sm sm:text-base text-center"
+                                                    >
+                                                        Di cui riesco/amo a <br
+                                                        />risparmiare un...
+                                                    </h3>
+                                                    <div class="relative">
+                                                        <input
+                                                            type="number"
+                                                            class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                            min="0"
+                                                            step="1"
+                                                            bind:value={
+                                                                yearlySavingRate
+                                                            }
+                                                            on:change={showCosts
+                                                                ? updatePremiumData
+                                                                : () => {}}
+                                                        />
+                                                        <span
+                                                            class="absolute right-3 top-2 text-white font-semibold"
+                                                            >%</span
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <!-- Arrow -->
+                                                <div
+                                                    class="flex flex-col items-center gap-1 mt-8"
+                                                >
+                                                    💸
+                                                    <svg
+                                                        class="w-6 h-6 text-white/70"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                        />
+                                                    </svg>
+                                                </div>
+
+                                                <!-- Investment growth rate input -->
+                                                <div
+                                                    class="flex flex-col items-center gap-2"
+                                                >
+                                                    <h3
+                                                        class="font-bold text-white text-sm sm:text-base text-center"
+                                                    >
+                                                        Quanto fruttano i
+                                                        risparmi <br />ogni
+                                                        anno?
+                                                    </h3>
+                                                    <div class="relative">
+                                                        <input
+                                                            type="number"
+                                                            class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                            min="0"
+                                                            step="0.1"
+                                                            bind:value={
+                                                                yearlyGrowthgRate
+                                                            }
+                                                            on:change={showCosts
+                                                                ? updatePremiumData
+                                                                : () => {}}
+                                                        />
+                                                        <span
+                                                            class="absolute right-3 top-2 text-white font-semibold"
+                                                            >%</span
+                                                        >
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Toggle button for mortgage parameters -->
+                                            <div
+                                                class="flex justify-center mt-4"
+                                            >
+                                                <button
+                                                    class="group relative overflow-hidden bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-lg border border-white/30 hover:border-white/50 transition-all duration-300 transform hover:scale-105"
+                                                    on:click={() =>
+                                                        (showMortgageParams =
+                                                            !showMortgageParams)}
+                                                >
+                                                    <div
+                                                        class="flex items-center gap-2"
+                                                    >
+                                                        <span
+                                                            >Parametri Mutuo</span
+                                                        >
+                                                        <svg
+                                                            class="w-4 h-4 transition-transform duration-300 {showMortgageParams
+                                                                ? 'rotate-180'
+                                                                : ''}"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 9l-7 7-7-7"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                </button>
+                                            </div>
+
+                                            <!-- Container for mortgage parameters with fixed height to prevent jumps -->
+                                            <div
+                                                class="w-full flex justify-center overflow-hidden transition-all duration-300 {showMortgageParams
+                                                    ? 'max-h-32'
+                                                    : 'max-h-0'}"
+                                            >
+                                                <div
+                                                    class="flex justify-center items-center gap-4 py-4"
+                                                >
+                                                    <!-- TAEG input -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-2"
+                                                    >
+                                                        <h3
+                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        >
+                                                            TAEG Mutuo <br
+                                                            />(tasso interesse)
+                                                        </h3>
+                                                        <div class="relative">
+                                                            <input
+                                                                type="number"
+                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                min="0"
+                                                                max="20"
+                                                                step="0.1"
+                                                                bind:value={
+                                                                    mortgageInterestRate
+                                                                }
+                                                                on:change={updateCashVsMortgageChart}
+                                                            />
+                                                            <span
+                                                                class="absolute right-3 top-2 text-white font-semibold"
+                                                                >%</span
+                                                            >
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Arrow -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-1 mt-8"
+                                                    >
+                                                        🏠
+                                                        <svg
+                                                            class="w-6 h-6 text-white/70"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                            />
+                                                        </svg>
+                                                    </div>
+
+                                                    <!-- Mortgage duration input -->
+                                                    <div
+                                                        class="flex flex-col items-center gap-2"
+                                                    >
+                                                        <h3
+                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        >
+                                                            Durata Mutuo <br
+                                                            />(anni)
+                                                        </h3>
+                                                        <div class="relative">
+                                                            <input
+                                                                type="number"
+                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                min="5"
+                                                                max="50"
+                                                                step="1"
+                                                                bind:value={
+                                                                    mortgageDuration
+                                                                }
+                                                                on:change={updateCashVsMortgageChart}
+                                                            />
+                                                            <span
+                                                                class="absolute right-3 top-2 text-white font-semibold"
+                                                                >A</span
+                                                            >
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Question -->
+                                        <h2
+                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            Mi conviene pagare tutto <span
+                                                class="font-bold text-purple-400"
+                                                >cash</span
+                                            >
+                                            oppure prendere un
+                                            <span
+                                                class="font-bold text-purple-400"
+                                                >mutuo</span
+                                            >?
+                                        </h2>
+
+                                        <!-- Chart -->
+                                        <div
+                                            class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            <div
+                                                class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
+                                            ></div>
+                                            <canvas
+                                                id="cashVsMortgageChart"
+                                                class="w-full h-full rounded-lg"
+                                            ></canvas>
+                                        </div>
+
+                                        <!-- Summary tiles -->
+                                        <div
+                                            class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6"
+                                            transition:slide={{ duration: 500 }}
+                                        >
+                                            <div
+                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                            >
+                                                <div
+                                                    class="relative overflow-hidden rounded-lg"
+                                                >
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                    <ColoredSummaryPrice
+                                                        number={wealth_cash_vs_mortgage[0]}
+                                                        name={"Cash"}
+                                                        showVal={mortgageInstallment !=
+                                                            null}
+                                                        delta={null}
+                                                        color={"rgba(178, 178, 178, 1)"}
+                                                        isValid={true}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                            >
+                                                <div
+                                                    class="relative overflow-hidden rounded-lg"
+                                                >
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                    <ColoredSummaryPrice
+                                                        number={wealth_cash_vs_mortgage[1]}
+                                                        name={`Mutuo ${mortgageDuration} Anni (25%)`}
+                                                        showVal={mortgageInstallment !=
+                                                            null}
+                                                        delta={null}
+                                                        color={"rgba(98, 182, 170, 1)"}
+                                                        isValid={true}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                            >
+                                                <div
+                                                    class="relative overflow-hidden rounded-lg"
+                                                >
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                    <ColoredSummaryPrice
+                                                        number={wealth_cash_vs_mortgage[2]}
+                                                        name={`Mutuo ${mortgageDuration} Anni (50%)`}
+                                                        showVal={mortgageInstallment !=
+                                                            null}
+                                                        delta={null}
+                                                        color={"rgba(133, 81, 182, 1)"}
+                                                        isValid={true}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                            >
+                                                <div
+                                                    class="relative overflow-hidden rounded-lg"
+                                                >
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                    <ColoredSummaryPrice
+                                                        number={wealth_cash_vs_mortgage[3]}
+                                                        name={`Mutuo ${mortgageDuration} Anni (100%)`}
+                                                        showVal={mortgageInstallment !=
+                                                            null}
+                                                        delta={null}
+                                                        color={"rgba(249, 166, 0, 1)"}
+                                                        isValid={true}
                                                     />
                                                 </div>
                                             </div>

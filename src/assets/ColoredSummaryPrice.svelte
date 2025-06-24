@@ -5,7 +5,9 @@
     export let delta: any;
     export let name: string;
     export let color: string;
-    export let isValid: boolean = true; // New prop to control validity
+    export let isValid: boolean = true;
+    export let secondaryNumber: number | null = null;
+    export let secondaryLabel: string = "";
 </script>
 
 <div class="flex-1 min-w-[160px]">
@@ -61,9 +63,53 @@
                 {/if}
             </NumberFlowGroup>
 
+            {#if secondaryNumber != null}
+                <div class={!isValid ? "opacity-60" : ""}>
+                    <div
+                        class="text-xs {isValid
+                            ? 'text-gray-400'
+                            : 'text-gray-600'} mt-1"
+                    >
+                        {secondaryLabel}
+                    </div>
+                    <NumberFlow
+                        value={secondaryNumber}
+                        format={{
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 0,
+                        }}
+                        locales={"it-IT"}
+                        class="font-medium {isValid
+                            ? 'text-base text-gray-300'
+                            : 'text-sm text-gray-500'}"
+                    />
+                </div>
+            {/if}
+
+            {#if isValid}
+                <div
+                    class="flex items-center gap-1 mt-1 min-h-[30px] transition-opacity duration-500 opacity-100"
+                >
+                    <svg
+                        class="w-5 h-5 text-green-500"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <span class="text-xs text-green-500"
+                        >Patrimonio fra 30 anni</span
+                    >
+                </div>
+            {/if}
             {#if !isValid}
                 <div
-                    class="flex items-center gap-1 mt-1 transition-opacity duration-500 opacity-100"
+                    class="flex items-center gap-1 mt-1 min-h-[30px] transition-opacity duration-500 opacity-100"
                 >
                     <svg
                         class="w-5 h-5 text-red-500"
