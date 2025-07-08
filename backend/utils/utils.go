@@ -41,9 +41,11 @@ func CalculateMonthlyInstallment(amount float64, duration int, TAEG float64) flo
 	if amount == 0 || duration == 0 || TAEG == 0 {
 		return 0
 	}
-	var monthlyInterestsVal float64 = amount * (TAEG / 12 * math.Pow(1+TAEG/12, float64(duration)*12)) / (math.Pow(1+TAEG/12, float64(duration)*12) - 1)
+	monthlyRate := TAEG / 12
+	totalMonths := float64(duration) * 12
 
-	return monthlyInterestsVal
+	monthlyPayment := amount * ((monthlyRate * math.Pow(1+monthlyRate, totalMonths)) / (math.Pow(1+monthlyRate, totalMonths) - 1))
+	return monthlyPayment
 }
 
 func CalculateYearlyInstallment(amount float64, duration int, TAEG float64) float64 {
@@ -80,6 +82,24 @@ func ToFloatArray(str string, defaultValues []float64) []float64 {
 	return result
 }
 
+func ToIntArray(str string, defaultValues []int) []int {
+	if str == "" {
+		return defaultValues
+	}
+	var result []int
+	parts := strings.Split(str, ",")
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if val, err := strconv.Atoi(trimmed); err == nil {
+			result = append(result, val)
+		}
+	}
+	if len(result) == 0 {
+		return defaultValues
+	}
+	return result
+}
+
 func SimulateSavingsCashVsMortgage(
 	yearlyIncome []float64,
 	installment float64,
@@ -88,14 +108,12 @@ func SimulateSavingsCashVsMortgage(
 	yearlyGrowthRate float64,
 	mortgageAmount float64,
 	housePrice float64,
+
 ) []float64 {
 	savings := mortgageAmount
 	savingsOverTime := make([]float64, 0, duration)
 	houseSaving := housePrice - mortgageAmount // add the mortgage expenses based on the type of mortgage
 	totalMortgageAmount := mortgageAmount
-
-	// Convert percentages to decimals
-	yearlyGrowthRate = yearlyGrowthRate / 100
 
 	for year := 0; year < duration; year++ {
 		var leftover float64
@@ -104,6 +122,49 @@ func SimulateSavingsCashVsMortgage(
 		houseSaving += installment - totalMortgageAmount*taeg
 		totalMortgageAmount -= installment - totalMortgageAmount*taeg
 
+		if savings+leftover >= 0 {
+			savings = (savings + leftover) * (1 + yearlyGrowthRate)
+		} else {
+			savings = savings + leftover
+		}
+
+		savingsOverTime = append(savingsOverTime, math.Round(savings+houseSaving))
+	}
+
+	return savingsOverTime
+}
+
+func IsValidMortgage(installment float64, yearlySaving float64) bool {
+	return installment < yearlySaving*0.35
+}
+
+func SimulateSavings(
+	yearlyIncome []float64,
+	installment float64,
+	duration int,
+	taeg float64,
+	yearlyGrowthRate float64,
+	mortgageAmount float64,
+	housePrice float64,
+) []float64 {
+	savings := 0.0
+	savingsOverTime := make([]float64, 0, len(yearlyIncome))
+	houseSaving := housePrice - mortgageAmount
+	totalMortgageAmount := mortgageAmount
+
+	// Main simulation loop
+	for year := range len(yearlyIncome) {
+		leftover := 0.0
+
+		if year < duration {
+			leftover = yearlyIncome[year] - installment
+			houseSaving += installment - totalMortgageAmount*taeg
+			totalMortgageAmount -= installment - totalMortgageAmount*taeg
+		} else {
+			leftover = yearlyIncome[year]
+		}
+
+		// Calculate savings growth
 		if savings+leftover >= 0 {
 			savings = (savings + leftover) * (1 + yearlyGrowthRate)
 		} else {
