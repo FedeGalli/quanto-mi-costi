@@ -41,17 +41,22 @@
     let agencyFee: number = 0;
     let showCosts: boolean = false;
     let showTooltip: boolean[] = [false, false, false, false];
-    let installments: { [key: number]: number } = { 10: 0, 20: 0, 30: 0 };
     let mortgageInterestRate = 3; // Default 3% TAEG
     let mortgageDuration = 30; // Default 30 years
     let showMortgageParams = false; // Toggle state for mortgage parameters
     let mortgage_percentage: number[] = [0, 25, 50, 100];
-
-    let isValidMortgage = new Map<number, boolean>([
-        [10, true],
-        [20, true],
-        [30, true],
-    ]);
+    let mortgage_durations: number[] = [10, 20, 30];
+    let cashVsMortgageData: any = [
+        { percentage: 0, values: [0] },
+        { percentage: 25, values: [0] },
+        { percentage: 50, values: [0] },
+        { percentage: 100, values: [0] },
+    ];
+    let mortgageCompareData: any = [
+        { duration: 10, values: [0], valid: false, installment: 0 },
+        { duration: 20, values: [0], valid: false, installment: 0 },
+        { duration: 30, values: [0], valid: false, installment: 0 },
+    ];
 
     let totalAmount: number = 0;
     let doughnutChartInstance: Chart | null = null; // Store chart instance globally
@@ -126,7 +131,7 @@
         prevSelectedTab = selectedTab;
         tick().then(() => {
             initializeLineChart();
-            updatePremiumData();
+            updateMortgageCompare();
         });
     }
 
@@ -138,7 +143,7 @@
         prevSelectedTab = selectedTab;
         tick().then(() => {
             initializeCashVsMortgageChart(); // to modify
-            updatePremiumData();
+            updateCashVsMortgage();
         });
     }
 
@@ -234,7 +239,6 @@
 
         return apiStringUrl;
     }
-
     function buildCashVsMortgageApiString(): string {
         let apiStringUrl: string =
             //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
@@ -244,18 +248,36 @@
             (house_price != null ? house_price : 0) +
             "&yearly_saving=" +
             (yearlySaving != null ? yearlySaving : 0) +
-            "&yearly_growthg_rate=" +
-            (yearlyGrowthgRate != null ? yearlyGrowthgRate : 0) +
+            "&yearly_growth_rate=" +
+            (yearlyGrowthgRate != null ? yearlyGrowthgRate / 100 : 0) +
             "&yearly_saving_rate=" +
-            (yearlySavingRate != null ? yearlySavingRate : 0) +
+            (yearlySavingRate != null ? yearlySavingRate / 100 : 0) +
             "&mortgage_duration=" +
             (mortgageDuration != null ? mortgageDuration : 0) +
             "&mortgage_TAEG=" +
             (mortgageInterestRate != null ? mortgageInterestRate / 100 : 0);
-
+        console.log(apiStringUrl);
         return apiStringUrl;
     }
-
+    function buildMortgageCompareApiString(): string {
+        let apiStringUrl: string =
+            //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
+            "http://localhost:8080/get_mortgage_compare?house_price=" +
+            (house_price != null ? house_price : 0) +
+            "&yearly_saving=" +
+            (yearlySaving != null ? yearlySaving : 0) +
+            "&yearly_growth_rate=" +
+            (yearlyGrowthgRate != null ? yearlyGrowthgRate / 100 : 0) +
+            "&yearly_saving_rate=" +
+            (yearlySavingRate != null ? yearlySavingRate / 100 : 0) +
+            "&mortgage_amount=" +
+            (mortgage_amount != null ? mortgage_amount : 0) +
+            "&mortgage_TAEG=" +
+            (taeg != null ? taeg / 100 : 0) +
+            "&durations=" +
+            (mortgage_durations != null ? mortgage_durations.join(",") : "");
+        return apiStringUrl;
+    }
     async function updateData() {
         let chartData: any = [];
 
@@ -322,62 +344,24 @@
             }
         });
     }
-
-    async function updatePremiumData() {
-        let chartData: any = [];
+    async function updateMortgageCompare() {
         let responseCode: string = "200";
 
-        const costApiCall = async () => {
+        const mortgageCompareApiCall = async () => {
             try {
-                const response = await fetch(buildCostApiString());
+                const response = await fetch(buildMortgageCompareApiString());
 
                 if (!response.ok || response.status == 429) {
                     throw new Error(`${response.status}`);
                 }
-                chartData = await response.json();
-                chartData = chartData["data"];
+                mortgageCompareData = await response.json();
+                mortgageCompareData = mortgageCompareData["data"];
             } catch (error: any) {
                 responseCode = error.message;
             }
         };
-
-        costApiCall().then(() => {
+        mortgageCompareApiCall().then(() => {
             if (responseCode == "200") {
-                dataByCategory = {};
-
-                chartData.forEach((item: any) => {
-                    if (item.category == "Installment") {
-                        mortgageInstallment = item.value;
-                    }
-                    if (item.category == "House price") {
-                        displayed_house_price = item.value;
-                    }
-                    item.value = Math.round(item.value);
-
-                    //remove 0 values
-                    if (item.value > 0) {
-                        if (item.category in dataByCategory) {
-                            dataByCategory[item.category].push(item);
-                        } else {
-                            dataByCategory[item.category] = [item];
-                        }
-                    }
-                });
-                groupedData = {};
-                totalAmount = 0;
-
-                chartData.forEach((item: any) => {
-                    if (
-                        item.value > 0 &&
-                        item.category != "House price" &&
-                        item.category != "Installment"
-                    ) {
-                        groupedData[item.category] =
-                            (groupedData[item.category] || 0) +
-                            Math.round(item.value);
-                        totalAmount += item.value;
-                    }
-                });
                 updateLineChart();
             } else if (responseCode == "429") {
                 showRateLimitPopup = true;
@@ -385,6 +369,9 @@
                 showErrorPopup = true;
             }
         });
+    }
+    async function updateCashVsMortgage() {
+        let responseCode: string = "200";
 
         const cashVsMortgageApiCall = async () => {
             try {
@@ -393,15 +380,12 @@
                 if (!response.ok || response.status == 429) {
                     throw new Error(`${response.status}`);
                 }
-                let cashVsMortgageData = await response.json();
+                cashVsMortgageData = await response.json();
                 cashVsMortgageData = cashVsMortgageData["data"];
-
-                console.log(cashVsMortgageData);
             } catch (error: any) {
                 responseCode = error.message;
             }
         };
-
         cashVsMortgageApiCall().then(() => {
             if (responseCode == "200") {
                 updateCashVsMortgageChart();
@@ -412,7 +396,6 @@
             }
         });
     }
-
     async function initializeDoughnutChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
@@ -495,7 +478,6 @@
             });
         }
     }
-
     async function initializeInterestsBarChart() {
         //initializing interests bar chart
 
@@ -622,101 +604,6 @@
             });
         }
     }
-
-    function simulateSavings(
-        yearlyIncome: number[],
-        installment: number,
-        duration: number,
-        taeg: number,
-        yearlyGrowthgRate: number,
-        mortgageAmount: number,
-    ): number[] {
-        let savings = 0;
-        const savingsOverTime: number[] = [];
-        let houseSaving = house_price - mortgageAmount;
-        let totalMortgageAmount = mortgageAmount;
-
-        yearlyGrowthgRate = yearlyGrowthgRate / 100;
-        taeg = taeg / 100;
-
-        if (installment > yearlySaving * 0.35) {
-            isValidMortgage.set(duration, false);
-            isValidMortgage = isValidMortgage;
-        } else {
-            isValidMortgage.set(duration, true);
-            isValidMortgage = isValidMortgage;
-        }
-
-        for (let year = 0; year < yearlyIncome.length; year++) {
-            let leftover = 0;
-            if (year < duration) {
-                leftover = yearlyIncome[year] - installment;
-                houseSaving += installment - totalMortgageAmount * taeg;
-                totalMortgageAmount -= installment - totalMortgageAmount * taeg;
-            } else {
-                leftover = yearlyIncome[year];
-            }
-
-            savings =
-                savings + leftover >= 0
-                    ? (savings + leftover) * (1 + yearlyGrowthgRate)
-                    : savings + leftover;
-            savingsOverTime.push(Math.round(savings + houseSaving));
-        }
-
-        return savingsOverTime;
-    }
-
-    function simulateSavingsCashVsMortgage(
-        yearlyIncome: number[],
-        installment: number,
-        duration: number,
-        taeg: number,
-        yearlyGrowthgRate: number,
-        mortgageAmount: number,
-    ): number[] {
-        let savings = mortgageAmount;
-        const savingsOverTime: number[] = [];
-        let houseSaving = house_price - mortgageAmount; //add the mortgage expenses based on the type of mortgage
-        let totalMortgageAmount = mortgageAmount;
-
-        yearlyGrowthgRate = yearlyGrowthgRate / 100;
-        taeg = taeg / 100;
-
-        for (let year = 0; year < yearlyIncome.length; year++) {
-            let leftover = 0;
-            leftover = yearlyIncome[year] - installment;
-            houseSaving += installment - totalMortgageAmount * taeg;
-            totalMortgageAmount -= installment - totalMortgageAmount * taeg;
-
-            savings =
-                savings + leftover >= 0
-                    ? (savings + leftover) * (1 + yearlyGrowthgRate)
-                    : savings + leftover;
-            savingsOverTime.push(Math.round(savings + houseSaving));
-        }
-
-        return savingsOverTime;
-    }
-
-    function calculateYearlyInstallment(
-        amount: number,
-        duration: number,
-        TAEG: number,
-    ): number {
-        if (amount === 0 || duration === 0 || TAEG === 0) {
-            return 0;
-        }
-
-        const monthlyRate = TAEG / 12 / 100;
-        const numberOfPayments = duration * 12;
-        const numerator =
-            amount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments);
-        const denominator = Math.pow(1 + monthlyRate, numberOfPayments) - 1;
-
-        return (numerator / denominator) * 12;
-    }
-
     async function initializeLineChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
@@ -735,40 +622,8 @@
             const durations: number[] = [10, 20, 30];
             const years = 30;
 
-            // Simulated monthly income – replace this with your actual array if dynamic
-            const yearlyIncome = Array.from(
-                { length: years },
-                (_, i) => (yearlySaving * yearlySavingRate) / 100,
-            );
-
-            // Example mortgage installments – adjust based on your input logic
-            installments = {
-                [durations[0]]: calculateYearlyInstallment(
-                    mortgage_amount,
-                    durations[0],
-                    taeg,
-                ),
-                [durations[1]]: calculateYearlyInstallment(
-                    mortgage_amount,
-                    durations[1],
-                    taeg,
-                ),
-                [durations[2]]: calculateYearlyInstallment(
-                    mortgage_amount,
-                    durations[2],
-                    taeg,
-                ),
-            };
-
             const datasets = durations.map((duration, idx) => {
-                const data = simulateSavings(
-                    yearlyIncome,
-                    installments[duration],
-                    duration,
-                    taeg,
-                    yearlyGrowthgRate,
-                    mortgage_amount,
-                );
+                const data = mortgageCompareData[idx]["values"];
                 return {
                     label: `${duration}-year mortgage`,
                     data,
@@ -881,7 +736,6 @@
             });
         }
     }
-
     async function initializeCashVsMortgageChart() {
         if (showCosts) {
             await tick(); // Wait for DOM update before selecting the canvas
@@ -900,42 +754,9 @@
             const mortgage_percentage: number[] = [0, 25, 50, 100];
             const years = 30;
 
-            // Simulated monthly income – replace this with your actual array if dynamic
-            const yearlyIncome = Array.from(
-                { length: years },
-                (_, i) => (yearlySaving * yearlySavingRate) / 100,
-            );
-
-            // Example mortgage installments – adjust based on your input logic
-            const installments: { [key: number]: number } = {
-                [mortgage_percentage[0]]: 0,
-                [mortgage_percentage[1]]: calculateYearlyInstallment(
-                    (house_price * mortgage_percentage[1]) / 100,
-                    30,
-                    3,
-                ),
-                [mortgage_percentage[2]]: calculateYearlyInstallment(
-                    (house_price * mortgage_percentage[2]) / 100,
-                    30,
-                    3,
-                ),
-                [mortgage_percentage[3]]: calculateYearlyInstallment(
-                    (house_price * mortgage_percentage[3]) / 100,
-                    30,
-                    3,
-                ),
-            };
-
             const datasets = mortgage_percentage.map(
                 (mortgage_percentage, idx) => {
-                    const data = simulateSavingsCashVsMortgage(
-                        yearlyIncome,
-                        installments[mortgage_percentage],
-                        30,
-                        3,
-                        yearlyGrowthgRate,
-                        (house_price * mortgage_percentage) / 100,
-                    );
+                    const data = cashVsMortgageData[idx]["values"];
                     return {
                         label: `${mortgage_percentage}% mutuo`,
                         data,
@@ -1056,7 +877,6 @@
             });
         }
     }
-
     function updateDoughnutChart() {
         if (!doughnutChartInstance) return; // Ensure the chart exists
 
@@ -1075,7 +895,6 @@
         );
         doughnutChartInstance.update(); // Smoothly update the chart
     }
-
     function updateInterestsBarChart() {
         if (!interestsBarChartInstance) return; // Ensure the chart exists
 
@@ -1147,72 +966,36 @@
             };
         interestsBarChartInstance.update(); // Smoothly update the chart
     }
-
     function updateLineChart() {
         if (!lineChartInstance) return;
 
         const durations: number[] = [10, 20, 30];
         const years = 30;
 
-        // Simulated monthly income – replace this with your actual array if dynamic
-        const yearlyIncome = Array.from(
-            { length: years },
-            (_, i) => (yearlySaving * yearlySavingRate) / 100,
-        );
-
-        // Example mortgage installments – adjust based on your input logic
-        installments = {
-            [durations[0]]: calculateYearlyInstallment(
-                mortgage_amount,
-                durations[0],
-                taeg,
-            ),
-            [durations[1]]: calculateYearlyInstallment(
-                mortgage_amount,
-                durations[1],
-                taeg,
-            ),
-            [durations[2]]: calculateYearlyInstallment(
-                mortgage_amount,
-                durations[2],
-                taeg,
-            ),
-        };
-
-        installments = installments;
-
         const updatedDatasets = durations.map((duration, idx) => {
-            const data = simulateSavings(
-                yearlyIncome,
-                installments[duration],
-                duration,
-                taeg,
-                yearlyGrowthgRate,
-                mortgage_amount,
-            );
-
+            const data = mortgageCompareData[idx]["values"];
             return {
                 label: `Mutuo ${duration} anni`,
                 data,
                 borderColor: [
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(98, 182, 170, 1)"
                         : "rgba(98, 182, 170, 0.2)",
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(133, 81, 182, 1)"
                         : "rgba(133, 81, 182, 0.2)",
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(249, 166, 0, 1)"
                         : "rgba(249, 166, 0, 0.2)",
                 ][idx],
                 backgroundColor: [
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(98, 182, 170, 1)"
                         : "rgba(98, 182, 170, 0.1)",
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(133, 81, 182, 1)"
                         : "rgba(133, 81, 182, 0.1)",
-                    isValidMortgage.get(duration)
+                    mortgageCompareData[idx]["valid"]
                         ? "rgba(249, 166, 0, 1)"
                         : "rgba(249, 166, 0, 0.1)",
                 ][idx],
@@ -1239,42 +1022,9 @@
         // Use dynamic mortgage duration instead of hardcoded 30
         const years = mortgageDuration;
 
-        // Simulated monthly income – replace this with your actual array if dynamic
-        const yearlyIncome = Array.from(
-            { length: years },
-            (_, i) => (yearlySaving * yearlySavingRate) / 100,
-        );
-
-        // Use dynamic mortgage interest rate and duration
-        const installments: { [key: number]: number } = {
-            [mortgage_percentage[0]]: 0,
-            [mortgage_percentage[1]]: calculateYearlyInstallment(
-                (house_price * mortgage_percentage[1]) / 100,
-                mortgageDuration, // Use dynamic duration
-                mortgageInterestRate, // Use dynamic interest rate
-            ),
-            [mortgage_percentage[2]]: calculateYearlyInstallment(
-                (house_price * mortgage_percentage[2]) / 100,
-                mortgageDuration, // Use dynamic duration
-                mortgageInterestRate, // Use dynamic interest rate
-            ),
-            [mortgage_percentage[3]]: calculateYearlyInstallment(
-                (house_price * mortgage_percentage[3]) / 100,
-                mortgageDuration, // Use dynamic duration
-                mortgageInterestRate, // Use dynamic interest rate
-            ),
-        };
-
         const updatedDatasets = mortgage_percentage.map(
             (mortgage_percentage, idx) => {
-                const data = simulateSavingsCashVsMortgage(
-                    yearlyIncome,
-                    installments[mortgage_percentage],
-                    mortgageDuration, // Use dynamic duration
-                    mortgageInterestRate, // Use dynamic interest rate
-                    yearlyGrowthgRate,
-                    (house_price * mortgage_percentage) / 100,
-                );
+                const data = cashVsMortgageData[idx]["values"];
                 return {
                     label:
                         mortgage_percentage == 0
@@ -1299,8 +1049,6 @@
                 };
             },
         );
-
-        console.log(updatedDatasets);
 
         wealth_cash_vs_mortgage[0] =
             updatedDatasets[0].data[updatedDatasets[0].data.length - 1];
@@ -1389,14 +1137,16 @@
                                 selectedTab != "mortgage"
                                     ? () => {
                                           updateData();
-                                          updatePremiumData();
+                                          updateCashVsMortgage();
+                                          updateMortgageCompare();
                                       }
                                     : () => {}}
                                 on:change={showCosts &&
                                 selectedTab != "mortgage"
                                     ? () => {
                                           updateData();
-                                          updatePremiumData();
+                                          updateCashVsMortgage();
+                                          updateMortgageCompare();
                                       }
                                     : () => {}}
                             />
@@ -1421,7 +1171,11 @@
                             bind:showTooltip
                             element={0}
                             on:change={showCosts && selectedTab != "mortgage"
-                                ? updateData
+                                ? () => {
+                                      updateData();
+                                      updateCashVsMortgage();
+                                      updateMortgageCompare();
+                                  }
                                 : () => {}}
                         />
                     </div>
@@ -1433,7 +1187,11 @@
                             bind:showTooltip
                             element={1}
                             on:change={showCosts && selectedTab != "mortgage"
-                                ? updateData
+                                ? () => {
+                                      updateData();
+                                      updateCashVsMortgage();
+                                      updateMortgageCompare();
+                                  }
                                 : () => {}}
                         />
                     </div>
@@ -1445,7 +1203,11 @@
                             bind:showTooltip
                             element={2}
                             on:change={showCosts && selectedTab != "mortgage"
-                                ? updateData
+                                ? () => {
+                                      updateData();
+                                      updateCashVsMortgage();
+                                      updateMortgageCompare();
+                                  }
                                 : () => {}}
                         />
                         {#if is_sold_by_agency}
@@ -1467,10 +1229,18 @@
                                         step="0.1"
                                         bind:value={agencyFee}
                                         on:change={showCosts
-                                            ? updateData
+                                            ? () => {
+                                                  updateData();
+                                                  updateCashVsMortgage();
+                                                  updateMortgageCompare();
+                                              }
                                             : () => {}}
                                         on:mouseup={showCosts
-                                            ? updateData
+                                            ? () => {
+                                                  updateData();
+                                                  updateCashVsMortgage();
+                                                  updateMortgageCompare();
+                                              }
                                             : () => {}}
                                     />
                                     <!-- Separator Line -->
@@ -1521,7 +1291,8 @@
                                             on:change={showCosts
                                                 ? () => {
                                                       updateData();
-                                                      updatePremiumData();
+                                                      updateCashVsMortgage();
+                                                      updateMortgageCompare();
                                                   }
                                                 : () => {}}
                                         />
@@ -1589,7 +1360,8 @@
                                                 on:change={showCosts
                                                     ? () => {
                                                           updateData();
-                                                          updatePremiumData();
+                                                          updateCashVsMortgage();
+                                                          updateMortgageCompare();
                                                       }
                                                     : () => {}}
                                             />
@@ -2010,7 +1782,7 @@
                                                                     yearlySaving
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updatePremiumData
+                                                                    ? updateMortgageCompare
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2062,7 +1834,7 @@
                                                                     yearlySavingRate
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updatePremiumData
+                                                                    ? updateMortgageCompare
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2115,7 +1887,7 @@
                                                                     yearlyGrowthgRate
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updatePremiumData
+                                                                    ? updateMortgageCompare
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2181,11 +1953,12 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(98, 182, 170, 1)"}
-                                                        isValid={isValidMortgage.get(
-                                                            10,
-                                                        )}
-                                                        secondaryNumber={installments[10] /
-                                                            12}
+                                                        isValid={mortgageCompareData[0][
+                                                            "valid"
+                                                        ]}
+                                                        secondaryNumber={mortgageCompareData[0][
+                                                            "installment"
+                                                        ] / 12}
                                                         secondaryLabel={"rata"}
                                                     />
                                                 </div>
@@ -2208,11 +1981,12 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(133, 81, 182, 1)"}
-                                                        isValid={isValidMortgage.get(
-                                                            20,
-                                                        )}
-                                                        secondaryNumber={installments[20] /
-                                                            12}
+                                                        isValid={mortgageCompareData[1][
+                                                            "valid"
+                                                        ]}
+                                                        secondaryNumber={mortgageCompareData[1][
+                                                            "installment"
+                                                        ] / 12}
                                                         secondaryLabel={"rata"}
                                                     />
                                                 </div>
@@ -2235,11 +2009,12 @@
                                                             null}
                                                         delta={null}
                                                         color={"rgba(249, 166, 0, 1)"}
-                                                        isValid={isValidMortgage.get(
-                                                            30,
-                                                        )}
-                                                        secondaryNumber={installments[30] /
-                                                            12}
+                                                        isValid={mortgageCompareData[2][
+                                                            "valid"
+                                                        ]}
+                                                        secondaryNumber={mortgageCompareData[2][
+                                                            "installment"
+                                                        ] / 12}
                                                         secondaryLabel={"rata"}
                                                     />
                                                 </div>
@@ -2248,7 +2023,7 @@
                                     </div>
                                 {/if}
                                 {#if selectedTab == "cash_vs_mortgage"}
-                                    <!-- Mortgage comparison section -->
+                                    <!-- Cash vs mortgage section -->
                                     <div transition:fade={{ duration: 500 }}>
                                         <!-- Input section -->
                                         <div
@@ -2279,7 +2054,7 @@
                                                                 yearlySaving
                                                             }
                                                             on:change={showCosts
-                                                                ? updatePremiumData
+                                                                ? updateCashVsMortgage
                                                                 : () => {}}
                                                         />
                                                         <span
@@ -2329,7 +2104,7 @@
                                                                 yearlySavingRate
                                                             }
                                                             on:change={showCosts
-                                                                ? updatePremiumData
+                                                                ? updateCashVsMortgage
                                                                 : () => {}}
                                                         />
                                                         <span
@@ -2380,7 +2155,7 @@
                                                                 yearlyGrowthgRate
                                                             }
                                                             on:change={showCosts
-                                                                ? updatePremiumData
+                                                                ? updateCashVsMortgage
                                                                 : () => {}}
                                                         />
                                                         <span
@@ -2458,7 +2233,7 @@
                                                                 bind:value={
                                                                     mortgageInterestRate
                                                                 }
-                                                                on:change={updateCashVsMortgageChart}
+                                                                on:change={updateCashVsMortgage}
                                                             />
                                                             <span
                                                                 class="absolute right-3 top-2 text-white font-semibold"
@@ -2507,7 +2282,7 @@
                                                                 bind:value={
                                                                     mortgageDuration
                                                                 }
-                                                                on:change={updateCashVsMortgageChart}
+                                                                on:change={updateCashVsMortgage}
                                                             />
                                                             <span
                                                                 class="absolute right-3 top-2 text-white font-semibold"
