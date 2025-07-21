@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { onMount, tick } from "svelte";
+    import { onMount, tick, onDestroy } from "svelte";
+    import { push } from "svelte-spa-router";
     import Chart from "chart.js/auto";
-    import { fade, slide } from "svelte/transition";
+    import { fade, fly, slide } from "svelte/transition";
     import Check from "../assets/Check.svelte";
     import NavBar from "../assets/NavBar.svelte";
     import DetailTile from "../assets/DetailTile.svelte";
@@ -14,11 +15,52 @@
     import TooltipMortgage from "../assets/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
     import ColoredSummaryPrice from "../assets/ColoredSummaryPrice.svelte";
+    import { onAuthStateChanged } from "firebase/auth";
+    import { auth } from "./auth/credentials"; // Adjust path as needed
+    import {
+        user,
+        isAuthenticated,
+        isLoading,
+        initAuthStore,
+        logout,
+    } from "./auth/auth-store"; // Adjust path as needed
 
     let selectedTab = "summary";
-    let prevSelectedTab = "";
+
     let showRateLimitPopup = false;
     let showErrorPopup = false;
+    let forceChartUpdate = false;
+    let showUserMenu = false;
+
+    // Handle logout
+    async function handleLogout() {
+        try {
+            await logout();
+            showUserMenu = false;
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    }
+
+    function toggleUserMenu() {
+        showUserMenu = !showUserMenu;
+    }
+
+    function closeUserMenu(event: any) {
+        if (!event.target.closest(".user-menu-container")) {
+            showUserMenu = false;
+        }
+    }
+
+    onMount(() => {
+        // Add click listener for closing user menu
+        document.addEventListener("click", closeUserMenu);
+    });
+
+    onDestroy(() => {
+        // Remove click listener
+        document.removeEventListener("click", closeUserMenu);
+    });
 
     let house_price: number = 300000;
     let displayed_house_price: number = 300000;
@@ -71,24 +113,23 @@
     let yearlyGrowthgRate: number = 3;
     let yearlySavingRate: number = 30;
 
+    let groupedData: Record<string, number> = {};
+
     // Define category colors
     const categoryColors: Record<string, string> = {
-        Tax: "rgba(133, 81, 182, 0.7)",
-        Agency: "rgba(249, 166, 0, 0.7)",
-        Notary: "rgba(98, 182, 170, 0.7)",
-        Bank: "rgba(76, 51, 141, 0.7)",
+        Tasse: "rgba(133, 81, 182, 0.7)",
+        Agenzia: "rgba(249, 166, 0, 0.7)",
+        Notaio: "rgba(98, 182, 170, 0.7)",
+        Banca: "rgba(76, 51, 141, 0.7)",
     };
     const categoryBorderColors: Record<string, string> = {
-        Tax: "rgba(133, 81, 182, 1)",
-        Agency: "rgba(249, 166, 0, 1)",
-        Notary: "rgba(98, 182, 170, 1)",
-        Bank: "rgba(76, 51, 141, 1)",
+        Tasse: "rgba(133, 81, 182, 1)",
+        Agenzia: "rgba(249, 166, 0, 1)",
+        Notaio: "rgba(98, 182, 170, 1)",
+        Banca: "rgba(76, 51, 141, 1)",
     };
 
     $: displayed_mortgage_amount = mortgage_amount;
-
-    // Step 1: Group data by category and sum values
-    let groupedData: Record<string, number> = {};
 
     // Optional: auto-hide after X seconds
     $: if (showRateLimitPopup || showErrorPopup) {
@@ -100,11 +141,10 @@
 
     //updating the chart when switching nav
     $: if (
-        selectedTab == "summary" &&
-        prevSelectedTab != "summary" &&
-        showCosts
+        (selectedTab == "summary" && showCosts) ||
+        (forceChartUpdate && showCosts && selectedTab == "summary")
     ) {
-        prevSelectedTab = selectedTab;
+        forceChartUpdate = false;
         tick().then(() => {
             initializeDoughnutChart();
             updateData();
@@ -112,11 +152,10 @@
     }
 
     $: if (
-        selectedTab == "mortgage" &&
-        prevSelectedTab != "mortgage" &&
-        showCosts
+        (selectedTab == "mortgage" && showCosts) ||
+        (forceChartUpdate && showCosts)
     ) {
-        prevSelectedTab = selectedTab;
+        forceChartUpdate = false;
         tick().then(() => {
             initializeInterestsBarChart();
             updateData();
@@ -124,38 +163,31 @@
     }
 
     $: if (
-        selectedTab == "mortgage_compare" &&
-        prevSelectedTab != "mortgage_compare" &&
-        showCosts
+        (selectedTab == "mortgage_compare" && showCosts) ||
+        (forceChartUpdate && showCosts && selectedTab == "mortgage_compare")
     ) {
-        prevSelectedTab = selectedTab;
         tick().then(() => {
+            forceChartUpdate = false;
             initializeLineChart();
             updateMortgageCompare();
         });
     }
 
     $: if (
-        selectedTab == "cash_vs_mortgage" &&
-        prevSelectedTab != "cash_vs_mortgage" &&
-        showCosts
+        (selectedTab == "cash_vs_mortgage" && showCosts) ||
+        (forceChartUpdate && showCosts && selectedTab == "cash_vs_mortgage")
     ) {
-        prevSelectedTab = selectedTab;
+        forceChartUpdate = false;
         tick().then(() => {
             initializeCashVsMortgageChart(); // to modify
             updateCashVsMortgage();
         });
     }
 
-    $: if (selectedTab == "base") {
-        prevSelectedTab = selectedTab;
-    }
-
     $: if (
         (selectedTab == "mortgage" || selectedTab == "mortgage_compare") &&
         !is_using_mortgage
     ) {
-        prevSelectedTab = selectedTab;
         selectedTab = "summary";
     }
 
@@ -209,7 +241,146 @@
         yearlyGrowthgRate = -10;
     }
 
-    onMount(() => {});
+    function saveStateToLocalStorage() {
+        const state = {
+            selectedTab,
+            showRateLimitPopup,
+            showErrorPopup,
+            house_price,
+            displayed_house_price,
+            is_fisrt_house,
+            is_sold_by_builder,
+            is_sold_by_agency,
+            is_using_mortgage,
+            taeg,
+            mortgage_duration,
+            mortgage_amount,
+            displayed_mortgage_amount,
+            interestsVal,
+            mortgageInstallment,
+            agencyFee,
+            showCosts,
+            showTooltip,
+            mortgageInterestRate,
+            mortgageDuration,
+            showMortgageParams,
+            mortgage_percentage,
+            mortgage_durations,
+            cashVsMortgageData,
+            mortgageCompareData,
+            totalAmount,
+            dataByCategory,
+            wealth,
+            wealth_cash_vs_mortgage,
+            yearlySaving,
+            yearlyGrowthgRate,
+            yearlySavingRate,
+            groupedData,
+        };
+
+        localStorage.setItem("appState", JSON.stringify(state));
+    }
+
+    function loadStateFromLocalStorage() {
+        const savedState = localStorage.getItem("appState");
+        if (savedState) {
+            try {
+                const state = JSON.parse(savedState);
+
+                // Restore all variables
+                selectedTab = state.selectedTab ?? "summary";
+                showRateLimitPopup = state.showRateLimitPopup ?? false;
+                showErrorPopup = state.showErrorPopup ?? false;
+                house_price = state.house_price ?? 300000;
+                displayed_house_price = state.displayed_house_price ?? 300000;
+                is_fisrt_house = state.is_fisrt_house ?? false;
+                is_sold_by_builder = state.is_sold_by_builder ?? false;
+                is_sold_by_agency = state.is_sold_by_agency ?? false;
+                is_using_mortgage = state.is_using_mortgage ?? false;
+                taeg = state.taeg ?? 0;
+                mortgage_duration = state.mortgage_duration ?? 0;
+                mortgage_amount = state.mortgage_amount ?? 0;
+                displayed_mortgage_amount =
+                    state.displayed_mortgage_amount ?? 1000;
+                interestsVal = state.interestsVal ?? 0;
+                mortgageInstallment = state.mortgageInstallment ?? 0;
+                agencyFee = state.agencyFee ?? 0;
+                showCosts = state.showCosts ?? false;
+                showTooltip = state.showTooltip ?? [false, false, false, false];
+                mortgageInterestRate = state.mortgageInterestRate ?? 3;
+                mortgageDuration = state.mortgageDuration ?? 30;
+                showMortgageParams = state.showMortgageParams ?? false;
+                mortgage_percentage = state.mortgage_percentage ?? [
+                    0, 25, 50, 100,
+                ];
+                mortgage_durations = state.mortgage_durations ?? [10, 20, 30];
+                cashVsMortgageData = state.cashVsMortgageData ?? [
+                    { percentage: 0, values: [0] },
+                    { percentage: 25, values: [0] },
+                    { percentage: 50, values: [0] },
+                    { percentage: 100, values: [0] },
+                ];
+                mortgageCompareData = state.mortgageCompareData ?? [
+                    { duration: 10, values: [0], valid: false, installment: 0 },
+                    { duration: 20, values: [0], valid: false, installment: 0 },
+                    { duration: 30, values: [0], valid: false, installment: 0 },
+                ];
+                totalAmount = state.totalAmount ?? 0;
+                dataByCategory = state.dataByCategory ?? {};
+                wealth = state.wealth ?? [];
+                wealth_cash_vs_mortgage = state.wealth_cash_vs_mortgage ?? [];
+                yearlySaving = state.yearlySaving ?? 20000;
+                yearlyGrowthgRate = state.yearlyGrowthgRate ?? 3;
+                yearlySavingRate = state.yearlySavingRate ?? 30;
+                groupedData = state.groupedData ?? {};
+
+                forceChartUpdate = true;
+            } catch (error) {
+                console.error("Error loading state from localStorage:", error);
+            }
+        }
+    }
+
+    function clearStateFromLocalStorage() {
+        localStorage.removeItem("appState");
+    }
+
+    onMount(() => {
+        initAuthStore();
+        console.log("CALLED");
+        loadStateFromLocalStorage();
+        clearStateFromLocalStorage();
+
+        // Add this auth listener to your homepage too
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (firebaseUser && firebaseUser.emailVerified) {
+                // User is signed in and email is verified
+                const userData: any = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                    emailVerified: firebaseUser.emailVerified,
+                    firstName: firebaseUser.displayName?.split(" ")[0] || "",
+                    lastName:
+                        firebaseUser.displayName
+                            ?.split(" ")
+                            .slice(1)
+                            .join(" ") || "",
+                };
+
+                user.set(userData);
+                isAuthenticated.set(true);
+            }
+        });
+
+        return () => unsubscribe();
+    });
+
+    function goToLogIn() {
+        saveStateToLocalStorage();
+        push("/signin");
+    }
 
     function buildCostApiString(): string {
         let apiStringUrl: string =
@@ -256,7 +427,6 @@
             (mortgageDuration != null ? mortgageDuration : 0) +
             "&mortgage_TAEG=" +
             (mortgageInterestRate != null ? mortgageInterestRate / 100 : 0);
-        console.log(apiStringUrl);
         return apiStringUrl;
     }
     function buildMortgageCompareApiString(): string {
@@ -277,6 +447,20 @@
             "&durations=" +
             (mortgage_durations != null ? mortgage_durations.join(",") : "");
         return apiStringUrl;
+    }
+    function itTranslation(chartData: Record<string, number>) {
+        let categories = Object.keys(chartData);
+
+        for (let i = 0; i < categories.length; i++) {
+            if (categories[i] == "Agency") {
+                categories[i] = "Agenzia";
+            } else if (categories[i] == "Notary") {
+                categories[i] = "Notaio";
+            } else if (categories[i] == "Bank") categories[i] = "Banca";
+            else categories[i] = "Tasse";
+        }
+
+        return categories;
     }
     async function updateData() {
         let chartData: any = [];
@@ -397,87 +581,83 @@
         });
     }
     async function initializeDoughnutChart() {
-        if (showCosts) {
-            await tick(); // Wait for DOM update before selecting the canvas
+        const ctx = document.getElementById(
+            "barChart",
+        ) as HTMLCanvasElement | null;
+        if (!ctx) return; // Ensure ctx exists before using it
 
-            const ctx = document.getElementById(
-                "barChart",
-            ) as HTMLCanvasElement | null;
-            if (!ctx) return; // Ensure ctx exists before using it
+        const ctx2D = ctx.getContext("2d");
+        if (!ctx2D) return; // Ensure context is available
 
-            const ctx2D = ctx.getContext("2d");
-            if (!ctx2D) return; // Ensure context is available
+        // Step 3: Destroy previous chart instance
+        if (doughnutChartInstance) {
+            doughnutChartInstance.destroy();
+        }
 
-            // Step 3: Destroy previous chart instance
-            if (doughnutChartInstance) {
-                doughnutChartInstance.destroy();
-            }
+        const categories = itTranslation(groupedData);
+        const values = Object.values(groupedData);
 
-            const categories = Object.keys(groupedData);
-            const values = Object.values(groupedData);
-
-            // Step 4: Create the stacked bar chart
-            doughnutChartInstance = new Chart(ctx2D, {
-                type: "doughnut",
-                data: {
-                    labels: categories,
-                    datasets: [
-                        {
-                            label: "Costo",
-                            data: values,
-                            backgroundColor: categories.map(
-                                (cat) =>
-                                    categoryColors[cat] ||
-                                    "rgba(200, 200, 200, 1)",
-                            ), // fallback color
-                            borderColor: categories.map(
-                                (cat) =>
-                                    categoryBorderColors[cat] ||
-                                    "rgba(200, 200, 200, 0.6)",
-                            ),
-                            borderWidth: 2,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                color: "white",
-                                font: {
-                                    weight: "bold",
-                                    lineHeight: 1.25,
-                                },
-                                padding: 20,
+        // Step 4: Create the stacked bar chart
+        doughnutChartInstance = new Chart(ctx2D, {
+            type: "doughnut",
+            data: {
+                labels: categories,
+                datasets: [
+                    {
+                        label: "Costo",
+                        data: values,
+                        backgroundColor: categories.map(
+                            (cat) =>
+                                categoryColors[cat] || "rgba(200, 200, 200, 1)",
+                        ), // fallback color
+                        borderColor: categories.map(
+                            (cat) =>
+                                categoryBorderColors[cat] ||
+                                "rgba(200, 200, 200, 0.6)",
+                        ),
+                        borderWidth: 2,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            color: "white",
+                            font: {
+                                weight: "bold",
+                                lineHeight: 1.25,
                             },
+                            padding: 20,
                         },
-                        tooltip: {
-                            mode: "index",
-                            intersect: false,
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.dataset.label || "";
-                                    const value = context.parsed;
-                                    const formatted = new Intl.NumberFormat(
-                                        "it-IT",
-                                        {
-                                            style: "currency",
-                                            currency: "EUR",
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        },
-                                    ).format(value);
-                                    return `${label}: ${formatted}`;
-                                },
+                    },
+                    tooltip: {
+                        mode: "index",
+                        intersect: false,
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.dataset.label || "";
+                                const value = context.parsed;
+                                const formatted = new Intl.NumberFormat(
+                                    "it-IT",
+                                    {
+                                        style: "currency",
+                                        currency: "EUR",
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                    },
+                                ).format(value);
+                                return `${label}: ${formatted}`;
                             },
                         },
                     },
                 },
-            });
-        }
+            },
+        });
     }
+
     async function initializeInterestsBarChart() {
         //initializing interests bar chart
 
@@ -881,7 +1061,7 @@
         if (!doughnutChartInstance) return; // Ensure the chart exists
 
         // Step 2: Convert grouped data into datasets
-        const categories = Object.keys(groupedData);
+        const categories = itTranslation(groupedData);
         const values = Object.values(groupedData);
 
         doughnutChartInstance.data.labels = categories;
@@ -1071,6 +1251,174 @@
 <div
     class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-center justify-center p-2 sm:p-6"
 >
+    <!-- Login/User Button - Top Right -->
+    <div class="fixed top-4 right-4 z-50 user-menu-container">
+        {#if $isLoading}
+            <!-- Loading state -->
+            <div
+                class="bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg"
+            >
+                <div
+                    class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                ></div>
+            </div>
+        {:else if $isAuthenticated && $user}
+            <!-- User Menu -->
+            <div class="relative">
+                <button
+                    on:click={toggleUserMenu}
+                    class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105 flex items-center gap-2"
+                >
+                    {#if $user.photoURL}
+                        <img
+                            src={$user.photoURL}
+                            alt="Profile"
+                            class="w-6 h-6 rounded-full"
+                        />
+                    {:else}
+                        <div
+                            class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        >
+                            {$user.firstName?.charAt(0) ||
+                                $user.email?.charAt(0).toUpperCase()}
+                        </div>
+                    {/if}
+                    <span class="hidden sm:inline">
+                        Ciao, {$user.firstName ||
+                            $user.displayName?.split(" ")[0] ||
+                            "Utente"}!
+                    </span>
+                    <span class="sm:hidden">
+                        {$user.firstName ||
+                            $user.displayName?.split(" ")[0] ||
+                            "Utente"}
+                    </span>
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        class:rotate-180={showUserMenu}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </button>
+
+                <!-- User Dropdown Menu -->
+                {#if showUserMenu}
+                    <div
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                        transition:slide={{ duration: 200 }}
+                    >
+                        <!-- User Info -->
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center gap-3">
+                                {#if $user.photoURL}
+                                    <img
+                                        src={$user.photoURL}
+                                        alt="Profile"
+                                        class="w-10 h-10 rounded-full"
+                                    />
+                                {:else}
+                                    <div
+                                        class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold"
+                                    >
+                                        {$user.firstName?.charAt(0) ||
+                                            $user.email
+                                                ?.charAt(0)
+                                                .toUpperCase()}
+                                    </div>
+                                {/if}
+                                <div>
+                                    <p
+                                        class="font-semibold text-gray-900 text-sm"
+                                    >
+                                        {$user.displayName ||
+                                            `${$user.firstName || ""} ${$user.lastName || ""}`.trim() ||
+                                            "Utente"}
+                                    </p>
+                                    <p class="text-gray-500 text-xs">
+                                        {$user.email}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Menu Items -->
+                        <div class="py-2">
+                            <button
+                                on:click={() => {
+                                    showUserMenu = false; /* Add profile navigation */
+                                }}
+                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                                <svg
+                                    class="w-4 h-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                    />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                Il mio profilo
+                            </button>
+                            <button
+                                on:click={() => {
+                                    showUserMenu = false; /* Add settings navigation */
+                                }}
+                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                                <svg
+                                    class="w-4 h-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" />
+                                </svg>
+                                Impostazioni
+                            </button>
+                            <hr class="my-1 border-gray-100" />
+                            <button
+                                on:click={handleLogout}
+                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                                <svg
+                                    class="w-4 h-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                                    />
+                                    <polyline points="16,17 21,12 16,7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                                Esci
+                            </button>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        {:else}
+            <!-- Login Button -->
+            <button
+                on:click={goToLogIn}
+                class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105"
+            >
+                Accedi
+            </button>
+        {/if}
+    </div>
     {#if showRateLimitPopup || showErrorPopup}
         <div
             class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg z-50 transition-all duration-300 animate-fadeInDown max-w-[90vw]"
@@ -1096,7 +1444,10 @@
     {/if}
 
     <!-- Mobile-first responsive container -->
-    <div class="w-full max-w-[1350px] mx-auto">
+    <div
+        class="w-full max-w-[1350px] mx-auto"
+        in:fly={{ x: -1000, duration: 500, delay: 100 }}
+    >
         <!-- Mobile: Stack vertically, Desktop: Side by side -->
         <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[80vh]">
             <!-- Left Panel: Form inputs -->
@@ -1156,7 +1507,7 @@
                             ></div>
                             <!-- Euro Symbol -->
                             <div
-                                class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
                             >
                                 €
                             </div>
@@ -1302,7 +1653,7 @@
                                         ></div>
                                         <!-- Euro Symbol -->
                                         <div
-                                            class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                            class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
                                         >
                                             €
                                         </div>
@@ -2346,6 +2697,7 @@
                                                         delta={null}
                                                         color={"rgba(178, 178, 178, 1)"}
                                                         isValid={true}
+                                                        years={mortgageDuration}
                                                     />
                                                 </div>
                                             </div>
@@ -2367,6 +2719,7 @@
                                                         delta={null}
                                                         color={"rgba(98, 182, 170, 1)"}
                                                         isValid={true}
+                                                        years={mortgageDuration}
                                                     />
                                                 </div>
                                             </div>
@@ -2388,6 +2741,7 @@
                                                         delta={null}
                                                         color={"rgba(133, 81, 182, 1)"}
                                                         isValid={true}
+                                                        years={mortgageDuration}
                                                     />
                                                 </div>
                                             </div>
@@ -2409,6 +2763,7 @@
                                                         delta={null}
                                                         color={"rgba(249, 166, 0, 1)"}
                                                         isValid={true}
+                                                        years={mortgageDuration}
                                                     />
                                                 </div>
                                             </div>

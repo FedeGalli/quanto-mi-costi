@@ -8,6 +8,7 @@
     export let isValid: boolean = true;
     export let secondaryNumber: number | null = null;
     export let secondaryLabel: string = "";
+    export let years: number | null = null;
 </script>
 
 <div class="flex-1 min-w-[160px]">
@@ -103,7 +104,7 @@
                         />
                     </svg>
                     <span class="text-xs text-green-500"
-                        >Patrimonio fra 30 anni</span
+                        >Patrimonio fra {years} anni</span
                     >
                 </div>
             {/if}
