@@ -16,14 +16,14 @@
     import CustomButton from "../assets/CustomButton.svelte";
     import ColoredSummaryPrice from "../assets/ColoredSummaryPrice.svelte";
     import { onAuthStateChanged } from "firebase/auth";
-    import { auth } from "./auth/credentials"; // Adjust path as needed
+    import { auth } from "./auth/credentials";
     import {
         user,
         isAuthenticated,
         isLoading,
         initAuthStore,
         logout,
-    } from "./auth/auth-store"; // Adjust path as needed
+    } from "./auth/auth-store";
 
     let selectedTab = "summary";
 
@@ -1249,7 +1249,7 @@
 </script>
 
 <div
-    class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-center justify-center p-2 sm:p-6"
+    class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
 >
     <!-- Login/User Button - Top Right -->
     <div class="fixed top-4 right-4 z-50 user-menu-container">
@@ -1284,7 +1284,7 @@
                         </div>
                     {/if}
                     <span class="hidden sm:inline">
-                        Ciao, {$user.firstName ||
+                        {$user.firstName ||
                             $user.displayName?.split(" ")[0] ||
                             "Utente"}!
                     </span>
@@ -1350,6 +1350,7 @@
                             <button
                                 on:click={() => {
                                     showUserMenu = false; /* Add profile navigation */
+                                    push("/getpro");
                                 }}
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                             >
@@ -1365,7 +1366,7 @@
                                     />
                                     <circle cx="12" cy="7" r="4" />
                                 </svg>
-                                Il mio profilo
+                                Get pro!
                             </button>
                             <button
                                 on:click={() => {
@@ -1449,7 +1450,9 @@
         in:fly={{ x: -1000, duration: 500, delay: 100 }}
     >
         <!-- Mobile: Stack vertically, Desktop: Side by side -->
-        <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[80vh]">
+        <div
+            class="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[70vh] items-start"
+        >
             <!-- Left Panel: Form inputs -->
             <div
                 class="w-full lg:basis-[40%] bg-[#1e1f25] text-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 overflow-auto"

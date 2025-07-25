@@ -1,6 +1,7 @@
-<!-- Login Component - Updated Script Section -->
+<!-- Login Component - Updated Script Section with Enhanced Google Login -->
 <script lang="ts">
     import { slide, fly } from "svelte/transition";
+    import { doc, setDoc, getDoc } from "firebase/firestore";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
     import {
@@ -10,12 +11,14 @@
         GoogleAuthProvider,
         FacebookAuthProvider,
         signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
         sendEmailVerification,
         sendPasswordResetEmail,
         onAuthStateChanged,
     } from "firebase/auth";
     import type { AuthError } from "firebase/auth";
-    import { auth } from "./auth/credentials"; // Adjust path as needed
+    import { auth, db } from "./auth/credentials"; // Adjust path as needed
     import { user, isAuthenticated, initAuthStore } from "./auth/auth-store"; // Import auth store
 
     // Auth state
@@ -107,6 +110,14 @@
                 return "Troppi tentativi. Riprova più tardi";
             case "auth/email-not-verified":
                 return "Email non verificata. Controlla la tua casella di posta";
+            case "auth/popup-closed-by-user":
+                return "Popup chiuso dall'utente";
+            case "auth/popup-blocked":
+                return "Popup bloccato dal browser. Abilita i popup per questo sito";
+            case "auth/cancelled-popup-request":
+                return "Richiesta popup cancellata";
+            case "auth/account-exists-with-different-credential":
+                return "Esiste già un account con questo indirizzo email ma con un metodo di accesso diverso";
             default:
                 return "Errore di autenticazione. Riprova più tardi";
         }
@@ -239,6 +250,29 @@
         }
     }
 
+    async function createUserDocument(uid: string) {
+        try {
+            const userDocRef = doc(db, "users", uid);
+
+            // Check if document already exists
+            const userDoc = await getDoc(userDocRef);
+
+            if (!userDoc.exists()) {
+                // Create new user document
+                await setDoc(userDocRef, {
+                    uid: uid,
+                    is_pro: false,
+                });
+                console.log("User document created successfully");
+            } else {
+                console.log("User document already exists");
+            }
+        } catch (error) {
+            console.error("Error creating user document:", error);
+            // Don't throw error to avoid disrupting the login flow
+        }
+    }
+
     // Check email verification status
     async function checkEmailVerification() {
         if (!auth.currentUser) {
@@ -254,7 +288,8 @@
             if (auth.currentUser.emailVerified) {
                 showSuccess("Email verificata! Benvenuto!");
                 showEmailVerificationMessage = false;
-                // The auth store will handle the user state automatically
+
+                createUserDocument(auth.currentUser.uid);
                 setTimeout(() => {
                     push("/");
                 }, 1500);
@@ -289,45 +324,82 @@
         }, 5000);
     }
 
-    // Handle Google login
+    // Enhanced Google login with better error handling and configuration
     async function handleGoogleLogin() {
         isLoading = true;
         try {
+            // Create Google provider with additional configuration
             const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
+
+            // Optional: Add custom parameters
+            provider.addScope("email");
+            provider.addScope("profile");
+
+            // Optional: Set custom parameters for better UX
+            provider.setCustomParameters({
+                prompt: "select_account",
+            });
+
+            // Try popup first, fall back to redirect on mobile or popup blocked
+            let result;
+            try {
+                result = await signInWithPopup(auth, provider);
+            } catch (popupError: any) {
+                // If popup fails (blocked, mobile, etc.), use redirect
+                if (
+                    popupError.code === "auth/popup-blocked" ||
+                    popupError.code === "auth/popup-closed-by-user" ||
+                    /mobile/i.test(navigator.userAgent)
+                ) {
+                    console.log(
+                        "Popup blocked or mobile detected, using redirect method",
+                    );
+                    await signInWithRedirect(auth, provider);
+                    // The redirect will handle the rest, so we return here
+                    return;
+                } else {
+                    throw popupError;
+                }
+            }
+
             const firebaseUser = result.user;
+
+            // Log successful authentication details
+            console.log("Google sign-in successful:", {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+            });
 
             showSuccess("Accesso con Google completato!");
 
-            // The auth store will handle the user state automatically
+            // Clear any existing form data
+            clearForm();
+
+            createUserDocument(firebaseUser.uid);
             setTimeout(() => {
                 push("/");
             }, 1500);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Google sign in error:", error);
-            showError(handleFirebaseError(error as AuthError));
-        } finally {
-            isLoading = false;
-        }
-    }
 
-    // Handle Facebook login
-    async function handleFacebookLogin() {
-        isLoading = true;
-        try {
-            const provider = new FacebookAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            const firebaseUser = result.user;
-
-            showSuccess("Accesso con Facebook completato!");
-
-            // The auth store will handle the user state automatically
-            setTimeout(() => {
-                push("/");
-            }, 1500);
-        } catch (error) {
-            console.error("Facebook sign in error:", error);
-            showError(handleFirebaseError(error as AuthError));
+            // More specific error handling for Google sign-in
+            if (error.code === "auth/popup-closed-by-user") {
+                showError("Accesso annullato dall'utente");
+            } else if (error.code === "auth/popup-blocked") {
+                showError(
+                    "Popup bloccato dal browser. Abilita i popup e riprova",
+                );
+            } else if (error.code === "auth/network-request-failed") {
+                showError(
+                    "Errore di connessione. Controlla la tua connessione internet",
+                );
+            } else if (error.code === "auth/internal-error") {
+                showError("Errore interno. Riprova più tardi");
+            } else {
+                showError(handleFirebaseError(error as AuthError));
+            }
         } finally {
             isLoading = false;
         }
@@ -346,21 +418,50 @@
 
     onMount(() => {
         // Initialize auth store
-
         initAuthStore();
+
+        // Check for redirect result (for mobile/popup-blocked scenarios)
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result) {
+                    // User successfully signed in via redirect
+                    const firebaseUser = result.user;
+                    console.log("Redirect sign-in successful:", firebaseUser);
+                    showSuccess("Accesso completato!");
+
+                    setTimeout(() => {
+                        push("/");
+                    }, 1500);
+                }
+            })
+            .catch((error) => {
+                console.error("Redirect result error:", error);
+                if (error.code !== "auth/popup-closed-by-user") {
+                    showError(handleFirebaseError(error as AuthError));
+                }
+            });
 
         // Listen for auth state changes
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                // Check if email is verified
-                if (firebaseUser.emailVerified) {
+                // Check if email is verified (skip for Google/Facebook sign-ins)
+                if (
+                    firebaseUser.emailVerified ||
+                    firebaseUser.providerData.some(
+                        (provider) =>
+                            provider.providerId === "google.com" ||
+                            provider.providerId === "facebook.com",
+                    )
+                ) {
                     // The auth store will handle the redirect automatically
-                    showSuccess("Email verificata! Reindirizzamento...");
+                    showSuccess(
+                        "Autenticazione completata! Reindirizzamento...",
+                    );
                     setTimeout(() => {
                         push("/");
                     }, 1500);
                 } else {
-                    // Show email verification message if user exists but email not verified
+                    // Show email verification message only for email/password accounts
                     if (!showForgotPassword) {
                         showEmailVerificationMessage = true;
                     }
@@ -791,24 +892,6 @@
                             />
                         </svg>
                         <span>Continua con Google</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        on:click={handleFacebookLogin}
-                        disabled={isLoading}
-                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                            />
-                        </svg>
-                        <span>Continua con Facebook</span>
                     </button>
                 </div>
             {/if}

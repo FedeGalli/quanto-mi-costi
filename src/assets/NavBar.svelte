@@ -19,7 +19,11 @@
         type="button"
     >
         📦
-        <span><h1 class="text-xs font-bold leading-tight">Costi Base</h1></span>
+        <span
+            ><h1 class="text-xs font-bold leading-tight">
+                Dettaglio costi
+            </h1></span
+        >
     </button>
 
     <button

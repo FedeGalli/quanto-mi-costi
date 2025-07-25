@@ -1,7 +1,7 @@
 // stores/auth.js
 import { writable } from "svelte/store";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./credentials"; // Adjust path as needed
+import { auth } from "./credentials";
 
 // Create the user store
 export const user = writable(null);
