@@ -4,7 +4,7 @@
 </script>
 
 <button on:click={onClick}>
-    <span class="text-base font-bold leading-tight">{title}</span>
+    <span class="text-base font-semibold leading-tight">{title}</span>
 </button>
 
 <style>
@@ -17,7 +17,6 @@
         font-size: inherit;
         position: relative;
         display: inline-block;
-        font-size: 17px;
         border-radius: 4px;
         overflow: hidden;
         background: rgba(184, 126, 254, 1);

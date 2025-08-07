@@ -1,9 +1,8 @@
 import { mount } from "svelte";
 import "./app.css";
-import HouseCost from "./lib/HouseCost.svelte";
-import Test from "./lib/Test.svelte";
+import App from "./App.svelte"; // Import the new App component
 
-const app = mount(HouseCost, {
+const app = mount(App, {
   target: document.getElementById("app")!,
 });
 

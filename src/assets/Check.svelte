@@ -20,7 +20,7 @@
     <!-- Push tooltip button to the right -->
     <div class="ml-auto relative group cursor-pointer">
         <button
-            class="w-6 h-6 flex items-center justify-center rounded-full hover:text-purple-500 text-white text-xs focus:outline-none transition"
+            class="w-6 h-6 flex items-center justify-center rounded-full hover:text-purple-400 text-white text-xs focus:outline-none transition"
             on:click={async () => updateShowTooltip()}
         >
             <!-- SVG Icon -->

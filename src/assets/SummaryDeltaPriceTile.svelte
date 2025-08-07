@@ -38,7 +38,7 @@
                         signDisplay: "always",
                     }}
                     class="text-lg text-red-500 font-semibold"
-                /> <span class="text-xs"> in più</span>
+                /> <span class="text-xs"> extra</span>
             {/if}
         </NumberFlowGroup>
     </div>

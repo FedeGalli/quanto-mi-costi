@@ -16,7 +16,7 @@
         <h1 class="text-lg font-bold mb-1">
             {name}
             <NumberFlow value={duration} class="text-lg font-bold" />
-            {" years"}
+            {" anni"}
         </h1>
         <NumberFlowGroup
             style="--number-flow-char-height: 0.85em"

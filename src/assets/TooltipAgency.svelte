@@ -1,15 +1,24 @@
 <script lang="ts">
-    export let showTooltip: boolean = false;
+    export let showTooltip: boolean[] = [];
+    export let index: number = 0;
 </script>
 
 <!-- Tooltip (Overlay) -->
 <div
     class="absolute top-0 left-0 w-full h-full bg-[#1e1f25] rounded-2xl shadow-xl p-8 overflow-auto z-20 transition-all transform duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)]"
-    class:opacity-100={showTooltip}
-    class:opacity-0={!showTooltip}
-    class:-translate-y-500={!showTooltip}
-    class:translate-y-0={showTooltip}
+    class:opacity-100={showTooltip[index]}
+    class:opacity-0={!showTooltip[index]}
+    class:-translate-y-500={!showTooltip[index]}
+    class:translate-y-0={showTooltip[index]}
 >
+    <!-- Close Button -->
+    <button
+        on:click={() => (showTooltip[index] = false)}
+        class="absolute top-6 right-6 text-white text-5xl font-bold hover:text-purple-400 transition"
+        aria-label="Chiudi tooltip"
+    >
+        ×
+    </button>
     <div class="space-y-6">
         <h2 class="text-4xl font-bold leading-tight">
             Come capire se la vedita è curata da un <span
@@ -59,9 +68,9 @@
                 Attenzione che alcune agenzie vincolano il pagamento della
                 provigione durante l'atto preliminare di vendita e non durante
                 il rogito. Pertanto se il rogito non dovesse andare a buon fine
-                (per esempio la parte venditrice si ritira dalla vendita, oppure
-                non viene concesso il mutuo) il pagamento all'agenzia è comunque
-                dovuto!
+                (per esempio la parte venditrice/acquirente si ritira dalla
+                vendita, oppure non viene concesso il mutuo) il pagamento
+                all'agenzia è comunque dovuto!
             </li>
         </ul>
     </div>

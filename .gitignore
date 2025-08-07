@@ -45,3 +45,6 @@ go.work.sum
 
 # env file
 .env
+
+# Credentials
+src/lib/auth/credentials.ts
