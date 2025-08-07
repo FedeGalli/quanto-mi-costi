@@ -9,14 +9,15 @@
     import TotalPriceTile from "../assets/TotalPriceTile.svelte";
     import SummaryDeltaPriceTile from "../assets/SummaryDeltaPriceTile.svelte";
     import DeltaPriceTile from "../assets/DeltaPriceTile.svelte";
-    import TooltipFirstHouse from "../assets/TooltipFirstHouse.svelte";
-    import TooltipVat from "../assets/TooltipVAT.svelte";
-    import TooltipAgency from "../assets/TooltipAgency.svelte";
-    import TooltipMortgage from "../assets/TooltipMortgage.svelte";
+    import TooltipFirstHouse from "../tooltip/TooltipFirstHouse.svelte";
+    import TooltipVat from "../tooltip/TooltipVAT.svelte";
+    import TooltipAgency from "../tooltip/TooltipAgency.svelte";
+    import TooltipMortgage from "../tooltip/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
     import ColoredSummaryPrice from "../assets/ColoredSummaryPrice.svelte";
     import { onAuthStateChanged } from "firebase/auth";
-    import { auth } from "./auth/credentials";
+    import { auth, db } from "./auth/credentials";
+    import { doc, setDoc, getDoc } from "firebase/firestore";
     import {
         user,
         isAuthenticated,
@@ -83,8 +84,6 @@
     let agencyFee: number = 0;
     let showCosts: boolean = false;
     let showTooltip: boolean[] = [false, false, false, false];
-    let mortgageInterestRate = 3; // Default 3% TAEG
-    let mortgageDuration = 30; // Default 30 years
     let showMortgageParams = false; // Toggle state for mortgage parameters
     let mortgage_percentage: number[] = [0, 25, 50, 100];
     let mortgage_durations: number[] = [10, 20, 30];
@@ -184,10 +183,7 @@
         });
     }
 
-    $: if (
-        (selectedTab == "mortgage" || selectedTab == "mortgage_compare") &&
-        !is_using_mortgage
-    ) {
+    $: if (selectedTab == "mortgage" && !is_using_mortgage) {
         selectedTab = "summary";
     }
 
@@ -261,8 +257,6 @@
             agencyFee,
             showCosts,
             showTooltip,
-            mortgageInterestRate,
-            mortgageDuration,
             showMortgageParams,
             mortgage_percentage,
             mortgage_durations,
@@ -280,7 +274,6 @@
 
         localStorage.setItem("appState", JSON.stringify(state));
     }
-
     function loadStateFromLocalStorage() {
         const savedState = localStorage.getItem("appState");
         if (savedState) {
@@ -307,8 +300,6 @@
                 agencyFee = state.agencyFee ?? 0;
                 showCosts = state.showCosts ?? false;
                 showTooltip = state.showTooltip ?? [false, false, false, false];
-                mortgageInterestRate = state.mortgageInterestRate ?? 3;
-                mortgageDuration = state.mortgageDuration ?? 30;
                 showMortgageParams = state.showMortgageParams ?? false;
                 mortgage_percentage = state.mortgage_percentage ?? [
                     0, 25, 50, 100,
@@ -340,14 +331,43 @@
             }
         }
     }
-
     function clearStateFromLocalStorage() {
         localStorage.removeItem("appState");
     }
+    async function getUserData(firebaseUser: any) {
+        const userData: any = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            emailVerified: firebaseUser.emailVerified,
+            firstName: firebaseUser.displayName?.split(" ")[0] || "",
+            lastName:
+                firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
+            pro: await getUserPro(firebaseUser.uid),
+        };
+        return userData;
+    }
+    async function getUserPro(uid: string) {
+        try {
+            const userDocRef = doc(db, "users", uid);
 
+            // Check if document already exists
+            const userDoc = await getDoc(userDocRef);
+            const userData = userDoc.data();
+
+            if (userData) {
+                return userData.is_pro;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error("Error getting pro info:", error);
+            // Don't throw error to avoid disrupting the login flow
+        }
+    }
     onMount(() => {
         initAuthStore();
-        console.log("CALLED");
         loadStateFromLocalStorage();
         clearStateFromLocalStorage();
 
@@ -355,33 +375,23 @@
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser && firebaseUser.emailVerified) {
                 // User is signed in and email is verified
-                const userData: any = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    displayName: firebaseUser.displayName,
-                    photoURL: firebaseUser.photoURL,
-                    emailVerified: firebaseUser.emailVerified,
-                    firstName: firebaseUser.displayName?.split(" ")[0] || "",
-                    lastName:
-                        firebaseUser.displayName
-                            ?.split(" ")
-                            .slice(1)
-                            .join(" ") || "",
-                };
-
-                user.set(userData);
-                isAuthenticated.set(true);
+                getUserData(firebaseUser)
+                    .then((userData) => {
+                        user.set(userData);
+                        isAuthenticated.set(true);
+                    })
+                    .catch((error) => {
+                        console.error("Error initializing user:", error);
+                    });
             }
         });
 
         return () => unsubscribe();
     });
-
     function goToLogIn() {
         saveStateToLocalStorage();
         push("/signin");
     }
-
     function buildCostApiString(): string {
         let apiStringUrl: string =
             //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
@@ -424,9 +434,9 @@
             "&yearly_saving_rate=" +
             (yearlySavingRate != null ? yearlySavingRate / 100 : 0) +
             "&mortgage_duration=" +
-            (mortgageDuration != null ? mortgageDuration : 0) +
+            (mortgage_duration != null ? mortgage_duration : 0) +
             "&mortgage_TAEG=" +
-            (mortgageInterestRate != null ? mortgageInterestRate / 100 : 0);
+            (taeg != null ? taeg / 100 : 0);
         return apiStringUrl;
     }
     function buildMortgageCompareApiString(): string {
@@ -657,7 +667,6 @@
             },
         });
     }
-
     async function initializeInterestsBarChart() {
         //initializing interests bar chart
 
@@ -800,7 +809,7 @@
             }
 
             const durations: number[] = [10, 20, 30];
-            const years = 30;
+            const years = 30 + 1;
 
             const datasets = durations.map((duration, idx) => {
                 const data = mortgageCompareData[idx]["values"];
@@ -832,7 +841,7 @@
                 data: {
                     labels: Array.from(
                         { length: years },
-                        (_, i) => `Month ${i + 1}`,
+                        (_, i) => `Month ${i}`,
                     ),
                     datasets,
                 },
@@ -867,7 +876,7 @@
                         x: {
                             ticks: {
                                 callback: function (value, index) {
-                                    if ((index + 1) % 2 === 0) {
+                                    if (index % 2 === 0) {
                                         return this.getLabelForValue(
                                             value as number,
                                         );
@@ -897,7 +906,7 @@
                                     // Get the index from the first tooltip item
                                     const dataIndex = context[0].dataIndex;
                                     // Calculate the year (assuming 12 months per year)
-                                    const year = Math.floor(dataIndex) + 1;
+                                    const year = Math.floor(dataIndex);
 
                                     // You can choose one of these formats:
                                     // Option 1: Just show the year
@@ -932,7 +941,7 @@
             }
 
             const mortgage_percentage: number[] = [0, 25, 50, 100];
-            const years = 30;
+            const years = 30 + 1;
 
             const datasets = mortgage_percentage.map(
                 (mortgage_percentage, idx) => {
@@ -973,7 +982,7 @@
                 data: {
                     labels: Array.from(
                         { length: years },
-                        (_, i) => `Month ${i + 1}`,
+                        (_, i) => `Month ${i}`,
                     ),
                     datasets,
                 },
@@ -1008,7 +1017,7 @@
                         x: {
                             ticks: {
                                 callback: function (value, index) {
-                                    if ((index + 1) % 2 === 0) {
+                                    if (index % 2 === 0) {
                                         return this.getLabelForValue(
                                             value as number,
                                         );
@@ -1038,7 +1047,7 @@
                                     // Get the index from the first tooltip item
                                     const dataIndex = context[0].dataIndex;
                                     // Calculate the year (assuming 12 months per year)
-                                    const year = Math.floor(dataIndex) + 1;
+                                    const year = Math.floor(dataIndex);
 
                                     // You can choose one of these formats:
                                     // Option 1: Just show the year
@@ -1150,7 +1159,7 @@
         if (!lineChartInstance) return;
 
         const durations: number[] = [10, 20, 30];
-        const years = 30;
+        const years = 30 + 1;
 
         const updatedDatasets = durations.map((duration, idx) => {
             const data = mortgageCompareData[idx]["values"];
@@ -1191,7 +1200,7 @@
 
         lineChartInstance.data.labels = Array.from(
             { length: years },
-            (_, i) => `${i + 1}`,
+            (_, i) => `${i}`,
         );
         lineChartInstance.data.datasets = updatedDatasets;
         lineChartInstance.update();
@@ -1200,7 +1209,7 @@
         if (!cashVsMortgageChartInstance) return;
 
         // Use dynamic mortgage duration instead of hardcoded 30
-        const years = mortgageDuration;
+        const years = mortgage_duration + 1;
 
         const updatedDatasets = mortgage_percentage.map(
             (mortgage_percentage, idx) => {
@@ -1241,7 +1250,7 @@
 
         cashVsMortgageChartInstance.data.labels = Array.from(
             { length: years },
-            (_, i) => `${i + 1}`,
+            (_, i) => `${i}`,
         );
         cashVsMortgageChartInstance.data.datasets = updatedDatasets;
         cashVsMortgageChartInstance.update();
@@ -1645,7 +1654,6 @@
                                             on:change={showCosts
                                                 ? () => {
                                                       updateData();
-                                                      updateCashVsMortgage();
                                                       updateMortgageCompare();
                                                   }
                                                 : () => {}}
@@ -1681,7 +1689,10 @@
                                                 min="0"
                                                 bind:value={mortgage_duration}
                                                 on:change={showCosts
-                                                    ? updateData
+                                                    ? () => {
+                                                          updateData();
+                                                          updateCashVsMortgage();
+                                                      }
                                                     : () => {}}
                                             />
                                             <!-- Separator Line -->
@@ -1777,7 +1788,11 @@
                         <!-- Costs & Chart Section -->
                         {#if showCosts}
                             <div transition:fade={{ duration: 500 }}>
-                                <NavBar bind:selectedTab {is_using_mortgage} />
+                                <NavBar
+                                    bind:selectedTab
+                                    {is_using_mortgage}
+                                    pro={$user?.pro || false}
+                                />
 
                                 {#if selectedTab == "summary"}
                                     <!-- Main Chart + Cost Breakdown -->
@@ -2066,7 +2081,7 @@
                                                     class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                                 ></div>
 
-                                                {#if mortgage_amount == 0 || taeg == 0 || mortgage_duration == 0}
+                                                {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
                                                     <div
                                                         class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
                                                     >
@@ -2086,10 +2101,23 @@
                                                         </p>
                                                     </div>
                                                 {/if}
-
                                                 <canvas
                                                     id="interestsBarChart"
-                                                    class="absolute top-0 left-0 w-full h-full"
+                                                    class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                    class:opacity-0={mortgage_amount ==
+                                                        0 ||
+                                                        mortgage_amount ==
+                                                            null ||
+                                                        taeg == 0 ||
+                                                        taeg == null ||
+                                                        mortgage_duration ==
+                                                            0 ||
+                                                        mortgage_duration ==
+                                                            null}
+                                                    class:opacity-100={mortgage_amount >
+                                                        0 &&
+                                                        taeg > 0 &&
+                                                        mortgage_duration > 0}
                                                 ></canvas>
                                             </div>
                                         </div>
@@ -2278,9 +2306,32 @@
                                             <div
                                                 class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                             ></div>
+                                            {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null}
+                                                <div
+                                                    class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                >
+                                                    <p
+                                                        class="text-gray-500 text-sm sm:text-base"
+                                                    >
+                                                        Inserisci <strong
+                                                            >Importo Mutuo</strong
+                                                        >
+                                                        e
+                                                        <strong>TAEG</strong> per
+                                                        visualizzare il grafico.
+                                                    </p>
+                                                </div>
+                                            {/if}
                                             <canvas
                                                 id="lineChart"
-                                                class="w-full h-full rounded-lg"
+                                                class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                class:opacity-0={mortgage_amount ==
+                                                    0 ||
+                                                    mortgage_amount == null ||
+                                                    taeg == 0 ||
+                                                    taeg == null}
+                                                class:opacity-100={mortgage_amount >
+                                                    0 && taeg > 0}
                                             ></canvas>
                                         </div>
 
@@ -2519,133 +2570,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <!-- Toggle button for mortgage parameters -->
-                                            <div
-                                                class="flex justify-center mt-4"
-                                            >
-                                                <button
-                                                    class="group relative overflow-hidden bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-lg border border-white/30 hover:border-white/50 transition-all duration-300 transform hover:scale-105"
-                                                    on:click={() =>
-                                                        (showMortgageParams =
-                                                            !showMortgageParams)}
-                                                >
-                                                    <div
-                                                        class="flex items-center gap-2"
-                                                    >
-                                                        <span
-                                                            >Parametri Mutuo</span
-                                                        >
-                                                        <svg
-                                                            class="w-4 h-4 transition-transform duration-300 {showMortgageParams
-                                                                ? 'rotate-180'
-                                                                : ''}"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M19 9l-7 7-7-7"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                </button>
-                                            </div>
-
-                                            <!-- Container for mortgage parameters with fixed height to prevent jumps -->
-                                            <div
-                                                class="w-full flex justify-center overflow-hidden transition-all duration-300 {showMortgageParams
-                                                    ? 'max-h-32'
-                                                    : 'max-h-0'}"
-                                            >
-                                                <div
-                                                    class="flex justify-center items-center gap-4 py-4"
-                                                >
-                                                    <!-- TAEG input -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-2"
-                                                    >
-                                                        <h3
-                                                            class="font-bold text-white text-sm sm:text-base text-center"
-                                                        >
-                                                            TAEG Mutuo <br
-                                                            />(tasso interesse)
-                                                        </h3>
-                                                        <div class="relative">
-                                                            <input
-                                                                type="number"
-                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                min="0"
-                                                                max="20"
-                                                                step="0.1"
-                                                                bind:value={
-                                                                    mortgageInterestRate
-                                                                }
-                                                                on:change={updateCashVsMortgage}
-                                                            />
-                                                            <span
-                                                                class="absolute right-3 top-2 text-white font-semibold"
-                                                                >%</span
-                                                            >
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-1 mt-8"
-                                                    >
-                                                        🏠
-                                                        <svg
-                                                            class="w-6 h-6 text-white/70"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                                            />
-                                                        </svg>
-                                                    </div>
-
-                                                    <!-- Mortgage duration input -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-2"
-                                                    >
-                                                        <h3
-                                                            class="font-bold text-white text-sm sm:text-base text-center"
-                                                        >
-                                                            Durata Mutuo <br
-                                                            />(anni)
-                                                        </h3>
-                                                        <div class="relative">
-                                                            <input
-                                                                type="number"
-                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                min="5"
-                                                                max="50"
-                                                                step="1"
-                                                                bind:value={
-                                                                    mortgageDuration
-                                                                }
-                                                                on:change={updateCashVsMortgage}
-                                                            />
-                                                            <span
-                                                                class="absolute right-3 top-2 text-white font-semibold"
-                                                                >A</span
-                                                            >
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <!-- Question -->
@@ -2672,9 +2596,33 @@
                                             <div
                                                 class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                             ></div>
+
+                                            {#if taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
+                                                <div
+                                                    class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                >
+                                                    <p
+                                                        class="text-gray-500 text-sm sm:text-base"
+                                                    >
+                                                        Inserisci
+                                                        <strong
+                                                            >Durata mutuo</strong
+                                                        >
+                                                        e
+                                                        <strong>TAEG</strong> per
+                                                        visualizzare il grafico.
+                                                    </p>
+                                                </div>
+                                            {/if}
                                             <canvas
                                                 id="cashVsMortgageChart"
-                                                class="w-full h-full rounded-lg"
+                                                class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                class:opacity-0={taeg == 0 ||
+                                                    taeg == null ||
+                                                    mortgage_duration == 0 ||
+                                                    mortgage_duration == null}
+                                                class:opacity-100={taeg > 0 &&
+                                                    mortgage_duration > 0}
                                             ></canvas>
                                         </div>
 
@@ -2700,7 +2648,7 @@
                                                         delta={null}
                                                         color={"rgba(178, 178, 178, 1)"}
                                                         isValid={true}
-                                                        years={mortgageDuration}
+                                                        years={mortgage_duration}
                                                     />
                                                 </div>
                                             </div>
@@ -2716,13 +2664,13 @@
                                                     ></div>
                                                     <ColoredSummaryPrice
                                                         number={wealth_cash_vs_mortgage[1]}
-                                                        name={`Mutuo ${mortgageDuration} Anni (25%)`}
+                                                        name={`Mutuo ${mortgage_duration} Anni (25%)`}
                                                         showVal={mortgageInstallment !=
                                                             null}
                                                         delta={null}
                                                         color={"rgba(98, 182, 170, 1)"}
                                                         isValid={true}
-                                                        years={mortgageDuration}
+                                                        years={mortgage_duration}
                                                     />
                                                 </div>
                                             </div>
@@ -2738,13 +2686,13 @@
                                                     ></div>
                                                     <ColoredSummaryPrice
                                                         number={wealth_cash_vs_mortgage[2]}
-                                                        name={`Mutuo ${mortgageDuration} Anni (50%)`}
+                                                        name={`Mutuo ${mortgage_duration} Anni (50%)`}
                                                         showVal={mortgageInstallment !=
                                                             null}
                                                         delta={null}
                                                         color={"rgba(133, 81, 182, 1)"}
                                                         isValid={true}
-                                                        years={mortgageDuration}
+                                                        years={mortgage_duration}
                                                     />
                                                 </div>
                                             </div>
@@ -2760,13 +2708,13 @@
                                                     ></div>
                                                     <ColoredSummaryPrice
                                                         number={wealth_cash_vs_mortgage[3]}
-                                                        name={`Mutuo ${mortgageDuration} Anni (100%)`}
+                                                        name={`Mutuo ${mortgage_duration} Anni (100%)`}
                                                         showVal={mortgageInstallment !=
                                                             null}
                                                         delta={null}
                                                         color={"rgba(249, 166, 0, 1)"}
                                                         isValid={true}
-                                                        years={mortgageDuration}
+                                                        years={mortgage_duration}
                                                     />
                                                 </div>
                                             </div>

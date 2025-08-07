@@ -302,7 +302,6 @@ func calculateCashVsMortgage(
 
 	for i, percentage := range morgagePercentages {
 		installment = utils.CalculateYearlyInstallment((housePrice * morgagePercentages[i] / 100), mortgageDuration, taeg)
-		fmt.Println(installment)
 		myData[i].Percentage = int(percentage)
 		myData[i].Values = utils.SimulateSavingsCashVsMortgage(
 			yearlyIncome,
@@ -327,8 +326,6 @@ func calculateMortgageCompare(
 	mortgageAmount float64,
 	housePrice float64) []MortgageCompareItem {
 
-	installment := 0.0
-
 	yearlyIncome := make([]float64, slices.Max(durations))
 	incomeValue := (yearlySaving * yearlySavingRate)
 	for i := range yearlyIncome {
@@ -348,8 +345,9 @@ func calculateMortgageCompare(
 			yearlyGrowthgRate,
 			mortgageAmount,
 			housePrice)
-		myData[i].Valid = utils.IsValidMortgage(installment, yearlySaving)
+		myData[i].Valid = utils.IsValidMortgage(myData[i].Installment, yearlySaving)
 
+		fmt.Println(myData[i].Valid)
 	}
 
 	return myData

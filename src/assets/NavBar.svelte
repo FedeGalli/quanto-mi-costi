@@ -2,6 +2,7 @@
     import { slide } from "svelte/transition";
     export let selectedTab = "summary";
     export let is_using_mortgage;
+    export let pro = false;
 </script>
 
 <div class="tabs">
@@ -26,20 +27,6 @@
         >
     </button>
 
-    <button
-        class="tab {selectedTab === 'cash_vs_mortgage' ? 'active' : ''}"
-        on:click={() => (selectedTab = "cash_vs_mortgage")}
-        type="button"
-        transition:slide={{ duration: 500 }}
-    >
-        🔮
-        <span
-            ><h1 class="text-xs font-bold leading-tight">
-                Cash vs Mutuo
-            </h1></span
-        >
-    </button>
-
     {#if is_using_mortgage}
         <button
             class="tab {selectedTab === 'mortgage' ? 'active' : ''}"
@@ -50,7 +37,9 @@
             💰
             <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
         </button>
+    {/if}
 
+    {#if pro}
         <button
             class="tab {selectedTab === 'mortgage_compare' ? 'active' : ''}"
             on:click={() => (selectedTab = "mortgage_compare")}
@@ -61,6 +50,20 @@
             <span
                 ><h1 class="text-xs font-bold leading-tight">
                     Comparatore
+                </h1></span
+            >
+        </button>
+
+        <button
+            class="tab {selectedTab === 'cash_vs_mortgage' ? 'active' : ''}"
+            on:click={() => (selectedTab = "cash_vs_mortgage")}
+            type="button"
+            transition:slide={{ duration: 500 }}
+        >
+            🔮
+            <span
+                ><h1 class="text-xs font-bold leading-tight">
+                    Cash vs Mutuo
                 </h1></span
             >
         </button>

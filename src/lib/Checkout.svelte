@@ -2,7 +2,7 @@
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
-    import { auth } from "./auth/credentials";
+    import { auth, db } from "./auth/credentials";
     import {
         user,
         isAuthenticated,
@@ -10,6 +10,7 @@
         initAuthStore,
         logout,
     } from "./auth/auth-store";
+    import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
     // Form state
     let mounted = false;
@@ -36,12 +37,12 @@
     // Selected plan (default to Pro)
     let selectedPlan = {
         name: "Pro",
-        price: 5.99,
+        price: 3.27,
         currency: "€",
         features: [
-            "Che durata del mutuo mi conviene?",
-            "Conviene fare un mutuo o pagare cash?",
-            "Quanto costano le case nella mia zona?",
+            "Dashboard eveluzione patrimonio con diverse durate mutuo",
+            "Dashboard eveluzione patrimonio con un mutuo o pagando cash",
+            "Quanto costano le case nella mia zona",
         ],
     };
 
@@ -80,6 +81,7 @@
 
             // Handle successful payment
             console.log("Payment successful:", formData);
+            updateUserPro($user.uid, true);
             push("/"); // Redirect to dashboard or success page
         } catch (error) {
             console.error("Payment failed:", error);
@@ -88,6 +90,19 @@
             isProcessing = false;
         }
     };
+
+    async function updateUserPro(uid: string, isPro: boolean) {
+        try {
+            const userDocRef = doc(db, "users", uid);
+            await updateDoc(userDocRef, {
+                is_pro: isPro,
+            });
+            console.log("User pro status updated successfully");
+        } catch (error) {
+            console.error("Error updating user pro status:", error);
+            throw error;
+        }
+    }
 
     const formatCardNumber = (value: string) => {
         return value
@@ -103,6 +118,10 @@
     onMount(() => {
         mounted = true;
         initAuthStore();
+
+        if (!$isAuthenticated) {
+            push("/signin?redirect=" + encodeURIComponent("/checkout"));
+        }
     });
 </script>
 
@@ -111,6 +130,13 @@
     class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
 >
     {#if mounted}
+        <!-- Back to Home Button -->
+        <button
+            on:click={() => push("/getpro")}
+            class="fixed top-4 left-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg z-50 transition-all duration-300 font-medium text-sm sm:text-base backdrop-blur-sm"
+        >
+            ←
+        </button>
         <div
             class="w-full max-w-[1350px] mx-auto"
             in:fly={{ x: -1000, duration: 500, delay: 100 }}
@@ -423,14 +449,6 @@
                         <!-- Action Buttons -->
                         <div class="flex flex-col sm:flex-row gap-4 pt-6">
                             <button
-                                type="button"
-                                on:click={goBack}
-                                class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-300 hover:scale-105"
-                            >
-                                Torna Indietro
-                            </button>
-
-                            <button
                                 type="submit"
                                 disabled={isProcessing}
                                 class="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 disabled:from-gray-500 disabled:to-gray-600 text-black font-bold py-3 px-6 rounded-2xl text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-yellow-400/25 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -462,9 +480,7 @@
                                         Elaborazione...
                                     </div>
                                 {:else}
-                                    🔒 Completa Pagamento ({selectedPlan.currency}{(
-                                        selectedPlan.price * 1.22
-                                    ).toFixed(2)})
+                                    Procedi al pagamento
                                 {/if}
                             </button>
                         </div>
