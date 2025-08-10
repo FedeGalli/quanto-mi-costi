@@ -12,10 +12,16 @@ def _get_file_list(path: str):
     return df
 
 def get_price_starting_year():
-    return int(_get_file_list(prices_path)[0][:4])
+    oldest_file = _get_file_list(prices_path)[0]
+    year = oldest_file[:4]
+    semester = oldest_file[5:7]
+    return semester + "/" + year
 
 def get_price_current_year():
-    return int(_get_file_list(prices_path)[-1][:4])
+    last_file = _get_file_list(prices_path)[-1]
+    year = last_file[:4]
+    semester = last_file[5:7]
+    return semester + "/" + year
 
 def get_volume_starting_year():
     return int(_get_file_list(volumes_path)[0][:4])
@@ -101,6 +107,7 @@ def get_price_df():
         "MESE_ANNO",
         "DES_COMUNE",
         "DES_ZONA",
+        "DES_TIPOLOGIA",
         "DES_STATO",
         "COSTO_MIN",
         "COSTO_MAX"

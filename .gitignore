@@ -53,3 +53,6 @@ src/lib/auth/credentials.ts
 backend/data/final_tables
 backend/data/prices
 backend/data/volumes
+
+# CSV data
+*.csv
