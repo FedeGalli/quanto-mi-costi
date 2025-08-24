@@ -42,10 +42,7 @@ class DataManager:
 
     def get_price_trend(self, com: str, zone:str, type: str, state:str):
         trend_df = self._get_prices_filtered(com, str(self.price_start_year))
-        print(int(self.price_current_year[3:]))
         for i in range((int(self.price_current_year[3:]) - int(self.price_start_year[3:])) * 2):
-            print("CIAO")
-            print("0" + str(((i % 2) * 5) + 1) + "/" + str(int(self.price_start_year[3:]) + int(i / 2) + 1))
             trend_df = pl.concat(
                 [
                     # Building the semester/year with variable i

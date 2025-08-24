@@ -67,6 +67,15 @@
                 </h1></span
             >
         </button>
+        <button
+            class="tab {selectedTab === 'prices' ? 'active' : ''}"
+            on:click={() => (selectedTab = "prices")}
+            type="button"
+            transition:slide={{ duration: 500 }}
+        >
+            📈
+            <span><h1 class="text-xs font-bold leading-tight">Prices</h1></span>
+        </button>
     {/if}
 </div>
 

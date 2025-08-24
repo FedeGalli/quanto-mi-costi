@@ -25,6 +25,7 @@
         initAuthStore,
         logout,
     } from "./auth/auth-store";
+    import Prices from "./Prices.svelte";
 
     let selectedTab = "summary";
 
@@ -2720,6 +2721,9 @@
                                             </div>
                                         </div>
                                     </div>
+                                {/if}
+                                {#if selectedTab == "prices"}
+                                    <Prices />
                                 {/if}
                             </div>
                         {/if}
