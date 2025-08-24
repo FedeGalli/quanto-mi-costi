@@ -102,6 +102,10 @@ def get_price_df():
         "Zona_Descr": "DES_ZONA",
     })
 
+    prices_infos = prices_infos.with_columns(
+        pl.col("DES_ZONA").str.strip_chars("'").alias("DES_ZONA")
+    )
+
     prices = prices_infos.join(prices, on=["COD_COMUNE", "COD_ZONA"], how="left").drop_nulls()
     return prices.select(
         "MESE_ANNO",
@@ -202,3 +206,11 @@ def get_volume_market_size_df():
         "DES_COMUNE",
         "TAGLIA_MERCATO"
     )
+
+def get_municipality_info():
+    return get_price_df().select(
+        "DES_COMUNE",
+        "DES_ZONA",
+        "DES_TIPOLOGIA",
+        "DES_STATO"
+    ).unique(keep='first').sort("DES_COMUNE")

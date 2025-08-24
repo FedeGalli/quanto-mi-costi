@@ -1,5 +1,5 @@
 import polars as pl
-from data_aggregator import get_volume_market_size_df, get_volume_df, get_price_df, get_price_current_year, get_price_starting_year, get_volume_current_year, get_volume_starting_year
+from data_aggregator import get_volume_market_size_df, get_municipality_info, get_volume_df, get_price_df, get_price_current_year, get_price_starting_year, get_volume_current_year, get_volume_starting_year
 
 class DataManager:
     def __init__(self):
@@ -10,6 +10,7 @@ class DataManager:
         self.volumes_data = get_volume_df()
         self.prices_data = get_price_df()
         self.market_size_data = get_volume_market_size_df()
+        self.municipality_info = get_municipality_info()
 
     def _get_volume_filtered(self, com: str, year:str):
         return self.volumes_data.filter((pl.col("DES_COMUNE") == com) & (pl.col("ANNO") == year))
@@ -84,3 +85,9 @@ class DataManager:
 
     def get_volume_market_size(self, com: str):
         return self.market_size_data.filter(pl.col("DES_COMUNE") == com).select("TAGLIA_MERCATO")
+
+    def get_municipalities_info(self, com: str):
+        return self.municipality_info.filter(pl.col("DES_COMUNE") == com)
+
+    def get_municipalities(self):
+        return self.municipality_info.select("DES_COMUNE").unique(keep='first')

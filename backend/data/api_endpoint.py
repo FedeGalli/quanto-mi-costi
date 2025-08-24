@@ -1,33 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 import data_manager as dm
-from pydantic import BaseModel
-from fastapi import Query
 
 data_manager = dm.DataManager()
 app = FastAPI(title="Houses cost/volumes API")
 
 
-# Example request schema
-class DataRequest(BaseModel):
-    com: str
-    zone: str
-    type: str
-    state: str
-    mq: int
-
 @app.get("/get-price-volume-data")
-def get_price_volume_data(com: str = Query(...),
+def get_price_volume_data(
+    com: str = Query(...),
     zone: str = Query(...),
     type: str = Query(...),
     state: str = Query(...),
     mq: int = Query(...)):
+
 
     current_volume_mq = data_manager.get_current_volume_mq(com, mq)
     current_max_price, current_min_price= data_manager.get_current_price(com, zone, type, state)
     volume_trend = data_manager.get_volume_trend_mq(com, mq)
     price_trend = data_manager.get_price_trend(com, zone, type, state)
 
-    print(current_volume_mq)
 
     mq_volume_column = volume_trend.columns[1]
     volume_trend_CHART_DATA = {
@@ -60,4 +51,23 @@ def get_price_volume_data(com: str = Query(...),
         "current_min_price": current_min_price.to_series().item(),
         "volume_trend": volume_trend_CHART_DATA,
         "price_trend": price_trend_CHART_DATA
+    }
+
+
+@app.get("/get-municipalities-info")
+def get_municipalities_info(com: str = Query(...)):
+    info = data_manager.get_municipalities_info(com)
+    return {
+        "DATA" : [
+            info.rows(named=False)
+        ]
+    }
+
+@app.get("/get-municipalities-list")
+def get_municipalities_list():
+    info = data_manager.get_municipalities()
+    return {
+        "DATA" : [
+            [t[0] for t in info.rows(named=False)]
+        ]
     }
