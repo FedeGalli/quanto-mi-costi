@@ -27,11 +27,16 @@ def get_price_volume_data(
     state: str = Query(...),
     mq: int = Query(...)):
 
-
+    current_market_size = data_manager.get_volume_market_size(com)
     current_volume_mq = data_manager.get_current_volume_mq(com, mq)
     current_min_price, current_max_price= data_manager.get_current_price(com, zone, type, state)
     volume_trend = data_manager.get_volume_trend_mq(com, mq)
     price_trend = data_manager.get_price_trend(com, zone, type, state)
+    mq_range = ""
+    for col in volume_trend.columns:
+        if 'm²' in col:
+            mq_range = col
+            break
 
 
     mq_volume_column = volume_trend.columns[1]
@@ -61,7 +66,9 @@ def get_price_volume_data(
 
     # Return processed data as list of dicts
     return {
+        "market_size": current_market_size.to_series().item(),
         "current_volume_mq": current_volume_mq.to_series().item(),
+        "mq_range": mq_range,
         "current_max_price": current_max_price.to_series().item(),
         "current_min_price": current_min_price.to_series().item(),
         "volume_trend": volume_trend_CHART_DATA,

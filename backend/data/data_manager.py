@@ -1,6 +1,6 @@
 import polars as pl
-from data_aggregator import get_volume_market_size_df, get_municipality_info, get_volume_df, get_price_df, get_price_current_year, get_price_starting_year, get_volume_current_year, get_volume_starting_year
-
+from data_aggregator import get_number_of_price_files, get_volume_market_size_df, get_municipality_info, get_volume_df, get_price_df, get_price_current_year, get_price_starting_year, get_volume_current_year, get_volume_starting_year
+import data_aggregator as data_aggregator
 class DataManager:
     def __init__(self):
         self.price_start_year = get_price_starting_year()
@@ -20,14 +20,14 @@ class DataManager:
 
     def get_current_volume_mq(self, com: str, mq:int):
         # Retrieving columns name with number in the text
-        allowed_mq_columns = [f for f in self.volumes_data.columns if "<" in f or ">" in f]
-        mq_bounds = [int(f[1:-3]) for f in allowed_mq_columns]
+        allowed_mq_columns = [f for f in self.volumes_data.columns if "m²" in f or "m²" in f]
+        mq_bounds = list(data_aggregator.volumes_aliases.keys())
 
         # Getting the right column base on the MQ passed in the function
         selected_mq_col = None
-        for i, col in enumerate(allowed_mq_columns):
-            if mq < mq_bounds[i] or i == len(allowed_mq_columns) - 1:
-                selected_mq_col = col
+        for i in range(len(allowed_mq_columns) - 1, -1, -1):
+            if mq >= mq_bounds[i] or i == 0:
+                selected_mq_col = allowed_mq_columns[i]
                 break
 
         return self._get_volume_filtered(com, str(self.volume_current_year)).select(selected_mq_col)
@@ -42,14 +42,15 @@ class DataManager:
 
     def get_price_trend(self, com: str, zone:str, type: str, state:str):
         trend_df = self._get_prices_filtered(com, str(self.price_start_year))
-        for i in range((int(self.price_current_year[3:]) - int(self.price_start_year[3:])) * 2):
+        for i in range(1, get_number_of_price_files()):
             trend_df = pl.concat(
                 [
                     # Building the semester/year with variable i
-                    self._get_prices_filtered(com, "0" + str(((i % 2) * 5) + 1) + "/" + str(int(self.price_start_year[3:]) + int(i / 2) + 1)),
-                    trend_df
+                    trend_df,
+                    self._get_prices_filtered(com, "0" + str(((i % 2) * 5) + 1) + "/" + str(int(self.price_start_year[3:]) + int(i / 2)))
                 ], how="vertical"
             )
+
 
         return trend_df.filter(
             (pl.col("DES_ZONA") == zone) &
@@ -62,21 +63,23 @@ class DataManager:
         )
 
     def get_volume_trend_mq(self, com: str, mq:int):
-
         # Retrieving columns name with number in the text
-        allowed_mq_columns = [f for f in self.volumes_data.columns if "<" in f or ">" in f]
-        mq_bounds = [int(f[1:-3]) for f in allowed_mq_columns]
+        allowed_mq_columns = [f for f in self.volumes_data.columns if "m²" in f or "m²" in f]
+        mq_bounds = list(data_aggregator.volumes_aliases.keys())
 
         # Getting the right column base on the MQ passed in the function
         selected_mq_col = None
-        for i, col in enumerate(allowed_mq_columns):
-            if mq < mq_bounds[i] or i == len(allowed_mq_columns) - 1:
-                selected_mq_col = col
+        for i in range(len(allowed_mq_columns) - 1, -1, -1):
+            if mq > mq_bounds[i] or i == 0:
+                selected_mq_col = allowed_mq_columns[i]
                 break
 
         trend_df = self._get_volume_filtered(com, str(self.volume_start_year)).select("ANNO", selected_mq_col)
         for i in range(self.volume_current_year - self.volume_start_year):
-            trend_df = pl.concat([self._get_volume_filtered(com, str(self.volume_start_year + i + 1)).select("ANNO", selected_mq_col), trend_df], how="vertical")
+            trend_df = pl.concat([
+                trend_df,
+                self._get_volume_filtered(com, str(self.volume_start_year + i + 1)).select("ANNO", selected_mq_col),
+            ], how="vertical")
 
         return trend_df
 

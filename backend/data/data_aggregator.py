@@ -4,12 +4,19 @@ import polars as pl
 
 prices_path = "./prices"
 volumes_path = "./volumes"
+volumes_aliases = {
+    0 : "Fascia <50 m²",
+    50 : "Fascia 50 - 85 m²",
+    85 : "Fascia 85 - 115 m²",
+    115 : "Fascia 115 - 145 m²",
+    145 : "Fascia >145 m²",
+}
 
 def _get_file_list(path: str):
-    df = [f for f in listdir(path) if isfile(join(path, f))]
-    df.sort()
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    files.sort()
 
-    return df
+    return files
 
 def get_price_starting_year():
     oldest_file = _get_file_list(prices_path)[0]
@@ -38,10 +45,15 @@ def _get_year_semester(s: str) -> str:
 def _semester_converter(s: str) -> str:
     return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
 
+def get_number_of_price_files() -> int:
+    return len([f for f in _get_file_list(prices_path) if "VALORI" in f])
+
 def get_price_df():
     # Prices section
     files = _get_file_list(prices_path)
     prices_files = [f for f in files if "VALORI" in f]
+
+
 
     prices = pl.DataFrame()
     for file in prices_files:
@@ -80,7 +92,7 @@ def get_price_df():
         if prices.is_empty():
             prices = prices_vals
         else:
-            prices = pl.concat([prices, prices_vals], how="vertical")
+            prices = pl.concat([prices_vals, prices], how="vertical")
 
 
     current_zone_file = [f for f in files if "ZONE" in f][-1]
@@ -134,11 +146,11 @@ def get_volume_df():
         # Getting detailed information
         volumes_vals = volumes_vals.select(
             pl.col(_get_year(file) + "_CODCOM").alias("COD_COMUNE"),
-            pl.col("NTN " + _get_year(file) + " FINO A 50 MQ").alias("<50_MQ"),
-            pl.col("NTN " + _get_year(file) + " 50 -| 85 MQ").alias("<85_MQ"),
-            pl.col("NTN " + _get_year(file) + " 85 -| 115 MQ").alias("<115_MQ"),
-            pl.col("NTN " + _get_year(file) + " 115 -| 145 MQ").alias("<145_MQ"),
-            pl.col("NTN " + _get_year(file) + " OLTRE 145 MQ").alias(">145_MQ"),
+            pl.col("NTN " + _get_year(file) + " FINO A 50 MQ").alias(volumes_aliases[0]),
+            pl.col("NTN " + _get_year(file) + " 50 -| 85 MQ").alias(volumes_aliases[50]),
+            pl.col("NTN " + _get_year(file) + " 85 -| 115 MQ").alias(volumes_aliases[85]),
+            pl.col("NTN " + _get_year(file) + " 115 -| 145 MQ").alias(volumes_aliases[115]),
+            pl.col("NTN " + _get_year(file) + " OLTRE 145 MQ").alias(volumes_aliases[145]),
             pl.col("NTN_" + _get_year(file)).alias("SOMMA_NTN")
         )
 
@@ -150,7 +162,7 @@ def get_volume_df():
         if volumes.is_empty():
             volumes = volumes_vals
         else:
-            volumes = pl.concat([volumes, volumes_vals], how="vertical")
+            volumes = pl.concat([volumes_vals, volumes], how="vertical")
 
 
     current_com_file = [f for f in files if "COM" in f][-1]
@@ -173,11 +185,11 @@ def get_volume_df():
     return volumes.select(
         "ANNO",
         "DES_COMUNE",
-        "<50_MQ",
-        "<85_MQ",
-        "<115_MQ",
-        "<145_MQ",
-        ">145_MQ",
+        "Fascia <50 m²",
+        "Fascia 50 - 85 m²",
+        "Fascia 85 - 115 m²",
+        "Fascia 115 - 145 m²",
+        "Fascia >145 m²",
         "SOMMA_NTN"
     )
 
