@@ -86,13 +86,13 @@
     let showCosts: boolean = false;
     let showTooltip: boolean[] = [false, false, false, false];
     let showMortgageParams = false; // Toggle state for mortgage parameters
-    let mortgage_percentage: number[] = [0, 25, 50, 100];
+    let mortgage_percentage: number[] = [0, 25, 50, 80];
     let mortgage_durations: number[] = [10, 20, 30];
     let cashVsMortgageData: any = [
         { percentage: 0, values: [0] },
         { percentage: 25, values: [0] },
         { percentage: 50, values: [0] },
-        { percentage: 100, values: [0] },
+        { percentage: 80, values: [0] },
     ];
     let mortgageCompareData: any = [
         { duration: 10, values: [0], valid: false, installment: 0 },
@@ -109,6 +109,7 @@
 
     let wealth: number[] = [];
     let wealth_cash_vs_mortgage: number[] = [];
+    let wealth_cash_vs_mortgage_installments: number[] = [];
     let yearlySaving: number = 20000;
     let yearlyGrowthgRate: number = 3;
     let yearlySavingRate: number = 30;
@@ -182,10 +183,6 @@
             initializeCashVsMortgageChart(); // to modify
             updateCashVsMortgage();
         });
-    }
-
-    $: if (selectedTab == "mortgage" && !is_using_mortgage) {
-        selectedTab = "summary";
     }
 
     $: if (mortgage_duration < 0) {
@@ -267,6 +264,7 @@
             dataByCategory,
             wealth,
             wealth_cash_vs_mortgage,
+            wealth_cash_vs_mortgage_installments,
             yearlySaving,
             yearlyGrowthgRate,
             yearlySavingRate,
@@ -303,14 +301,14 @@
                 showTooltip = state.showTooltip ?? [false, false, false, false];
                 showMortgageParams = state.showMortgageParams ?? false;
                 mortgage_percentage = state.mortgage_percentage ?? [
-                    0, 25, 50, 100,
+                    0, 25, 50, 80,
                 ];
                 mortgage_durations = state.mortgage_durations ?? [10, 20, 30];
                 cashVsMortgageData = state.cashVsMortgageData ?? [
                     { percentage: 0, values: [0] },
                     { percentage: 25, values: [0] },
                     { percentage: 50, values: [0] },
-                    { percentage: 100, values: [0] },
+                    { percentage: 80, values: [0] },
                 ];
                 mortgageCompareData = state.mortgageCompareData ?? [
                     { duration: 10, values: [0], valid: false, installment: 0 },
@@ -321,6 +319,8 @@
                 dataByCategory = state.dataByCategory ?? {};
                 wealth = state.wealth ?? [];
                 wealth_cash_vs_mortgage = state.wealth_cash_vs_mortgage ?? [];
+                wealth_cash_vs_mortgage_installments =
+                    state.wealth_cash_vs_mortgage_installments ?? [];
                 yearlySaving = state.yearlySaving ?? 20000;
                 yearlyGrowthgRate = state.yearlyGrowthgRate ?? 3;
                 yearlySavingRate = state.yearlySavingRate ?? 30;
@@ -392,6 +392,11 @@
     function goToLogIn() {
         saveStateToLocalStorage();
         push("/signin");
+    }
+
+    function goToPro() {
+        saveStateToLocalStorage();
+        push("/getpro");
     }
     function buildCostApiString(): string {
         let apiStringUrl: string =
@@ -941,12 +946,16 @@
                 cashVsMortgageChartInstance.destroy();
             }
 
-            const mortgage_percentage: number[] = [0, 25, 50, 100];
+            const mortgage_percentage: number[] = [0, 25, 50, 80];
             const years = 30 + 1;
 
+            let i = 0;
             const datasets = mortgage_percentage.map(
                 (mortgage_percentage, idx) => {
                     const data = cashVsMortgageData[idx]["values"];
+                    wealth_cash_vs_mortgage_installments[i] =
+                        cashVsMortgageData[idx]["installment"];
+                    i += 1;
                     return {
                         label: `${mortgage_percentage}% mutuo`,
                         data,
@@ -1211,10 +1220,13 @@
 
         // Use dynamic mortgage duration instead of hardcoded 30
         const years = mortgage_duration + 1;
-
+        let i = 0;
         const updatedDatasets = mortgage_percentage.map(
             (mortgage_percentage, idx) => {
                 const data = cashVsMortgageData[idx]["values"];
+                wealth_cash_vs_mortgage_installments[i] =
+                    cashVsMortgageData[idx]["installment"];
+                i += 1;
                 return {
                     label:
                         mortgage_percentage == 0
@@ -1791,8 +1803,8 @@
                             <div transition:fade={{ duration: 500 }}>
                                 <NavBar
                                     bind:selectedTab
-                                    {is_using_mortgage}
                                     pro={$user?.pro || false}
+                                    getProFunction={goToPro}
                                 />
 
                                 {#if selectedTab == "summary"}
@@ -2366,6 +2378,7 @@
                                                             "installment"
                                                         ] / 12}
                                                         secondaryLabel={"rata"}
+                                                        years={30}
                                                     />
                                                 </div>
                                             </div>
@@ -2394,6 +2407,7 @@
                                                             "installment"
                                                         ] / 12}
                                                         secondaryLabel={"rata"}
+                                                        years={30}
                                                     />
                                                 </div>
                                             </div>
@@ -2422,6 +2436,7 @@
                                                             "installment"
                                                         ] / 12}
                                                         secondaryLabel={"rata"}
+                                                        years={30}
                                                     />
                                                 </div>
                                             </div>
@@ -2650,6 +2665,8 @@
                                                         color={"rgba(178, 178, 178, 1)"}
                                                         isValid={true}
                                                         years={mortgage_duration}
+                                                        secondaryLabel={"rata"}
+                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[0]}
                                                     />
                                                 </div>
                                             </div>
@@ -2672,6 +2689,8 @@
                                                         color={"rgba(98, 182, 170, 1)"}
                                                         isValid={true}
                                                         years={mortgage_duration}
+                                                        secondaryLabel={"rata"}
+                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[1]}
                                                     />
                                                 </div>
                                             </div>
@@ -2694,6 +2713,8 @@
                                                         color={"rgba(133, 81, 182, 1)"}
                                                         isValid={true}
                                                         years={mortgage_duration}
+                                                        secondaryLabel={"rata"}
+                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[2]}
                                                     />
                                                 </div>
                                             </div>
@@ -2709,13 +2730,15 @@
                                                     ></div>
                                                     <ColoredSummaryPrice
                                                         number={wealth_cash_vs_mortgage[3]}
-                                                        name={`Mutuo ${mortgage_duration} Anni (100%)`}
+                                                        name={`Mutuo ${mortgage_duration} Anni (80%)`}
                                                         showVal={mortgageInstallment !=
                                                             null}
                                                         delta={null}
                                                         color={"rgba(249, 166, 0, 1)"}
                                                         isValid={true}
                                                         years={mortgage_duration}
+                                                        secondaryLabel={"rata"}
+                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[3]}
                                                     />
                                                 </div>
                                             </div>
@@ -2723,7 +2746,10 @@
                                     </div>
                                 {/if}
                                 {#if selectedTab == "prices"}
-                                    <Prices />
+                                    <Prices
+                                        bind:showErrorPopup
+                                        bind:showRateLimitPopup
+                                    />
                                 {/if}
                             </div>
                         {/if}

@@ -1,21 +1,32 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
+    import { push } from "svelte-spa-router";
     export let selectedTab = "summary";
-    export let is_using_mortgage;
     export let pro = false;
+    export let getProFunction: () => void;
 </script>
 
-<div class="tabs">
+<div
+    class="flex justify-between mb-8 rounded-2xl p-2 gap-2"
+    style="background: rgba(23, 23, 23, 1);"
+>
     <button
-        class="tab {selectedTab === 'summary' ? 'active' : ''}"
+        class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+        'summary'
+            ? 'bg-purple-400/70 text-white'
+            : ''}"
         on:click={() => (selectedTab = "summary")}
         type="button"
     >
         📊
         <span><h1 class="text-xs font-bold leading-tight">Riepilogo</h1></span>
     </button>
+
     <button
-        class="tab {selectedTab === 'base' ? 'active' : ''}"
+        class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+        'base'
+            ? 'bg-purple-400/70 text-white'
+            : ''}"
         on:click={() => (selectedTab = "base")}
         type="button"
     >
@@ -27,21 +38,25 @@
         >
     </button>
 
-    {#if is_using_mortgage}
-        <button
-            class="tab {selectedTab === 'mortgage' ? 'active' : ''}"
-            on:click={() => (selectedTab = "mortgage")}
-            type="button"
-            transition:slide={{ duration: 500 }}
-        >
-            💰
-            <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
-        </button>
-    {/if}
+    <button
+        class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+        'mortgage'
+            ? 'bg-purple-400/70 text-white'
+            : ''}"
+        on:click={() => (selectedTab = "mortgage")}
+        type="button"
+        transition:slide={{ duration: 500 }}
+    >
+        💰
+        <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
+    </button>
 
     {#if pro}
         <button
-            class="tab {selectedTab === 'mortgage_compare' ? 'active' : ''}"
+            class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+            'mortgage_compare'
+                ? 'bg-purple-400/70 text-white'
+                : ''}"
             on:click={() => (selectedTab = "mortgage_compare")}
             type="button"
             transition:slide={{ duration: 500 }}
@@ -55,7 +70,10 @@
         </button>
 
         <button
-            class="tab {selectedTab === 'cash_vs_mortgage' ? 'active' : ''}"
+            class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+            'cash_vs_mortgage'
+                ? 'bg-purple-400/70 text-white'
+                : ''}"
             on:click={() => (selectedTab = "cash_vs_mortgage")}
             type="button"
             transition:slide={{ duration: 500 }}
@@ -67,8 +85,12 @@
                 </h1></span
             >
         </button>
+
         <button
-            class="tab {selectedTab === 'prices' ? 'active' : ''}"
+            class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl text-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-800 {selectedTab ===
+            'prices'
+                ? 'bg-purple-400/70 text-white'
+                : ''}"
             on:click={() => (selectedTab = "prices")}
             type="button"
             transition:slide={{ duration: 500 }}
@@ -76,40 +98,17 @@
             📈
             <span><h1 class="text-xs font-bold leading-tight">Prices</h1></span>
         </button>
+    {:else}
+        <button
+            class="flex flex-col items-center cursor-pointer p-1 flex-1 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse text-black transition-all duration-300 ease-in-out hover:bg-gray-800"
+            on:click={() => {
+                getProFunction();
+            }}
+            type="button"
+            transition:slide={{ duration: 500 }}
+        >
+            ⭐
+            <span><h1 class="text-xs font-bold leading-tight">PRO</h1></span>
+        </button>
     {/if}
 </div>
-
-<style>
-    .tabs {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        background: rgba(23, 23, 23, 1);
-        border-radius: 16px;
-        padding: 0.5rem;
-        gap: 0.5rem;
-    }
-    .tab {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        padding: 0.2rem;
-        flex: 1;
-        border-radius: 12px;
-        color: #ccc;
-        transition:
-            background 0.3s ease,
-            color 0.3s ease;
-    }
-    .tab:hover {
-        background: #2a2a2a;
-    }
-    .tab.active {
-        background: rgba(186, 126, 254, 0.7);
-        color: #fff;
-    }
-    .tab span {
-        font-size: 0.9rem;
-    }
-</style>

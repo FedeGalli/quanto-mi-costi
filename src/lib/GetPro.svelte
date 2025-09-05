@@ -221,7 +221,7 @@
 
                         <!-- Vantaggi delle Funzionalità -->
                         <div class="space-y-3 mb-8">
-                            {#each ["Che durata del mutuo mi conviene?", "Conviene fare un muto o pagare cash?", "Quanto costano le case nella mia zona?"] as benefit, i}
+                            {#each ["Conviene fare un muto o pagare cash?", "Che durata del mutuo mi conviene?", "Quanto costano le case nella mia zona?", "Quali sono i volumi di compravendita nella mia zona?", "Nel passato come erano i prezzi e volumi di compravendita?"] as benefit, i}
                                 <div
                                     class="flex items-center text-green-400"
                                     in:fly={{

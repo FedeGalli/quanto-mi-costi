@@ -20,8 +20,9 @@ type CostItem struct {
 }
 
 type CashVsMortgageItem struct {
-	Percentage int       `json:"percentage"`
-	Values     []float64 `json:"values"`
+	Percentage  int       `json:"percentage"`
+	Values      []float64 `json:"values"`
+	Installment float64   `json:"installment"`
 }
 
 type MortgageCompareItem struct {
@@ -302,6 +303,7 @@ func calculateCashVsMortgage(
 
 	for i, percentage := range morgagePercentages {
 		installment = utils.CalculateYearlyInstallment((housePrice * morgagePercentages[i] / 100), mortgageDuration, taeg)
+		myData[i].Installment = installment / 12
 		myData[i].Percentage = int(percentage)
 		myData[i].Values = utils.SimulateSavingsCashVsMortgage(
 			yearlyIncome,
@@ -388,7 +390,7 @@ func main() {
 		yearlySavingRate := utils.ToFloat64(c.DefaultQuery("yearly_saving_rate", "0.3"))
 		mortgageDuration := utils.ToInt(c.DefaultQuery("mortgage_duration", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
-		mortgagePercentages := utils.ToFloatArray(c.DefaultQuery("mortgage_percentage", "25,50,75,100"), []float64{25, 50, 75, 100})
+		mortgagePercentages := utils.ToFloatArray(c.DefaultQuery("mortgage_percentage", "25,50,75,80"), []float64{25, 50, 75, 80})
 
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{

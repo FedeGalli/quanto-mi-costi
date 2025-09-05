@@ -367,14 +367,6 @@
 
             const firebaseUser = result.user;
 
-            // Log successful authentication details
-            console.log("Google sign-in successful:", {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-            });
-
             showSuccess("Accesso con Google completato!");
 
             // Clear any existing form data

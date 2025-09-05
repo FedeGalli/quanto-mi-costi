@@ -23,6 +23,18 @@
     let volumeChartInstance: any;
     let priceChartInstance: any;
 
+    let validationErrors = {
+        comune: false,
+        zona: false,
+        tipologia: false,
+        stato: false,
+        mq: false,
+    };
+
+    let validationError = "";
+    export let showRateLimitPopup = false;
+    export let showErrorPopup = false;
+
     $: if (priceVolumesData && chartType) {
         // Use tick() to wait for DOM updates
         tick().then(() => {
@@ -253,6 +265,11 @@
             saveStateToLocalStorage();
         } catch (error: any) {
             responseCode = error.message;
+            if (responseCode == "429") {
+                showRateLimitPopup = true;
+            } else {
+                showErrorPopup = true;
+            }
         }
     }
 
@@ -281,10 +298,13 @@
             const data = await response.json();
             priceVolumesData = data;
             saveStateToLocalStorage();
-
-            console.log("SAVED");
         } catch (error: any) {
             responseCode = error.message;
+            if (responseCode == "429") {
+                showRateLimitPopup = true;
+            } else {
+                showErrorPopup = true;
+            }
         }
     }
 
@@ -303,6 +323,11 @@
             saveStateToLocalStorage();
         } catch (error: any) {
             responseCode = error.message;
+            if (responseCode == "429") {
+                showRateLimitPopup = true;
+            } else {
+                showErrorPopup = true;
+            }
         }
     }
 
@@ -343,10 +368,30 @@
         if (selectedComune.length === 0) {
             filteredComuni = comuniOptions.slice(0, 10); // Show first 10 by default
         } else {
+            const searchTerm = selectedComune.toLowerCase();
+
+            // Filter and sort results by relevance
             filteredComuni = comuniOptions
                 .filter((comune: string) =>
-                    comune.toLowerCase().includes(selectedComune.toLowerCase()),
+                    comune.toLowerCase().includes(searchTerm),
                 )
+                .sort((a: string, b: string) => {
+                    const aLower = a.toLowerCase();
+                    const bLower = b.toLowerCase();
+
+                    // Priority 1: Exact match (case insensitive)
+                    if (aLower === searchTerm) return -1;
+                    if (bLower === searchTerm) return 1;
+
+                    // Priority 2: Starts with search term
+                    const aStarts = aLower.startsWith(searchTerm);
+                    const bStarts = bLower.startsWith(searchTerm);
+                    if (aStarts && !bStarts) return -1;
+                    if (bStarts && !aStarts) return 1;
+
+                    // Priority 3: Alphabetical order for remaining matches
+                    return a.localeCompare(b);
+                })
                 .slice(0, 10); // Limit to 10 results for performance
         }
     }
@@ -407,20 +452,16 @@
 </script>
 
 <!-- Prices section -->
-
-{#if !priceVolumesData}
-    <!-- Input section - Only show when no data -->
-    <div transition:fade={{ duration: 500 }}>
-        <div
-            class="flex flex-col items-center gap-4 mb-4"
-            transition:slide={{ duration: 500 }}
-        >
+<div transition:fade={{ duration: 500 }}>
+    <div
+        class="flex flex-col items-center gap-4 mb-4"
+        transition:slide={{ duration: 500 }}
+    >
+        {#if !priceVolumesData}
+            <!-- Input section - Only show when no data -->
             <!-- Question -->
             <h2
                 class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-4"
-                transition:slide={{
-                    duration: 500,
-                }}
             >
                 Quanto <span class="font-bold text-purple-400">costano</span>
                 le case nella mia
@@ -429,15 +470,36 @@
 
             <!-- Form Fields - Stacked Layout for narrow panel -->
             <div class="w-full space-y-4 max-w-sm">
-                <!-- Comune (Autocomplete) -->
+                <!-- Comune (Autocomplete) - Step 1 -->
                 <div class="flex flex-col gap-2">
-                    <h3 class="font-bold text-white text-sm text-left">
-                        Comune
-                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="text-purple-400 font-bold text-xs bg-purple-400/20 px-2 py-1 rounded"
+                            >1</span
+                        >
+                        <h3 class="font-bold text-white text-sm text-left">
+                            Comune
+                        </h3>
+                        {#if selectedComune}
+                            <svg
+                                class="w-4 h-4 text-green-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        {/if}
+                    </div>
                     <div class="relative">
                         <input
                             type="text"
-                            class="w-full border border-white rounded-lg px-4 py-3 text-white bg-transparent focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none placeholder-gray-300 text-sm"
+                            class="w-full border rounded-lg px-4 py-3 text-white bg-transparent focus:outline-none placeholder-gray-300 text-sm {validationErrors.comune
+                                ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                : 'border-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'}"
                             placeholder="Cerca comune..."
                             bind:value={selectedComune}
                             on:input={filterComuni}
@@ -467,22 +529,54 @@
 
                 <!-- Two-column row for Zona and Tipologia -->
                 <div class="grid grid-cols-2 gap-3">
-                    <!-- Zona (Dropdown) -->
+                    <!-- Zona (Dropdown) - Step 2 -->
                     <div class="flex flex-col gap-2">
-                        <h3 class="font-bold text-white text-sm text-left">
-                            Zona
-                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-purple-400 font-bold text-xs bg-purple-400/20 px-2 py-1 rounded"
+                                >2</span
+                            >
+                            <h3
+                                class="font-bold text-sm text-left {selectedComune
+                                    ? 'text-white'
+                                    : 'text-gray-400'}"
+                            >
+                                Zona
+                            </h3>
+                            {#if selectedZona}
+                                <svg
+                                    class="w-4 h-4 text-green-400"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            {/if}
+                        </div>
                         <div class="relative">
                             <select
-                                class="w-full border border-white rounded-lg px-3 py-3 text-white bg-transparent focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none appearance-none cursor-pointer text-sm pr-8"
+                                class="w-full border rounded-lg px-3 py-3 bg-transparent focus:outline-none appearance-none cursor-pointer text-sm pr-8 {selectedComune
+                                    ? validationErrors.zona
+                                        ? 'border-red-500 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                        : 'border-white text-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'
+                                    : 'border-gray-500 text-gray-400 cursor-not-allowed'}"
                                 bind:value={selectedZona}
+                                disabled={!selectedComune}
                                 on:change={() => {
-                                    selectZona(selectedZona);
+                                    if (selectedComune) {
+                                        selectZona(selectedZona);
+                                    }
                                 }}
                             >
-                                <option value="" class="text-black bg-white"
-                                    >Seleziona</option
-                                >
+                                <option value="" class="text-black bg-white">
+                                    {selectedComune
+                                        ? "Seleziona"
+                                        : "Prima scegli comune"}
+                                </option>
                                 {#each zoneOptions as zona}
                                     <option
                                         value={zona}
@@ -495,7 +589,9 @@
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
                             >
                                 <svg
-                                    class="w-4 h-4 text-white"
+                                    class="w-4 h-4 {selectedComune
+                                        ? 'text-white'
+                                        : 'text-gray-400'}"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -511,22 +607,54 @@
                         </div>
                     </div>
 
-                    <!-- Tipologia (Dropdown) -->
+                    <!-- Tipologia (Dropdown) - Step 3 -->
                     <div class="flex flex-col gap-2">
-                        <h3 class="font-bold text-white text-sm text-left">
-                            Tipologia
-                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-purple-400 font-bold text-xs bg-purple-400/20 px-2 py-1 rounded"
+                                >3</span
+                            >
+                            <h3
+                                class="font-bold text-sm text-left {selectedZona
+                                    ? 'text-white'
+                                    : 'text-gray-400'}"
+                            >
+                                Tipologia
+                            </h3>
+                            {#if selectedTipologia}
+                                <svg
+                                    class="w-4 h-4 text-green-400"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            {/if}
+                        </div>
                         <div class="relative">
                             <select
-                                class="w-full border border-white rounded-lg px-3 py-3 text-white bg-transparent focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none appearance-none cursor-pointer text-sm pr-8"
+                                class="w-full border rounded-lg px-3 py-3 bg-transparent focus:outline-none appearance-none cursor-pointer text-sm pr-8 {selectedZona
+                                    ? validationErrors.tipologia
+                                        ? 'border-red-500 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                        : 'border-white text-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'
+                                    : 'border-gray-500 text-gray-400 cursor-not-allowed'}"
                                 bind:value={selectedTipologia}
+                                disabled={!selectedZona}
                                 on:change={() => {
-                                    selectTipologia(selectedTipologia);
+                                    if (selectedZona) {
+                                        selectTipologia(selectedTipologia);
+                                    }
                                 }}
                             >
-                                <option value="" class="text-black bg-white"
-                                    >Seleziona</option
-                                >
+                                <option value="" class="text-black bg-white">
+                                    {selectedZona
+                                        ? "Seleziona"
+                                        : "Prima scegli zona"}
+                                </option>
                                 {#each tipologieOptions as tipologia}
                                     <option
                                         value={tipologia}
@@ -539,7 +667,9 @@
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
                             >
                                 <svg
-                                    class="w-4 h-4 text-white"
+                                    class="w-4 h-4 {selectedZona
+                                        ? 'text-white'
+                                        : 'text-gray-400'}"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -558,19 +688,49 @@
 
                 <!-- Two-column row for Stato and m² -->
                 <div class="grid grid-cols-2 gap-3">
-                    <!-- Stato (Dropdown) -->
+                    <!-- Stato (Dropdown) - Step 4 -->
                     <div class="flex flex-col gap-2">
-                        <h3 class="font-bold text-white text-sm text-left">
-                            Stato
-                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-purple-400 font-bold text-xs bg-purple-400/20 px-2 py-1 rounded"
+                                >4</span
+                            >
+                            <h3
+                                class="font-bold text-sm text-left {selectedTipologia
+                                    ? 'text-white'
+                                    : 'text-gray-400'}"
+                            >
+                                Stato
+                            </h3>
+                            {#if selectedStato}
+                                <svg
+                                    class="w-4 h-4 text-green-400"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            {/if}
+                        </div>
                         <div class="relative">
                             <select
-                                class="w-full border border-white rounded-lg px-3 py-3 text-white bg-transparent focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none appearance-none cursor-pointer text-sm pr-8"
+                                class="w-full border rounded-lg px-3 py-3 bg-transparent focus:outline-none appearance-none cursor-pointer text-sm pr-8 {selectedTipologia
+                                    ? validationErrors.stato
+                                        ? 'border-red-500 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                        : 'border-white text-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'
+                                    : 'border-gray-500 text-gray-400 cursor-not-allowed'}"
                                 bind:value={selectedStato}
+                                disabled={!selectedTipologia}
                             >
-                                <option value="" class="text-black bg-white"
-                                    >Seleziona</option
-                                >
+                                <option value="" class="text-black bg-white">
+                                    {selectedTipologia
+                                        ? "Seleziona"
+                                        : "Prima scegli tipologia"}
+                                </option>
                                 {#each statoOptions as stato}
                                     <option
                                         value={stato}
@@ -583,7 +743,9 @@
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
                             >
                                 <svg
-                                    class="w-4 h-4 text-white"
+                                    class="w-4 h-4 {selectedTipologia
+                                        ? 'text-white'
+                                        : 'text-gray-400'}"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -599,35 +761,157 @@
                         </div>
                     </div>
 
-                    <!-- m² (Number input) -->
+                    <!-- m² (Number input) - Step 5 -->
                     <div class="flex flex-col gap-2">
-                        <h3 class="font-bold text-white text-sm text-left">
-                            m²
-                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-purple-400 font-bold text-xs bg-purple-400/20 px-2 py-1 rounded"
+                                >5</span
+                            >
+                            <h3
+                                class="font-bold text-sm text-left {selectedStato
+                                    ? 'text-white'
+                                    : 'text-gray-400'}"
+                            >
+                                m²
+                            </h3>
+                            {#if selectedMq}
+                                <svg
+                                    class="w-4 h-4 text-green-400"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                            {/if}
+                        </div>
                         <input
                             type="number"
-                            class="w-full border border-white rounded-lg px-4 py-3 text-white bg-transparent focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none text-sm"
+                            class="w-full border rounded-lg px-4 py-3 bg-transparent focus:outline-none text-sm {selectedStato
+                                ? validationErrors.mq
+                                    ? 'border-red-500 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                    : 'border-white text-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'
+                                : 'border-gray-500 text-gray-400 cursor-not-allowed'}"
                             min="0"
-                            step="5"
                             max="500"
-                            placeholder="120"
+                            placeholder={selectedStato
+                                ? "120"
+                                : "Prima scegli stato"}
                             bind:value={selectedMq}
+                            disabled={!selectedStato}
+                            on:input={() => {
+                                if (selectedMq < 0) selectedMq = 0;
+                            }}
                         />
                     </div>
                 </div>
+
+                <!-- Validation Error Message -->
+                {#if validationError}
+                    <div
+                        class="bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-200 text-sm text-center"
+                        transition:slide={{ duration: 500 }}
+                    >
+                        <div class="flex items-center justify-center gap-2">
+                            <svg
+                                class="w-4 h-4 text-red-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span>{validationError}</span>
+                        </div>
+                    </div>
+                {/if}
 
                 <!-- Calculate Button -->
                 <div class="pt-2">
                     <CustomButton
                         title={"Calcola"}
                         onClick={() => {
-                            getPriceVolumeData(
-                                selectedComune,
-                                selectedZona,
-                                selectedTipologia,
-                                selectedStato,
-                                selectedMq,
-                            );
+                            // Reset previous validation errors
+                            validationErrors = {
+                                comune: false,
+                                zona: false,
+                                tipologia: false,
+                                stato: false,
+                                mq: false,
+                            };
+                            validationError = "";
+
+                            // Check each field and mark errors
+                            let hasErrors = false;
+                            let missingFields = [];
+
+                            if (!selectedComune) {
+                                validationErrors.comune = true;
+                                missingFields.push("Comune");
+                                hasErrors = true;
+                            }
+                            if (!selectedZona) {
+                                validationErrors.zona = true;
+                                missingFields.push("Zona");
+                                hasErrors = true;
+                            }
+                            if (!selectedTipologia) {
+                                validationErrors.tipologia = true;
+                                missingFields.push("Tipologia");
+                                hasErrors = true;
+                            }
+                            if (!selectedStato) {
+                                validationErrors.stato = true;
+                                missingFields.push("Stato");
+                                hasErrors = true;
+                            }
+                            if (!selectedMq) {
+                                validationErrors.mq = true;
+                                missingFields.push("m²");
+                                hasErrors = true;
+                            }
+
+                            // Set error message based on missing fields
+                            if (hasErrors) {
+                                if (missingFields.length === 1) {
+                                    validationError = `Completa il campo: ${missingFields[0]}`;
+                                } else {
+                                    validationError = `Completa i campi: ${missingFields.join(", ")}`;
+                                }
+
+                                // Auto-clear error message after 4 seconds
+                                setTimeout(() => {
+                                    validationError = "";
+                                    validationErrors = {
+                                        comune: false,
+                                        zona: false,
+                                        tipologia: false,
+                                        stato: false,
+                                        mq: false,
+                                    };
+                                }, 4000);
+                            }
+
+                            // Trigger reactivity
+                            validationErrors = validationErrors;
+
+                            // If no errors, proceed with calculation
+                            if (!hasErrors) {
+                                getPriceVolumeData(
+                                    selectedComune,
+                                    selectedZona,
+                                    selectedTipologia,
+                                    selectedStato,
+                                    selectedMq,
+                                );
+                            }
                         }}
                         class="w-full"
                     >
@@ -635,172 +919,177 @@
                     </CustomButton>
                 </div>
             </div>
-        </div>
-    </div>
-{:else}
-    <div transition:fade={{ duration: 500 }}>
-        <!-- Data Display Section - Takes over main view -->
-        <div class="w-full" transition:slide={{ duration: 500 }}>
-            <!-- Header with back button -->
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="font-bold text-white text-xl">Risultati Analisi</h2>
-                <button
-                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                    on:click={() => {
-                        // Reset to show form again
-                        priceVolumesData = null;
-                    }}
-                >
-                    Nuova Ricerca
-                </button>
-            </div>
+        {:else}
+            <!-- Data Display Section - Takes over main view -->
 
-            <!-- Current Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <!-- Price Range Card -->
-                <div
-                    class="bg-neutral-900 border border-purple-400 rounded-xl p-5 flex-1 text-center"
-                >
-                    <div class="space-y-4">
-                        <!-- Price Range -->
+            <div class="w-full" transition:slide={{ duration: 500 }}>
+                <!-- Header with back button -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-bold text-white text-xl">
+                        Risultati Analisi
+                    </h2>
+                    <button
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                        on:click={() => {
+                            // Reset to show form again
+                            priceVolumesData = null;
+                        }}
+                    >
+                        Nuova Ricerca
+                    </button>
+                </div>
+
+                <!-- Current Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Price Range Card -->
+                    <div
+                        class="bg-neutral-900 border border-purple-400 rounded-xl p-5 flex-1 text-center"
+                    >
+                        <div class="space-y-4">
+                            <!-- Price Range -->
+                            <div class="text-center mb-6">
+                                <h3
+                                    class="text-purple-300 text-sm font-medium mb-2"
+                                >
+                                    Prezzo Medio Immobile
+                                </h3>
+                                <div class="text-white text-5xl font-bold mb-1">
+                                    {(
+                                        ((priceVolumesData.current_max_price +
+                                            priceVolumesData.current_min_price) /
+                                            2) *
+                                        selectedMq
+                                    ).toLocaleString("it-IT")} €
+                                </div>
+                                <div class="text-gray-400 text-sm">
+                                    {selectedMq} m² • €{(
+                                        (priceVolumesData.current_max_price +
+                                            priceVolumesData.current_min_price) /
+                                        2
+                                    ).toLocaleString("it-IT")}/m²
+                                </div>
+                            </div>
+
+                            <!-- Visual Range -->
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-green-400 font-semibold"
+                                        >{(
+                                            priceVolumesData.current_min_price *
+                                            selectedMq
+                                        ).toLocaleString("it-IT")} €</span
+                                    >
+                                    <span class="text-red-400 font-semibold"
+                                        >{(
+                                            priceVolumesData.current_max_price *
+                                            selectedMq
+                                        ).toLocaleString("it-IT")} €</span
+                                    >
+                                </div>
+                                <div
+                                    class="w-full bg-gray-700 rounded-full h-3 relative"
+                                >
+                                    <div
+                                        class="bg-gradient-to-r from-green-400 via-purple-400 to-red-400 h-3 rounded-full"
+                                    ></div>
+                                    <!-- Simple arrow pointing down -->
+                                    <div
+                                        class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
+                                    >
+                                        <div class="text-white text-3xl">↓</div>
+                                    </div>
+                                </div>
+                                <div class="text-center text-xs text-gray-400">
+                                    Range di prezzo
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Volume Card -->
+                    <div
+                        class="bg-neutral-900 border border-purple-400 rounded-xl p-5 flex-1 text-center"
+                    >
+                        <!-- Market Size Header -->
                         <div class="text-center mb-6">
                             <h3
                                 class="text-purple-300 text-sm font-medium mb-2"
                             >
-                                Prezzo Stimato Casa
+                                Dimensione del Mercato<br />{selectedComune}
                             </h3>
-                            <div class="text-white text-5xl font-bold mb-1">
-                                {(
-                                    ((priceVolumesData.current_max_price +
-                                        priceVolumesData.current_min_price) /
-                                        2) *
-                                    selectedMq
-                                ).toLocaleString("it-IT")} €
-                            </div>
-                            <div class="text-gray-400 text-sm">
-                                {selectedMq} m² • €{(
-                                    (priceVolumesData.current_max_price +
-                                        priceVolumesData.current_min_price) /
-                                    2
-                                ).toLocaleString("it-IT")}/m²
-                            </div>
-                        </div>
 
-                        <!-- Visual Range -->
-                        <div class="space-y-3">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-green-400 font-semibold"
-                                    >{(
-                                        priceVolumesData.current_min_price *
-                                        selectedMq
-                                    ).toLocaleString("it-IT")} €</span
-                                >
-                                <span class="text-red-400 font-semibold"
-                                    >{(
-                                        priceVolumesData.current_max_price *
-                                        selectedMq
-                                    ).toLocaleString("it-IT")} €</span
-                                >
-                            </div>
                             <div
-                                class="w-full bg-gray-700 rounded-full h-3 relative"
+                                class="text-5xl font-bold mb-1"
+                                class:text-red-500={priceVolumesData.market_size ===
+                                    "S"}
+                                class:text-orange-400={priceVolumesData.market_size ===
+                                    "M"}
+                                class:text-yellow-400={priceVolumesData.market_size ===
+                                    "L"}
+                                class:text-green-400={priceVolumesData.market_size ===
+                                    "XL"}
+                                class:text-blue-400={priceVolumesData.market_size ===
+                                    "XXL"}
                             >
-                                <div
-                                    class="bg-gradient-to-r from-green-400 via-purple-400 to-red-400 h-3 rounded-full"
-                                ></div>
-                                <!-- Simple arrow pointing down -->
-                                <div
-                                    class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
-                                >
-                                    <div class="text-white text-3xl">↓</div>
-                                </div>
+                                {priceVolumesData.market_size}
                             </div>
-                            <div class="text-center text-xs text-gray-400">
-                                Range di prezzo
-                            </div>
+                        </div>
+
+                        <!-- Volume Details -->
+                        <div class="text-gray-400 text-sm mt-1">
+                            Volume <br />{priceVolumesData.mq_range}
+                        </div>
+                        <div class="text-white text-2xl font-bold mt-2">
+                            {priceVolumesData.current_volume_mq.toLocaleString(
+                                "it-IT",
+                            )}
                         </div>
                     </div>
                 </div>
 
-                <!-- Volume Card -->
+                <h2 class="font-bold text-white text-xl">Andamento storico</h2>
+                <!-- Chart Section -->
                 <div
-                    class="bg-neutral-900 border border-purple-400 rounded-xl p-5 flex-1 text-center"
+                    class="bg-gradient-to-br from-white/5 to-transparent rounded-lg"
                 >
-                    <!-- Market Size Header -->
-                    <div class="text-center mb-6">
-                        <h3 class="text-purple-300 text-sm font-medium mb-2">
-                            Dimensione del Mercato<br />{selectedComune}
-                        </h3>
-
-                        <div
-                            class="text-5xl font-bold mb-1"
-                            class:text-red-500={priceVolumesData.market_size ===
-                                "S"}
-                            class:text-orange-400={priceVolumesData.market_size ===
-                                "M"}
-                            class:text-yellow-400={priceVolumesData.market_size ===
-                                "L"}
-                            class:text-green-400={priceVolumesData.market_size ===
-                                "XL"}
-                            class:text-blue-400={priceVolumesData.market_size ===
-                                "XXL"}
-                        >
-                            {priceVolumesData.market_size}
+                    <!-- Chart Toggle Buttons -->
+                    <div class="flex justify-start mb-6">
+                        <div class="bg-[#1e1f25] p-1 rounded-br-lg">
+                            <button
+                                class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                                class:bg-purple-400={chartType === "prices"}
+                                class:text-white={chartType === "prices"}
+                                class:text-gray-300={chartType !== "prices"}
+                                on:click={() => (chartType = "prices")}
+                            >
+                                Prezzi
+                            </button>
+                            <button
+                                class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                                class:bg-purple-400={chartType === "volume"}
+                                class:text-white={chartType === "volume"}
+                                class:text-gray-300={chartType !== "volume"}
+                                on:click={() => (chartType = "volume")}
+                            >
+                                Volume
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Volume Details -->
-                    <div class="text-gray-400 text-sm mt-1">
-                        Volume <br />{priceVolumesData.mq_range}
-                    </div>
-                    <div class="text-white text-2xl font-bold mt-2">
-                        {priceVolumesData.current_volume_mq.toLocaleString(
-                            "it-IT",
-                        )}
+                    <!-- Chart Container -->
+                    <div class="h-80 relative">
+                        {#if chartType === "volume"}
+                            <canvas
+                                bind:this={volumeChart}
+                                class="w-full h-full"
+                            ></canvas>
+                        {:else if chartType === "prices"}
+                            <canvas bind:this={priceChart} class="w-full h-full"
+                            ></canvas>
+                        {/if}
                     </div>
                 </div>
             </div>
-
-            <h2 class="font-bold text-white text-xl">Andamento storico</h2>
-            <!-- Chart Section -->
-            <div
-                class="bg-gradient-to-br from-white/5 to-transparent rounded-lg"
-            >
-                <!-- Chart Toggle Buttons -->
-                <div class="flex justify-start mb-6">
-                    <div class="bg-[#1e1f25] p-1 rounded-br-lg">
-                        <button
-                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                            class:bg-purple-400={chartType === "prices"}
-                            class:text-white={chartType === "prices"}
-                            class:text-gray-300={chartType !== "prices"}
-                            on:click={() => (chartType = "prices")}
-                        >
-                            Prezzi
-                        </button>
-                        <button
-                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                            class:bg-purple-400={chartType === "volume"}
-                            class:text-white={chartType === "volume"}
-                            class:text-gray-300={chartType !== "volume"}
-                            on:click={() => (chartType = "volume")}
-                        >
-                            Volume
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Chart Container -->
-                <div class="h-80 relative">
-                    {#if chartType === "volume"}
-                        <canvas bind:this={volumeChart} class="w-full h-full"
-                        ></canvas>
-                    {:else if chartType === "prices"}
-                        <canvas bind:this={priceChart} class="w-full h-full"
-                        ></canvas>
-                    {/if}
-                </div>
-            </div>
-        </div>
+        {/if}
     </div>
-{/if}
+</div>
