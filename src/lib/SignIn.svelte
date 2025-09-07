@@ -265,6 +265,7 @@
                 await setDoc(userDocRef, {
                     uid: uid,
                     is_pro: false,
+                    saved_houses: [],
                 });
                 console.log("User document created successfully");
             } else {
