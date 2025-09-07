@@ -16,12 +16,13 @@
         font-family: inherit;
         font-size: inherit;
         position: relative;
-        display: inline-block;
+        display: block; /* Changed from inline-block to block */
         border-radius: 4px;
         overflow: hidden;
         background: rgba(184, 126, 254, 1);
         color: white;
-        border: 1px solid transparent; /* This ensures no anti-aliased border glow */
+        border: 1px solid transparent;
+        width: 100%; /* Add this to ensure full width */
     }
 
     button span {

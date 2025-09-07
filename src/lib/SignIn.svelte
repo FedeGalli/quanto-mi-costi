@@ -3,7 +3,7 @@
     import { slide, fly } from "svelte/transition";
     import { doc, setDoc, getDoc } from "firebase/firestore";
     import { onMount } from "svelte";
-    import { push } from "svelte-spa-router";
+    import { push, location, querystring } from "svelte-spa-router";
     import {
         createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
@@ -20,6 +20,9 @@
     import type { AuthError } from "firebase/auth";
     import { auth, db } from "./auth/credentials"; // Adjust path as needed
     import { user, isAuthenticated, initAuthStore } from "./auth/auth-store"; // Import auth store
+
+    // Redirect
+    let redirectUrl = "/"; // Default redirect to homepage
 
     // Auth state
     let isSignUp = false;
@@ -194,7 +197,7 @@
                 // The auth store will handle the user state automatically
                 // Redirect to home page after a short delay
                 setTimeout(() => {
-                    push("/");
+                    push(redirectUrl);
                 }, 1500);
             }
         } catch (error) {
@@ -262,6 +265,7 @@
                 await setDoc(userDocRef, {
                     uid: uid,
                     is_pro: false,
+                    saved_houses: [],
                 });
                 console.log("User document created successfully");
             } else {
@@ -291,7 +295,7 @@
 
                 createUserDocument(auth.currentUser.uid);
                 setTimeout(() => {
-                    push("/");
+                    push(redirectUrl);
                 }, 1500);
             } else {
                 showError(
@@ -364,14 +368,6 @@
 
             const firebaseUser = result.user;
 
-            // Log successful authentication details
-            console.log("Google sign-in successful:", {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-            });
-
             showSuccess("Accesso con Google completato!");
 
             // Clear any existing form data
@@ -379,7 +375,7 @@
 
             createUserDocument(firebaseUser.uid);
             setTimeout(() => {
-                push("/");
+                push(redirectUrl);
             }, 1500);
         } catch (error: any) {
             console.error("Google sign in error:", error);
@@ -417,6 +413,13 @@
     }
 
     onMount(() => {
+        // Parse query parameters from the current location
+        const params = new URLSearchParams($querystring);
+        const redirect = params.get("redirect");
+
+        if (redirect) {
+            redirectUrl = decodeURIComponent(redirect);
+        }
         // Initialize auth store
         initAuthStore();
 
@@ -430,7 +433,7 @@
                     showSuccess("Accesso completato!");
 
                     setTimeout(() => {
-                        push("/");
+                        push(redirectUrl);
                     }, 1500);
                 }
             })
@@ -458,7 +461,7 @@
                         "Autenticazione completata! Reindirizzamento...",
                     );
                     setTimeout(() => {
-                        push("/");
+                        push(redirectUrl);
                     }, 1500);
                 } else {
                     // Show email verification message only for email/password accounts

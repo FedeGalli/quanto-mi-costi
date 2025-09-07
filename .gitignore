@@ -48,3 +48,11 @@ go.work.sum
 
 # Credentials
 src/lib/auth/credentials.ts
+
+# Backend data
+backend/data/final_tables
+backend/data/prices
+backend/data/volumes
+
+# CSV data
+*.csv

@@ -16,7 +16,7 @@
 
     // Gestori di eventi
     const goToLogin = () => {
-        push("/signin");
+        push("/signin?redirect=" + encodeURIComponent("/checkout"));
     };
 
     const purchasePro = () => {
@@ -212,16 +212,16 @@
 
                         <p class="text-purple-100 text-lg mb-6 leading-relaxed">
                             Sblocca strumenti avanzati di analisi per decisioni
-                            finanziarie più approfondite. Ottieni
-                            approfondimenti completi e risparmia migliaia di
-                            euro sull'acquisto della tua casa con le scelte
-                            finanziarie più corrette per te, ottenendo risposta
-                            a:
+                            finanziarie più approfondite. Capisci come
+                            evolverebbe il tuo patrimonio in diversi scenari e
+                            risparmia migliaia di euro sull'acquisto della tua
+                            casa con le scelte finanziarie più corrette per te,
+                            ottenendo risposta a:
                         </p>
 
                         <!-- Vantaggi delle Funzionalità -->
                         <div class="space-y-3 mb-8">
-                            {#each ["Che durata del mutuo mi conviene?", "Conviene fare un muto o pagare cash?", "Quanto costano le case nella mia zona?"] as benefit, i}
+                            {#each ["Conviene fare un muto o pagare cash?", "Che durata del mutuo mi conviene?", "Quanto costano le case nella mia zona?", "Quali sono i volumi di compravendita nella mia zona?", "Nel passato come erano i prezzi e volumi di compravendita?"] as benefit, i}
                                 <div
                                     class="flex items-center text-green-400"
                                     in:fly={{
@@ -251,7 +251,7 @@
                     <div class="mt-auto">
                         <div class="text-center mb-6">
                             <div class="text-4xl font-bold text-white mb-2">
-                                €5,99
+                                €3,99
                             </div>
                             <div class="text-purple-100 text-sm mb-1">
                                 IVA inclusa
