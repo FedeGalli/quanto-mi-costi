@@ -21,6 +21,7 @@
     let elements: any = null;
     let cardElement: any = null;
     let stripeLoaded = false;
+    let showSuccessPopup = false;
 
     // Form state
     let mounted = false;
@@ -116,20 +117,6 @@
         } catch (error) {
             console.error("Error loading Stripe:", error);
         }
-    };
-
-    const validateForm = (): boolean => {
-        errors = {};
-
-        if (!formData.email) errors.email = "Email richiesta";
-        if (!formData.fullName) errors.fullName = "Nome completo richiesto";
-        if (!formData.billingAddress.street)
-            errors.street = "Indirizzo richiesto";
-        if (!formData.billingAddress.city) errors.city = "Città richiesta";
-        if (!formData.billingAddress.postalCode)
-            errors.postalCode = "CAP richiesto";
-
-        return Object.keys(errors).length === 0;
     };
 
     const processPayment = async () => {
@@ -235,8 +222,7 @@
 
                 if (confirmData.success) {
                     console.log("PRO ACCESS ACTIVATED!");
-                    // Redirect or show success message
-                    push("/");
+                    await showProActivatedPopup();
                 } else {
                     throw new Error(
                         confirmData.message || "Failed to activate pro access",
@@ -257,31 +243,287 @@
         }
     };
 
-    async function updateUserPro(uid: string, isPro: boolean) {
-        try {
-            const userDocRef = doc(db, "users", uid);
-            await updateDoc(userDocRef, {
-                is_pro: isPro,
-            });
-            console.log("User pro status updated successfully");
-        } catch (error) {
-            console.error("Error updating user pro status:", error);
-            throw error;
-        }
-    }
-
     onMount(() => {
         mounted = true;
         initAuthStore();
         initStripe();
 
-        if (!$isAuthenticated || $user.pro) {
+        if (!$isAuthenticated) {
             push("/signin?redirect=" + encodeURIComponent("/checkout"));
         }
         if ($user.pro) {
             push("/");
         }
     });
+
+    const showProActivatedPopup = async () => {
+        showSuccessPopup = true;
+        console.log(showSuccessPopup);
+
+        // Auto-close after 4 seconds and redirect
+        setTimeout(() => {
+            showSuccessPopup = false;
+            push("/");
+        }, 4000);
+    };
+
+    // Email validation
+    const isValidEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    // Italian postal code validation (5 digits)
+    const isValidPostalCode = (postalCode: string): boolean => {
+        const postalCodeRegex = /^[0-9]{5}$/;
+        return postalCodeRegex.test(postalCode);
+    };
+
+    // Name validation (only letters, spaces, apostrophes, hyphens, accents)
+    const isValidName = (name: string): boolean => {
+        const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/;
+        return nameRegex.test(name.trim());
+    };
+
+    // Address validation (letters, numbers, spaces, common punctuation)
+    const isValidAddress = (address: string): boolean => {
+        const addressRegex = /^[a-zA-Z0-9À-ÿ\s,.-]{3,100}$/;
+        return addressRegex.test(address.trim());
+    };
+
+    // City validation (only letters, spaces, apostrophes, hyphens, accents)
+    const isValidCity = (city: string): boolean => {
+        const cityRegex = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/;
+        return cityRegex.test(city.trim());
+    };
+
+    // Input handlers for real-time validation and formatting
+    const handleEmailInput = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        formData.email = target.value.trim().toLowerCase();
+
+        if (formData.email && !isValidEmail(formData.email)) {
+            errors.email = "Inserisci un indirizzo email valido";
+        } else {
+            errors.email = "";
+        }
+    };
+
+    const handleNameInput = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        let value = target.value;
+
+        // Remove any numbers or special characters (except spaces, apostrophes, hyphens)
+        value = value.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, "");
+
+        // Capitalize first letter of each word
+        value = value.replace(/\b\w/g, (l) => l.toUpperCase());
+
+        formData.fullName = value;
+        target.value = value;
+
+        if (formData.fullName && !isValidName(formData.fullName)) {
+            errors.fullName =
+                "Il nome deve contenere solo lettere (2-50 caratteri)";
+        } else if (
+            formData.fullName &&
+            formData.fullName.trim().split(" ").length < 2
+        ) {
+            errors.fullName = "Inserisci nome e cognome";
+        } else {
+            errors.fullName = "";
+        }
+    };
+
+    const handleAddressInput = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        formData.billingAddress.street = target.value;
+
+        if (
+            formData.billingAddress.street &&
+            !isValidAddress(formData.billingAddress.street)
+        ) {
+            errors.street =
+                "Indirizzo non valido (3-100 caratteri, solo lettere, numeri e punteggiatura comune)";
+        } else {
+            errors.street = "";
+        }
+    };
+
+    const handleCityInput = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        let value = target.value;
+
+        // Remove numbers and special characters (except spaces, apostrophes, hyphens)
+        value = value.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, "");
+
+        // Capitalize first letter of each word
+        value = value.replace(/\b\w/g, (l) => l.toUpperCase());
+
+        formData.billingAddress.city = value;
+        target.value = value;
+
+        if (
+            formData.billingAddress.city &&
+            !isValidCity(formData.billingAddress.city)
+        ) {
+            errors.city =
+                "La città deve contenere solo lettere (2-50 caratteri)";
+        } else {
+            errors.city = "";
+        }
+    };
+
+    const handlePostalCodeInput = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        // Remove any non-digit characters
+        let value = target.value.replace(/[^0-9]/g, "");
+
+        // Limit to 5 digits
+        if (value.length > 5) {
+            value = value.slice(0, 5);
+        }
+
+        formData.billingAddress.postalCode = value;
+        target.value = value;
+
+        if (
+            formData.billingAddress.postalCode &&
+            !isValidPostalCode(formData.billingAddress.postalCode)
+        ) {
+            errors.postalCode = "Il CAP deve essere di esattamente 5 cifre";
+        } else {
+            errors.postalCode = "";
+        }
+    };
+
+    const handlePostalCodeKeypress = (event: KeyboardEvent) => {
+        // Prevent non-digit characters from being entered
+        const char = String.fromCharCode(event.which || event.keyCode);
+        if (
+            !/[0-9]/.test(char) &&
+            !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(
+                event.key,
+            )
+        ) {
+            event.preventDefault();
+        }
+    };
+
+    // Enhanced form validation
+    const validateForm = (): boolean => {
+        errors = {};
+        let isValid = true;
+
+        // Email validation
+        if (!formData.email) {
+            errors.email = "Email richiesta";
+            isValid = false;
+        } else if (!isValidEmail(formData.email)) {
+            errors.email = "Inserisci un indirizzo email valido";
+            isValid = false;
+        }
+
+        // Full name validation
+        if (!formData.fullName) {
+            errors.fullName = "Nome completo richiesto";
+            isValid = false;
+        } else if (!isValidName(formData.fullName)) {
+            errors.fullName =
+                "Il nome deve contenere solo lettere (2-50 caratteri)";
+            isValid = false;
+        } else if (formData.fullName.trim().split(" ").length < 2) {
+            errors.fullName = "Inserisci nome e cognome";
+            isValid = false;
+        }
+
+        // Street address validation
+        if (!formData.billingAddress.street) {
+            errors.street = "Indirizzo richiesto";
+            isValid = false;
+        } else if (!isValidAddress(formData.billingAddress.street)) {
+            errors.street = "Indirizzo non valido";
+            isValid = false;
+        }
+
+        // City validation
+        if (!formData.billingAddress.city) {
+            errors.city = "Città richiesta";
+            isValid = false;
+        } else if (!isValidCity(formData.billingAddress.city)) {
+            errors.city = "Nome città non valido";
+            isValid = false;
+        }
+
+        // Postal code validation
+        if (!formData.billingAddress.postalCode) {
+            errors.postalCode = "CAP richiesto";
+            isValid = false;
+        } else if (!isValidPostalCode(formData.billingAddress.postalCode)) {
+            errors.postalCode = "Il CAP deve essere di esattamente 5 cifre";
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
+    // Validation on blur events (when user confirms input)
+    const handleFieldBlur = (field: string) => {
+        switch (field) {
+            case "email":
+                if (!formData.email) {
+                    errors.email = "Email richiesta";
+                } else if (!isValidEmail(formData.email)) {
+                    errors.email = "Inserisci un indirizzo email valido";
+                } else {
+                    errors.email = "";
+                }
+                break;
+            case "fullName":
+                if (!formData.fullName) {
+                    errors.fullName = "Nome completo richiesto";
+                } else if (!isValidName(formData.fullName)) {
+                    errors.fullName =
+                        "Il nome deve contenere solo lettere (2-50 caratteri)";
+                } else if (formData.fullName.trim().split(" ").length < 2) {
+                    errors.fullName = "Inserisci nome e cognome";
+                } else {
+                    errors.fullName = "";
+                }
+                break;
+            case "street":
+                if (!formData.billingAddress.street) {
+                    errors.street = "Indirizzo richiesto";
+                } else if (!isValidAddress(formData.billingAddress.street)) {
+                    errors.street = "Indirizzo non valido (3-100 caratteri)";
+                } else {
+                    errors.street = "";
+                }
+                break;
+            case "city":
+                if (!formData.billingAddress.city) {
+                    errors.city = "Città richiesta";
+                } else if (!isValidCity(formData.billingAddress.city)) {
+                    errors.city = "Nome città non valido (solo lettere)";
+                } else {
+                    errors.city = "";
+                }
+                break;
+            case "postalCode":
+                if (!formData.billingAddress.postalCode) {
+                    errors.postalCode = "CAP richiesto";
+                } else if (
+                    !isValidPostalCode(formData.billingAddress.postalCode)
+                ) {
+                    errors.postalCode =
+                        "Il CAP deve essere di esattamente 5 cifre";
+                } else {
+                    errors.postalCode = "";
+                }
+                break;
+        }
+        errors = { ...errors }; // Trigger reactivity
+    };
 </script>
 
 <!-- Contenitore Principale -->
@@ -413,8 +655,13 @@
                                 <input
                                     type="email"
                                     bind:value={formData.email}
+                                    on:input={handleEmailInput}
+                                    on:blur={() => handleFieldBlur("email")}
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                    class:border-red-500={errors.email}
+                                    class:focus:border-red-500={errors.email}
                                     placeholder="tua@email.com"
+                                    autocomplete="email"
                                     required
                                 />
                                 {#if errors.email}
@@ -431,8 +678,14 @@
                                 <input
                                     type="text"
                                     bind:value={formData.fullName}
+                                    on:input={handleNameInput}
+                                    on:blur={() => handleFieldBlur("fullName")}
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                    class:border-red-500={errors.fullName}
+                                    class:focus:border-red-500={errors.fullName}
                                     placeholder="Mario Rossi"
+                                    autocomplete="name"
+                                    maxlength="50"
                                     required
                                 />
                                 {#if errors.fullName}
@@ -488,8 +741,14 @@
                                 <input
                                     type="text"
                                     bind:value={formData.billingAddress.street}
+                                    on:input={handleAddressInput}
+                                    on:blur={() => handleFieldBlur("street")}
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                    class:border-red-500={errors.street}
+                                    class:focus:border-red-500={errors.street}
                                     placeholder="Via Roma, 123"
+                                    autocomplete="street-address"
+                                    maxlength="100"
                                     required
                                 />
                                 {#if errors.street}
@@ -510,8 +769,14 @@
                                         bind:value={
                                             formData.billingAddress.city
                                         }
+                                        on:input={handleCityInput}
+                                        on:blur={() => handleFieldBlur("city")}
                                         class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                        class:border-red-500={errors.city}
+                                        class:focus:border-red-500={errors.city}
                                         placeholder="Milano"
+                                        autocomplete="address-level2"
+                                        maxlength="50"
                                         required
                                     />
                                     {#if errors.city}
@@ -531,8 +796,17 @@
                                         bind:value={
                                             formData.billingAddress.postalCode
                                         }
+                                        on:input={handlePostalCodeInput}
+                                        on:keypress={handlePostalCodeKeypress}
+                                        on:blur={() =>
+                                            handleFieldBlur("postalCode")}
                                         class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                        class:border-red-500={errors.postalCode}
+                                        class:focus:border-red-500={errors.postalCode}
                                         placeholder="20100"
+                                        autocomplete="postal-code"
+                                        maxlength="5"
+                                        inputmode="numeric"
                                         required
                                     />
                                     {#if errors.postalCode}
@@ -552,6 +826,7 @@
                                             formData.billingAddress.country
                                         }
                                         class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                        autocomplete="country"
                                         required
                                     >
                                         <option value="IT">Italia</option>
@@ -616,3 +891,140 @@
         </div>
     {/if}
 </div>
+
+{#if showSuccessPopup}
+    <!-- Backdrop -->
+    <div
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        in:fly={{ y: 50, duration: 500 }}
+        out:fly={{ y: -50, duration: 300 }}
+    >
+        <!-- Popup Content -->
+        <div
+            class="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-3xl p-8 max-w-md w-full text-center border border-purple-500/30 shadow-2xl relative overflow-hidden"
+            in:fly={{ duration: 500, delay: 200 }}
+        >
+            <!-- Animated Background Elements -->
+            <div class="absolute inset-0 overflow-hidden">
+                <div
+                    class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-full animate-pulse"
+                ></div>
+                <div
+                    class="absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full animate-pulse"
+                    style="animation-delay: 1s;"
+                ></div>
+            </div>
+
+            <!-- Success Icon -->
+            <div class="relative z-10 mb-6">
+                <div
+                    class="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto shadow-lg animate-bounce"
+                >
+                    <svg
+                        class="w-10 h-10 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="3"
+                            d="M5 13l4 4L19 7"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Success Text -->
+            <div class="relative z-10">
+                <h2 class="text-3xl font-bold text-white mb-4">
+                    🎉 Pro Attivato!
+                </h2>
+                <p class="text-gray-300 mb-6 text-lg">
+                    Il pagamento è stato completato con successo!<br />
+                    Ora hai accesso a tutte le funzionalità Pro.
+                </p>
+
+                <!-- Features List -->
+                <div class="space-y-2 mb-6">
+                    <div
+                        class="flex items-center justify-center text-green-400"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span class="text-sm"
+                            >Accesso illimitato a tutte le funzionalità</span
+                        >
+                    </div>
+                    <div
+                        class="flex items-center justify-center text-green-400"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span class="text-sm"
+                            >Analisi avanzate del mercato immobiliare</span
+                        >
+                    </div>
+                    <div
+                        class="flex items-center justify-center text-green-400"
+                    >
+                        <svg
+                            class="w-5 h-5 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                        <span class="text-sm">Supporto prioritario</span>
+                    </div>
+                </div>
+
+                <!-- Loading bar -->
+                <div class="w-full bg-gray-700 rounded-full h-2 mb-4">
+                    <div
+                        class="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full animate-pulse"
+                        style="width: 100%; animation: loadingBar 4s linear;"
+                    ></div>
+                </div>
+
+                <p class="text-gray-400 text-sm">
+                    Verrai reindirizzato alla dashboard...
+                </p>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<style>
+    @keyframes loadingBar {
+        0% {
+            width: 0%;
+        }
+        100% {
+            width: 100%;
+        }
+    }
+</style>
