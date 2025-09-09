@@ -1482,344 +1482,359 @@
 <div
     class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
 >
-    <!-- Login/User Button - Top Right -->
-
-    <div class="fixed top-4 right-4 z-50 user-menu-container">
-        {#if $isLoading}
-            <!-- Loading state -->
-            <div
-                class="bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg"
-            >
-                <div
-                    class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                ></div>
-            </div>
-        {:else if $isAuthenticated && $user}
-            <!-- User Menu -->
-            <div class="relative">
-                <button
-                    on:click={toggleUserMenu}
-                    class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105 flex items-center gap-2"
-                >
-                    {#if $user.photoURL}
-                        <img
-                            src={$user.photoURL}
-                            alt="Profile"
-                            class="w-6 h-6 rounded-full"
-                        />
-                    {:else}
-                        <div
-                            class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                        >
-                            {$user.firstName?.charAt(0) ||
-                                $user.email?.charAt(0).toUpperCase()}
-                        </div>
-                    {/if}
-                    <span class="hidden sm:inline">
-                        {$user.firstName ||
-                            $user.displayName?.split(" ")[0] ||
-                            "Utente"}!
-                    </span>
-                    <span class="sm:hidden">
-                        {$user.firstName ||
-                            $user.displayName?.split(" ")[0] ||
-                            "Utente"}
-                    </span>
-                    <svg
-                        class="w-4 h-4 transition-transform duration-200"
-                        class:rotate-180={showUserMenu}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M6 9l6 6 6-6" />
-                    </svg>
-                </button>
-
-                <!-- User Dropdown Menu -->
-                {#if showUserMenu}
+    <!-- Top Navigation Area -->
+    <div class="fixed top-4 left-0 right-4 z-50 px-4">
+        <div class="flex items-start justify-end gap-4">
+            <!-- Left side components (House name and SALVA button) -->
+            <div class="flex items-center gap-2">
+                {#if $isAuthenticated && $user && house_name}
                     <div
-                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-                        transition:slide={{ duration: 200 }}
+                        class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200"
+                        transition:slide={{ duration: 500 }}
                     >
-                        <!-- User Info -->
-                        <div class="p-4 border-b border-gray-100">
-                            <div class="flex items-center gap-3">
-                                {#if $user.photoURL}
-                                    <img
-                                        src={$user.photoURL}
-                                        alt="Profile"
-                                        class="w-10 h-10 rounded-full"
-                                    />
-                                {:else}
-                                    <div
-                                        class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold"
-                                    >
-                                        {$user.firstName?.charAt(0) ||
-                                            $user.email
-                                                ?.charAt(0)
-                                                .toUpperCase()}
-                                    </div>
-                                {/if}
-                                <div>
-                                    <p
-                                        class="font-semibold text-gray-900 text-sm"
-                                    >
-                                        {$user.displayName ||
-                                            `${$user.firstName || ""} ${$user.lastName || ""}`.trim() ||
-                                            "Utente"}
-                                    </p>
-                                    <p class="text-gray-500 text-xs">
-                                        {$user.email}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Menu Items -->
-                        <div class="py-2">
-                            <button
-                                on:click={() => {
-                                    showUserMenu = false; /* Add profile navigation */
-                                    push("/getpro");
-                                }}
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        <div class="flex items-center gap-2">
+                            <svg
+                                class="w-4 h-4 text-purple-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                                    />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg>
-                                Get pro!
-                            </button>
-
-                            <button
-                                on:click={toggleSavedHouses}
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <svg
-                                        class="w-4 h-4"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path
-                                            d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                        />
-                                        <polyline
-                                            points="9,22 9,12 15,12 15,22"
-                                        />
-                                    </svg>
-                                    Case salvate
-                                </div>
-                                <svg
-                                    class="w-4 h-4 transition-transform duration-200 {showSavedHouses
-                                        ? 'rotate-180'
-                                        : ''}"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
+                                <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                >
-                                    <polyline points="6,9 12,15 18,9" />
-                                </svg>
-                            </button>
-
-                            {#if showSavedHouses}
-                                <div
-                                    transition:slide={{ duration: 300 }}
-                                    class="bg-gray-50"
-                                >
-                                    {#each $user.saved_houses as house}
-                                        <div class="relative group">
-                                            <!-- svelte-ignore a11y-click-events-have-key-events -->
-                                            <!-- svelte-ignore a11y-no-static-element-interactions -->
-                                            <div
-                                                on:click={() =>
-                                                    selectHouse(house)}
-                                                class="w-full text-left px-6 py-3 text-xs text-gray-600 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors duration-200 cursor-pointer
-                                                    {house_name ===
-                                                house.house_name
-                                                    ? 'bg-purple-100 border-l-4 border-l-purple-500'
-                                                    : ''}"
-                                            >
-                                                <div
-                                                    class="flex items-center gap-3"
-                                                >
-                                                    <div
-                                                        class="w-8 h-8 bg-gray-300 rounded-md flex items-center justify-center"
-                                                    >
-                                                        <svg
-                                                            class="w-4 h-4 text-gray-500"
-                                                            viewBox="0 0 24 24"
-                                                            fill="currentColor"
-                                                        >
-                                                            <path
-                                                                d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                                            />
-                                                            <polyline
-                                                                points="9,22 9,12 15,12 15,22"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p
-                                                            class="font-medium text-gray-800 truncate"
-                                                        >
-                                                            {house.house_name}
-                                                        </p>
-                                                        <p
-                                                            class="text-purple-600 font-semibold"
-                                                        >
-                                                            {Intl.NumberFormat(
-                                                                "it-IT",
-                                                                {
-                                                                    style: "currency",
-                                                                    currency:
-                                                                        "EUR",
-                                                                    minimumFractionDigits: 0,
-                                                                    maximumFractionDigits: 0,
-                                                                },
-                                                            ).format(
-                                                                house.house_price,
-                                                            )}
-                                                        </p>
-                                                    </div>
-
-                                                    <!-- Trash Button -->
-                                                    <button
-                                                        on:click|stopPropagation={() =>
-                                                            deleteHouse(
-                                                                house.house_name,
-                                                            )}
-                                                        class="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                                                        title="Elimina casa"
-                                                    >
-                                                        <svg
-                                                            class="w-4 h-4"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
-                                                            />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {/each}
-                                </div>
-                            {/if}
-
-                            <hr class="my-1 border-gray-100" />
-                            <button
-                                on:click={handleLogout}
-                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                            >
-                                <svg
-                                    class="w-4 h-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
                                     stroke-width="2"
-                                >
-                                    <path
-                                        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
-                                    />
-                                    <polyline points="16,17 21,12 16,7" />
-                                    <line x1="21" y1="12" x2="9" y2="12" />
-                                </svg>
-                                Esci
-                            </button>
+                                    d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                />
+                                <polyline points="9,22 9,12 15,12 15,22" />
+                            </svg>
+                            <span class="text-sm font-medium text-purple-800"
+                                >Casa:</span
+                            >
+                            <span class="text-sm text-purple-700 font-semibold"
+                                >{house_name}</span
+                            >
                         </div>
                     </div>
                 {/if}
-            </div>
-        {:else}
-            <!-- Login Button -->
-            <button
-                on:click={goToLogIn}
-                class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105"
-            >
-                Accedi
-            </button>
-        {/if}
-    </div>
-    <!-- Current Selection Display - Aligned to right panel start -->
-    {#if $isAuthenticated && $user && house_name}
-        <div
-            class="fixed top-4 left-1/2 transform translate-x-[-60%] z-40 lg:translate-x-[-75%]"
-        >
-            <div
-                class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200"
-            >
-                <div class="flex items-center gap-2">
-                    <svg
-                        class="w-4 h-4 text-purple-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+
+                {#if $isAuthenticated && $user && showCosts}
+                    <div
+                        transition:slide={{ duration: 300 }}
+                        class="overflow-hidden"
                     >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                        <div
+                            class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200 text-purple-800"
+                        >
+                            <button on:click={() => (showNamePopup = true)}>
+                                SALVA
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Stylish Name Input Popup -->
+                    {#if showNamePopup}
+                        <SaveNamePopUp
+                            bind:house_name
+                            bind:isLoadingSaving
+                            bind:showNamePopup
+                            {handleSaveHouse}
+                            {handleOverwriteHouse}
                         />
-                        <polyline points="9,22 9,12 15,12 15,22" />
-                    </svg>
-                    <span class="text-sm font-medium text-purple-800"
-                        >Casa:</span
+                    {/if}
+                {/if}
+            </div>
+
+            <!-- Right side - User Menu -->
+            <div class="user-menu-container">
+                {#if $isLoading}
+                    <!-- Loading state -->
+                    <div
+                        class="bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg"
                     >
-                    <span class="text-sm text-purple-700 font-semibold"
-                        >{house_name}</span
+                        <div
+                            class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                        ></div>
+                    </div>
+                {:else if $isAuthenticated && $user}
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button
+                            on:click={toggleUserMenu}
+                            class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105 flex items-center gap-2"
+                        >
+                            {#if $user.photoURL}
+                                <img
+                                    src={$user.photoURL}
+                                    alt="Profile"
+                                    class="w-6 h-6 rounded-full"
+                                />
+                            {:else}
+                                <div
+                                    class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                >
+                                    {$user.firstName?.charAt(0) ||
+                                        $user.email?.charAt(0).toUpperCase()}
+                                </div>
+                            {/if}
+                            <span class="hidden sm:inline">
+                                {$user.firstName ||
+                                    $user.displayName?.split(" ")[0] ||
+                                    "Utente"}!
+                            </span>
+                            <span class="sm:hidden">
+                                {$user.firstName ||
+                                    $user.displayName?.split(" ")[0] ||
+                                    "Utente"}
+                            </span>
+                            <svg
+                                class="w-4 h-4 transition-transform duration-200"
+                                class:rotate-180={showUserMenu}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <!-- User Dropdown Menu -->
+                        {#if showUserMenu}
+                            <div
+                                class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                                transition:slide={{ duration: 200 }}
+                            >
+                                <!-- User Info -->
+                                <div class="p-4 border-b border-gray-100">
+                                    <div class="flex items-center gap-3">
+                                        {#if $user.photoURL}
+                                            <img
+                                                src={$user.photoURL}
+                                                alt="Profile"
+                                                class="w-10 h-10 rounded-full"
+                                            />
+                                        {:else}
+                                            <div
+                                                class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold"
+                                            >
+                                                {$user.firstName?.charAt(0) ||
+                                                    $user.email
+                                                        ?.charAt(0)
+                                                        .toUpperCase()}
+                                            </div>
+                                        {/if}
+                                        <div>
+                                            <p
+                                                class="font-semibold text-gray-900 text-sm"
+                                            >
+                                                {$user.displayName ||
+                                                    `${$user.firstName || ""} ${$user.lastName || ""}`.trim() ||
+                                                    "Utente"}
+                                            </p>
+                                            <p class="text-gray-500 text-xs">
+                                                {$user.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Menu Items -->
+                                <div class="py-2">
+                                    <button
+                                        on:click={() => {
+                                            showUserMenu = false;
+                                            push("/getpro");
+                                        }}
+                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                        <svg
+                                            class="w-4 h-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                            />
+                                            <circle cx="12" cy="7" r="4" />
+                                        </svg>
+                                        Get pro!
+                                    </button>
+
+                                    <button
+                                        on:click={toggleSavedHouses}
+                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <svg
+                                                class="w-4 h-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                                />
+                                                <polyline
+                                                    points="9,22 9,12 15,12 15,22"
+                                                />
+                                            </svg>
+                                            Case salvate
+                                        </div>
+                                        <svg
+                                            class="w-4 h-4 transition-transform duration-200 {showSavedHouses
+                                                ? 'rotate-180'
+                                                : ''}"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <polyline points="6,9 12,15 18,9" />
+                                        </svg>
+                                    </button>
+
+                                    {#if showSavedHouses}
+                                        <div
+                                            transition:slide={{ duration: 300 }}
+                                            class="bg-gray-50"
+                                        >
+                                            {#each $user.saved_houses as house}
+                                                <div class="relative group">
+                                                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                                                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                                                    <div
+                                                        on:click={() =>
+                                                            selectHouse(house)}
+                                                        class="w-full text-left px-6 py-3 text-xs text-gray-600 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors duration-200 cursor-pointer
+                                                            {house_name ===
+                                                        house.house_name
+                                                            ? 'bg-purple-100 border-l-4 border-l-purple-500'
+                                                            : ''}"
+                                                    >
+                                                        <div
+                                                            class="flex items-center gap-3"
+                                                        >
+                                                            <div
+                                                                class="w-8 h-8 bg-gray-300 rounded-md flex items-center justify-center"
+                                                            >
+                                                                <svg
+                                                                    class="w-4 h-4 text-gray-500"
+                                                                    viewBox="0 0 24 24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path
+                                                                        d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                                                    />
+                                                                    <polyline
+                                                                        points="9,22 9,12 15,12 15,22"
+                                                                    />
+                                                                </svg>
+                                                            </div>
+                                                            <div
+                                                                class="flex-1 min-w-0"
+                                                            >
+                                                                <p
+                                                                    class="font-medium text-gray-800 truncate"
+                                                                >
+                                                                    {house.house_name}
+                                                                </p>
+                                                                <p
+                                                                    class="text-purple-600 font-semibold"
+                                                                >
+                                                                    {Intl.NumberFormat(
+                                                                        "it-IT",
+                                                                        {
+                                                                            style: "currency",
+                                                                            currency:
+                                                                                "EUR",
+                                                                            minimumFractionDigits: 0,
+                                                                            maximumFractionDigits: 0,
+                                                                        },
+                                                                    ).format(
+                                                                        house.house_price,
+                                                                    )}
+                                                                </p>
+                                                            </div>
+
+                                                            <!-- Trash Button -->
+                                                            <button
+                                                                on:click|stopPropagation={() =>
+                                                                    deleteHouse(
+                                                                        house.house_name,
+                                                                    )}
+                                                                class="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                                title="Elimina casa"
+                                                            >
+                                                                <svg
+                                                                    class="w-4 h-4"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        stroke-linecap="round"
+                                                                        stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
+                                                                    />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    {/if}
+
+                                    <hr class="my-1 border-gray-100" />
+                                    <button
+                                        on:click={handleLogout}
+                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                        <svg
+                                            class="w-4 h-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                                            />
+                                            <polyline
+                                                points="16,17 21,12 16,7"
+                                            />
+                                            <line
+                                                x1="21"
+                                                y1="12"
+                                                x2="9"
+                                                y2="12"
+                                            />
+                                        </svg>
+                                        Esci
+                                    </button>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                {:else}
+                    <!-- Login Button -->
+                    <button
+                        on:click={goToLogIn}
+                        class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105"
                     >
-                </div>
+                        Accedi
+                    </button>
+                {/if}
             </div>
         </div>
-    {/if}
-    {#if showRateLimitPopup || showErrorPopup}
-        <div
-            class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg z-50 transition-all duration-300 animate-fadeInDown max-w-[90vw]"
-            transition:slide={{ duration: 300 }}
-        >
-            <div class="flex items-center justify-between gap-2 sm:gap-4">
-                <span class="text-sm sm:text-base"
-                    >{showRateLimitPopup
-                        ? "Troppe richieste. Riprova tra qualche secondo."
-                        : "Qualcosa è andato storto. Riprova tra qualche secondo."}</span
-                >
-                <button
-                    on:click={() => {
-                        showRateLimitPopup = false;
-                        showErrorPopup = false;
-                    }}
-                    class="text-white hover:text-red-200 font-bold text-lg leading-none min-w-[24px]"
-                >
-                    ×
-                </button>
-            </div>
-        </div>
-    {/if}
+    </div>
 
     <!-- Mobile-first responsive container -->
     <div

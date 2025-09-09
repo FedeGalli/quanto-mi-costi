@@ -12,17 +12,24 @@
     } from "./auth/auth-store";
     import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
+    // Stripe configuration
+    const STRIPE_PUBLISHABLE_KEY =
+        "pk_test_51S54jECPlqlBCAOphwqE8Z9bhP6crRGY6xQWXEgL5m9XWqPiOQhbOgLtM74HpneTrGYhxVqHaobEfYPOYV3K6hJB009OULWyrH";
+
+    // Stripe variables
+    let stripe: any = null;
+    let elements: any = null;
+    let cardElement: any = null;
+    let stripeLoaded = false;
+
     // Form state
     let mounted = false;
     let isProcessing = false;
 
-    // Form data
+    // Form data (simplified since Stripe handles card details)
     let formData = {
         email: "",
         fullName: "",
-        cardNumber: "",
-        expiryDate: "",
-        cvv: "",
         billingAddress: {
             street: "",
             city: "",
@@ -33,6 +40,7 @@
 
     // Validation state
     let errors: Record<string, string> = {};
+    let cardErrors = "";
 
     // Selected plan (default to Pro)
     let selectedPlan = {
@@ -48,9 +56,66 @@
         ],
     };
 
-    // Event handlers
-    const goBack = () => {
-        push("/getpro");
+    // Initialize Stripe
+    const initStripe = async () => {
+        try {
+            // Load Stripe.js
+            const script = document.createElement("script");
+            script.src = "https://js.stripe.com/v3/";
+            script.onload = () => {
+                stripe = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
+
+                // Create Elements instance
+                elements = stripe.elements({
+                    appearance: {
+                        theme: "night",
+                        variables: {
+                            colorPrimary: "#8b5cf6",
+                            colorBackground: "#1f2937",
+                            colorText: "#ffffff",
+                            colorDanger: "#ef4444",
+                            fontFamily: "system-ui, sans-serif",
+                            spacingUnit: "4px",
+                            borderRadius: "12px",
+                        },
+                    },
+                });
+
+                // Create card element
+                cardElement = elements.create("card", {
+                    style: {
+                        base: {
+                            fontSize: "16px",
+                            color: "#ffffff",
+                            "::placeholder": {
+                                color: "#9ca3af",
+                            },
+                        },
+                        invalid: {
+                            color: "#ef4444",
+                        },
+                    },
+                    disableLink: true,
+                });
+
+                // Mount card element
+                cardElement.mount("#card-element");
+
+                // Listen for real-time validation errors
+                cardElement.on("change", (event: any) => {
+                    if (event.error) {
+                        cardErrors = event.error.message;
+                    } else {
+                        cardErrors = "";
+                    }
+                });
+
+                stripeLoaded = true;
+            };
+            document.head.appendChild(script);
+        } catch (error) {
+            console.error("Error loading Stripe:", error);
+        }
     };
 
     const validateForm = (): boolean => {
@@ -58,11 +123,6 @@
 
         if (!formData.email) errors.email = "Email richiesta";
         if (!formData.fullName) errors.fullName = "Nome completo richiesto";
-
-        if (!formData.cardNumber) errors.cardNumber = "Numero carta richiesto";
-        if (!formData.expiryDate) errors.expiryDate = "Data scadenza richiesta";
-        if (!formData.cvv) errors.cvv = "CVV richiesto";
-
         if (!formData.billingAddress.street)
             errors.street = "Indirizzo richiesto";
         if (!formData.billingAddress.city) errors.city = "Città richiesta";
@@ -73,21 +133,125 @@
     };
 
     const processPayment = async () => {
-        if (!validateForm()) return;
+        if (!validateForm() || !stripe || !cardElement) {
+            return;
+        }
 
         isProcessing = true;
+        cardErrors = "";
 
         try {
-            // Simulate payment processing
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // Step 1: Create Payment Intent on backend
+            const totalAmount = selectedPlan.price * 1.22; // Include VAT
+            const amountInCents = Math.round(totalAmount * 100);
 
-            // Handle successful payment
-            console.log("Payment successful:", formData);
-            updateUserPro($user.uid, true);
-            push("/"); // Redirect to dashboard or success page
+            console.log("Creating payment intent with amount:", amountInCents);
+
+            const paymentIntentResponse = await fetch(
+                "http://localhost:8080/api/create-payment-intent",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        amount: amountInCents,
+                        currency: "eur",
+                        email: formData.email,
+                        name: formData.fullName,
+                        address: {
+                            line1: formData.billingAddress.street,
+                            city: formData.billingAddress.city,
+                            postal_code: formData.billingAddress.postalCode,
+                            country: formData.billingAddress.country,
+                        },
+                        uid: $user.uid,
+                    }),
+                },
+            );
+
+            if (!paymentIntentResponse.ok) {
+                const errorData = await paymentIntentResponse.json();
+                throw new Error(
+                    errorData.message || "Failed to create payment intent",
+                );
+            }
+
+            const paymentIntentData = await paymentIntentResponse.json();
+            console.log("Payment intent created:", paymentIntentData);
+
+            // Step 2: Confirm payment with the card element
+            const { error, paymentIntent } = await stripe.confirmCardPayment(
+                paymentIntentData.client_secret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: formData.fullName,
+                            email: formData.email,
+                            address: {
+                                line1: formData.billingAddress.street,
+                                city: formData.billingAddress.city,
+                                postal_code: formData.billingAddress.postalCode,
+                                country: formData.billingAddress.country,
+                            },
+                        },
+                    },
+                },
+            );
+
+            if (error) {
+                console.error("Payment failed:", error);
+                cardErrors =
+                    error.message ||
+                    "Si è verificato un errore durante il pagamento. Riprova.";
+                return;
+            }
+            // Step 3: Notify backend of successful payment
+            if (paymentIntent.status === "succeeded") {
+                const confirmResponse = await fetch(
+                    "http://localhost:8080/api/confirm-payment",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            payment_intent_id: paymentIntent.id,
+                            uid: $user.uid,
+                        }),
+                    },
+                );
+                if (!confirmResponse.ok) {
+                    const errorData = await confirmResponse.json();
+                    throw new Error(
+                        errorData.message ||
+                            "Failed to confirm payment with server",
+                    );
+                }
+
+                const confirmData = await confirmResponse.json();
+                console.log("Payment confirmed with server:", confirmData);
+
+                if (confirmData.success) {
+                    console.log("PRO ACCESS ACTIVATED!");
+                    // Redirect or show success message
+                    push("/");
+                } else {
+                    throw new Error(
+                        confirmData.message || "Failed to activate pro access",
+                    );
+                }
+            } else {
+                throw new Error(
+                    `Payment not completed. Status: ${paymentIntent.status}`,
+                );
+            }
         } catch (error) {
-            console.error("Payment failed:", error);
-            // Handle payment error
+            console.error("Payment failed:", error.message);
+            cardErrors =
+                error.message ||
+                "Si è verificato un errore durante il pagamento. Riprova.";
         } finally {
             isProcessing = false;
         }
@@ -106,23 +270,16 @@
         }
     }
 
-    const formatCardNumber = (value: string) => {
-        return value
-            .replace(/\s+/g, "")
-            .replace(/(.{4})/g, "$1 ")
-            .trim();
-    };
-
-    const formatExpiryDate = (value: string) => {
-        return value.replace(/\D/g, "").replace(/(.{2})(.{2})/, "$1/$2");
-    };
-
     onMount(() => {
         mounted = true;
         initAuthStore();
+        initStripe();
 
-        if (!$isAuthenticated) {
+        if (!$isAuthenticated || $user.pro) {
             push("/signin?redirect=" + encodeURIComponent("/checkout"));
+        }
+        if ($user.pro) {
+            push("/");
         }
     });
 </script>
@@ -285,78 +442,36 @@
                                 {/if}
                             </div>
                         </div>
-                        <!-- Card Information -->
+
+                        <!-- Stripe Card Element -->
                         <div class="space-y-4">
-                            <div>
-                                <label
-                                    class="block text-sm font-semibold text-gray-300 mb-2"
-                                    >Numero Carta</label
-                                >
-                                <input
-                                    type="text"
-                                    bind:value={formData.cardNumber}
-                                    on:input={(e) =>
-                                        (formData.cardNumber = formatCardNumber(
-                                            e.target.value,
-                                        ))}
-                                    class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                                    placeholder="1234 5678 9012 3456"
-                                    maxlength="19"
-                                    required
-                                />
-                                {#if errors.cardNumber}
-                                    <p class="text-red-400 text-sm mt-1">
-                                        {errors.cardNumber}
-                                    </p>
+                            <label
+                                class="block text-sm font-semibold text-gray-300 mb-2"
+                            >
+                                Informazioni Carta di Credito
+                            </label>
+                            <div
+                                id="card-element"
+                                class="w-full p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/20 transition-all duration-300 min-h-[50px]"
+                            >
+                                {#if !stripeLoaded}
+                                    <div
+                                        class="flex items-center justify-center py-2"
+                                    >
+                                        <div
+                                            class="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"
+                                        ></div>
+                                        <span class="ml-2 text-gray-400"
+                                            >Caricamento Stripe...</span
+                                        >
+                                    </div>
                                 {/if}
                             </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label
-                                        class="block text-sm font-semibold text-gray-300 mb-2"
-                                        >Data Scadenza</label
-                                    >
-                                    <input
-                                        type="text"
-                                        bind:value={formData.expiryDate}
-                                        on:input={(e) =>
-                                            (formData.expiryDate =
-                                                formatExpiryDate(
-                                                    e.target.value,
-                                                ))}
-                                        class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                                        placeholder="MM/AA"
-                                        maxlength="5"
-                                        required
-                                    />
-                                    {#if errors.expiryDate}
-                                        <p class="text-red-400 text-sm mt-1">
-                                            {errors.expiryDate}
-                                        </p>
-                                    {/if}
-                                </div>
-
-                                <div>
-                                    <label
-                                        class="block text-sm font-semibold text-gray-300 mb-2"
-                                        >CVV</label
-                                    >
-                                    <input
-                                        type="text"
-                                        bind:value={formData.cvv}
-                                        class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                                        placeholder="123"
-                                        maxlength="4"
-                                        required
-                                    />
-                                    {#if errors.cvv}
-                                        <p class="text-red-400 text-sm mt-1">
-                                            {errors.cvv}
-                                        </p>
-                                    {/if}
-                                </div>
-                            </div>
+                            {#if cardErrors}
+                                <p class="text-red-400 text-sm mt-1">
+                                    {cardErrors}
+                                </p>
+                            {/if}
                         </div>
 
                         <!-- Billing Address -->
@@ -452,7 +567,7 @@
                         <div class="flex flex-col sm:flex-row gap-4 pt-6">
                             <button
                                 type="submit"
-                                disabled={isProcessing}
+                                disabled={isProcessing || !stripeLoaded}
                                 class="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 disabled:from-gray-500 disabled:to-gray-600 text-black font-bold py-3 px-6 rounded-2xl text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-yellow-400/25 disabled:cursor-not-allowed disabled:hover:scale-100"
                             >
                                 {#if isProcessing}
@@ -481,6 +596,15 @@
                                         </svg>
                                         Elaborazione...
                                     </div>
+                                {:else if !stripeLoaded}
+                                    <div
+                                        class="flex items-center justify-center"
+                                    >
+                                        <div
+                                            class="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"
+                                        ></div>
+                                        Caricamento...
+                                    </div>
                                 {:else}
                                     Procedi al pagamento
                                 {/if}
@@ -492,7 +616,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    /* Additional custom styles if needed */
-</style>

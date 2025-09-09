@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-
 	"slices"
 
 	"github.com/gin-contrib/cors"
@@ -357,6 +356,7 @@ func calculateMortgageCompare(
 
 func main() {
 	router := gin.Default()
+	utils.Init()
 
 	utils.InizializeRateLimiter()
 
@@ -420,6 +420,13 @@ func main() {
 		}
 
 	})
+
+	api := router.Group("/api")
+	{
+		api.POST("/create-payment-intent", utils.CreatePaymentIntent)
+		router.POST("/api/confirm-payment", utils.ConfirmPayment)
+	}
+
 	router.Run(":8080")
 
 }

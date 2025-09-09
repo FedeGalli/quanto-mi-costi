@@ -257,7 +257,7 @@
                                 IVA inclusa
                             </div>
                             <div class="text-xs text-purple-300">
-                                Accesso per un anno • Nessun abbonamento
+                                Accesso per sei mesi • Nessun abbonamento
                             </div>
                         </div>
 
