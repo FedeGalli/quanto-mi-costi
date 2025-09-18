@@ -14,7 +14,7 @@ func InitFirebase() (*firestore.Client, error) {
 	ctx := context.Background()
 
 	// Option 1: Using service account key file
-	opt := option.WithCredentialsFile("quanto-mi-costi.json")
+	opt := option.WithCredentialsFile("secrets/quanto-mi-costi.json")
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		return nil, err

@@ -2,15 +2,7 @@
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
-    import { auth, db } from "./auth/credentials";
-    import {
-        user,
-        isAuthenticated,
-        isLoading,
-        initAuthStore,
-        logout,
-    } from "./auth/auth-store";
-    import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+    import { user, isAuthenticated, initAuthStore } from "./auth/auth-store";
 
     // Stripe configuration
     const STRIPE_PUBLISHABLE_KEY =
@@ -22,6 +14,7 @@
     let cardElement: any = null;
     let stripeLoaded = false;
     let showSuccessPopup = false;
+    let countries: any = [];
 
     // Form state
     let mounted = false;
@@ -55,6 +48,276 @@
             "Quali sono i volumi di compravendita nella mia zona?",
             "Nel passato come erano i prezzi e volumi di compravendita?",
         ],
+    };
+
+    // Get countries using Intl.DisplayNames
+    const getCountries = () => {
+        const countryNames = new Intl.DisplayNames(["it"], { type: "region" });
+        const countries: any = [];
+
+        // ISO 3166-1 alpha-2 country codes
+        const countryCodes = [
+            "AD",
+            "AE",
+            "AF",
+            "AG",
+            "AI",
+            "AL",
+            "AM",
+            "AO",
+            "AQ",
+            "AR",
+            "AS",
+            "AT",
+            "AU",
+            "AW",
+            "AX",
+            "AZ",
+            "BA",
+            "BB",
+            "BD",
+            "BE",
+            "BF",
+            "BG",
+            "BH",
+            "BI",
+            "BJ",
+            "BL",
+            "BM",
+            "BN",
+            "BO",
+            "BQ",
+            "BR",
+            "BS",
+            "BT",
+            "BV",
+            "BW",
+            "BY",
+            "BZ",
+            "CA",
+            "CC",
+            "CD",
+            "CF",
+            "CG",
+            "CH",
+            "CI",
+            "CK",
+            "CL",
+            "CM",
+            "CN",
+            "CO",
+            "CR",
+            "CU",
+            "CV",
+            "CW",
+            "CX",
+            "CY",
+            "CZ",
+            "DE",
+            "DJ",
+            "DK",
+            "DM",
+            "DO",
+            "DZ",
+            "EC",
+            "EE",
+            "EG",
+            "EH",
+            "ER",
+            "ES",
+            "ET",
+            "FI",
+            "FJ",
+            "FK",
+            "FM",
+            "FO",
+            "FR",
+            "GA",
+            "GB",
+            "GD",
+            "GE",
+            "GF",
+            "GG",
+            "GH",
+            "GI",
+            "GL",
+            "GM",
+            "GN",
+            "GP",
+            "GQ",
+            "GR",
+            "GS",
+            "GT",
+            "GU",
+            "GW",
+            "GY",
+            "HK",
+            "HM",
+            "HN",
+            "HR",
+            "HT",
+            "HU",
+            "ID",
+            "IE",
+            "IL",
+            "IM",
+            "IN",
+            "IO",
+            "IQ",
+            "IR",
+            "IS",
+            "IT",
+            "JE",
+            "JM",
+            "JO",
+            "JP",
+            "KE",
+            "KG",
+            "KH",
+            "KI",
+            "KM",
+            "KN",
+            "KP",
+            "KR",
+            "KW",
+            "KY",
+            "KZ",
+            "LA",
+            "LB",
+            "LC",
+            "LI",
+            "LK",
+            "LR",
+            "LS",
+            "LT",
+            "LU",
+            "LV",
+            "LY",
+            "MA",
+            "MC",
+            "MD",
+            "ME",
+            "MF",
+            "MG",
+            "MH",
+            "MK",
+            "ML",
+            "MM",
+            "MN",
+            "MO",
+            "MP",
+            "MQ",
+            "MR",
+            "MS",
+            "MT",
+            "MU",
+            "MV",
+            "MW",
+            "MX",
+            "MY",
+            "MZ",
+            "NA",
+            "NC",
+            "NE",
+            "NF",
+            "NG",
+            "NI",
+            "NL",
+            "NO",
+            "NP",
+            "NR",
+            "NU",
+            "NZ",
+            "OM",
+            "PA",
+            "PE",
+            "PF",
+            "PG",
+            "PH",
+            "PK",
+            "PL",
+            "PM",
+            "PN",
+            "PR",
+            "PS",
+            "PT",
+            "PW",
+            "PY",
+            "QA",
+            "RE",
+            "RO",
+            "RS",
+            "RU",
+            "RW",
+            "SA",
+            "SB",
+            "SC",
+            "SD",
+            "SE",
+            "SG",
+            "SH",
+            "SI",
+            "SJ",
+            "SK",
+            "SL",
+            "SM",
+            "SN",
+            "SO",
+            "SR",
+            "SS",
+            "ST",
+            "SV",
+            "SX",
+            "SY",
+            "SZ",
+            "TC",
+            "TD",
+            "TF",
+            "TG",
+            "TH",
+            "TJ",
+            "TK",
+            "TL",
+            "TM",
+            "TN",
+            "TO",
+            "TR",
+            "TT",
+            "TV",
+            "TW",
+            "TZ",
+            "UA",
+            "UG",
+            "UM",
+            "US",
+            "UY",
+            "UZ",
+            "VA",
+            "VC",
+            "VE",
+            "VG",
+            "VI",
+            "VN",
+            "VU",
+            "WF",
+            "WS",
+            "YE",
+            "YT",
+            "ZA",
+            "ZM",
+            "ZW",
+        ];
+
+        countryCodes.forEach((code) => {
+            try {
+                const name = countryNames.of(code);
+                countries.push({ code, name });
+            } catch (e) {
+                // Some codes might not be supported
+            }
+        });
+
+        return countries.sort((a: any, b: any) => a.name.localeCompare(b.name));
     };
 
     // Initialize Stripe
@@ -245,6 +508,7 @@
 
     onMount(() => {
         mounted = true;
+        countries = getCountries();
         initAuthStore();
         initStripe();
 
@@ -829,10 +1093,14 @@
                                         autocomplete="country"
                                         required
                                     >
-                                        <option value="IT">Italia</option>
-                                        <option value="FR">Francia</option>
-                                        <option value="DE">Germania</option>
-                                        <option value="ES">Spagna</option>
+                                        <option value=""
+                                            >Seleziona un paese</option
+                                        >
+                                        {#each countries as country}
+                                            <option value={country.code}
+                                                >{country.name}</option
+                                            >
+                                        {/each}
                                     </select>
                                 </div>
                             </div>

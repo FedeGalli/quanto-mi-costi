@@ -23,6 +23,8 @@
     let volumeChartInstance: any;
     let priceChartInstance: any;
 
+    export let apiURL: string = "";
+
     let validationErrors = {
         comune: false,
         zona: false,
@@ -223,10 +225,10 @@
     let showComuniDropdown: boolean = false;
 
     function getMunicipalitiesString(): string {
-        return "http://localhost:8000/get-municipalities-list";
+        return apiURL + "/get-municipalities-list";
     }
     function getMunicipalitiesInfoString(com: string): string {
-        return "http://127.0.0.1:8000/get-municipalities-info?com=" + com;
+        return apiURL + "/get-municipalities-info?com=" + com;
     }
     function getPriceVolumeDataString(
         com: string,
@@ -236,7 +238,8 @@
         mq: number,
     ): string {
         return (
-            "http://127.0.0.1:8000/get-price-volume-data?com=" +
+            apiURL +
+            "/get-price-volume-data?com=" +
             com +
             "&zone=" +
             zona +

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 data_manager = dm.DataManager()
 app = FastAPI(title="Houses cost/volumes API")
 
-# Allowed origins (frontend URLs) DEVELOPEMENT ONLY
+# Allowed origins GO BACKEND ONLY
 origins = [
     "http://localhost:5173",
 ]

@@ -12,7 +12,7 @@ type safeMap struct {
 
 var users = safeMap{visitors: make(map[string]uint)}
 
-const RateLimit uint = 100
+const RateLimit uint = 150
 
 func (visitors *safeMap) visitorCall(ip string) bool {
 	visitors.mu.Lock()

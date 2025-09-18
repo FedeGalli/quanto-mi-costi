@@ -26,10 +26,10 @@
         logout,
     } from "./auth/auth-store";
     import Prices from "./Prices.svelte";
-    import { arrayUnion } from "firebase/firestore/lite";
     import SaveNamePopUp from "./SaveNamePopUp.svelte";
 
     let selectedTab = "summary";
+    let apiURL = "http://localhost:8080";
 
     let showRateLimitPopup = false;
     let showErrorPopup = false;
@@ -610,7 +610,8 @@
     function buildCostApiString(): string {
         let apiStringUrl: string =
             //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
-            "http://localhost:8080/get_house_costs?house_price=" +
+            apiURL +
+            "/get_house_costs?house_price=" +
             (house_price != null ? house_price : 0);
 
         if (is_sold_by_agency)
@@ -638,7 +639,8 @@
     function buildCashVsMortgageApiString(): string {
         let apiStringUrl: string =
             //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
-            "http://localhost:8080/get_cash_vs_mortgage?mortgage_percentage=" +
+            apiURL +
+            "/get_cash_vs_mortgage?mortgage_percentage=" +
             (mortgage_percentage != null ? mortgage_percentage.join(",") : "") +
             "&house_price=" +
             (house_price != null ? house_price : 0) +
@@ -657,7 +659,8 @@
     function buildMortgageCompareApiString(): string {
         let apiStringUrl: string =
             //"https://quanto-mi-costi-backend.onrender.com/get_house_costs?house_price=" +
-            "http://localhost:8080/get_mortgage_compare?house_price=" +
+            apiURL +
+            "/get_mortgage_compare?house_price=" +
             (house_price != null ? house_price : 0) +
             "&yearly_saving=" +
             (yearlySaving != null ? yearlySaving : 0) +
@@ -1639,27 +1642,29 @@
 
                                 <!-- Menu Items -->
                                 <div class="py-2">
-                                    <button
-                                        on:click={() => {
-                                            showUserMenu = false;
-                                            push("/getpro");
-                                        }}
-                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                        <svg
-                                            class="w-4 h-4"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
+                                    {#if !$user.pro}
+                                        <button
+                                            on:click={() => {
+                                                showUserMenu = false;
+                                                push("/getpro");
+                                            }}
+                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                         >
-                                            <path
-                                                d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                                            />
-                                            <circle cx="12" cy="7" r="4" />
-                                        </svg>
-                                        Get pro!
-                                    </button>
+                                            <svg
+                                                class="w-4 h-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <path
+                                                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                                />
+                                                <circle cx="12" cy="7" r="4" />
+                                            </svg>
+                                            Get pro!
+                                        </button>
+                                    {/if}
 
                                     <button
                                         on:click={toggleSavedHouses}
@@ -3143,6 +3148,7 @@
                                     <Prices
                                         bind:showErrorPopup
                                         bind:showRateLimitPopup
+                                        bind:apiURL
                                     />
                                 {/if}
                             </div>

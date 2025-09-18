@@ -57,7 +57,7 @@ var firebaseClient *firestore.Client
 
 func Init() {
 	// Load environment variables
-	err := godotenv.Load("payments_keys.env")
+	err := godotenv.Load("secrets/payments_keys.env")
 	if err != nil {
 		log.Println("Warning: .env file not found")
 	}
