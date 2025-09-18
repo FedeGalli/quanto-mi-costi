@@ -1,0 +1,81 @@
+{
+  "hero": {
+    "discover": "Scopri quanto costa,",
+    "really": "per davvero,",
+    "dreamHouse": "la casa dei tuoi sogni. 🏡"
+  },
+  "disclaimer": "Il prezzo finale mostrato indica il costo totale il giorno del rogito. *Per spese variabili come il notaio/banca è stata fatta una stima veritiera su tutte le voci di costo.",
+  "house": {
+    "cost": "Costo casa:",
+    "name": "Casa:",
+    "saved": "Case salvate",
+    "save": "SALVA",
+    "delete": "Elimina casa"
+  },
+  "auth": {
+    "login": "Accedi",
+    "logout": "Esci",
+    "user": "Utente",
+    "getPro": "Diventa pro!"
+  },
+  "form": {
+    "firstHouse": "Agevolazione prima casa?",
+    "soldByBuilder": "Vendita soggetta a IVA?",
+    "soldByAgency": "Acquisto tramite agenzia?",
+    "usingMortgage": "Utilizzi un mutuo?",
+    "commission": "Provvigione:",
+    "mortgageAmount": "Importo mutuo:",
+    "duration": "Durata:",
+    "taeg": "TAEG:",
+    "howMuchCost": "Quanto mi costi?"
+  },
+
+  "costs": {
+    "totalCost": "💰 Spesa totale",
+    "deed": "al rogito",
+    "vsHousePrice": "vs costo casa",
+    "taxes": "🇮🇹 Tasse",
+    "notary": "📜 Notaio",
+    "agency": "🏘️ Agenzia",
+    "bank": "🏦 Banca",
+    "extra": "extra",
+    "monthlyInstallment": "💸 Rata mutuo mensile",
+    "interestsIn": "📈 Interessi in",
+    "vsMortgage": "sul mutuo",
+    "whatToReturn": {
+      "what": "Cosa vado a ",
+      "payBack": "restituire ",
+      "year": "ogni anno?"
+    }
+  },
+  "chart": {
+    "insert": "Inserisci ",
+    "mortgageDurationTAEG": "Importo Mutuo, Durata e TAEG ",
+    "mortgageTAEG": "Importo Mutuo e TAEG ",
+    "DurationTAEG": "Durata mutuo e TAEG ",
+    "toVisualize": "per visualizzare il grafico."
+  },
+  "mortgage": {
+    "comparison": "Come cresce il mio/nostro patrimonio con il mutuo selezionato, ma con diverse durate?",
+    "mortgage10": "Mutuo 10 Anni",
+    "mortgage20": "Mutuo 20 Anni",
+    "mortgage30": "Mutuo 30 Anni",
+    "installment": "rata"
+  },
+  "cashVsMortgage": {
+    "question": "Mi conviene pagare tutto cash oppure prendere un mutuo?",
+    "cash": "Cash",
+    "mortgage25": "Mutuo {duration} Anni (25%)",
+    "mortgage50": "Mutuo {duration} Anni (50%)",
+    "mortgage80": "Mutuo {duration} Anni (80%)"
+  },
+  "income": {
+    "yearlyIncome": "Quanto guadagno/amo ogni anno?",
+    "savingRate": "Di cui riesco/amo a risparmiare un...",
+    "investmentReturn": "Quanto fruttano i risparmi ogni anno?"
+  },
+  "loading": "Caricamento...",
+  "years": "A",
+  "percentage": "%",
+  "currency": "€"
+}

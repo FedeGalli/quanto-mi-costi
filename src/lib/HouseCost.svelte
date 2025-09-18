@@ -18,6 +18,8 @@
     import { onAuthStateChanged } from "firebase/auth";
     import { auth, db } from "./auth/credentials";
     import { doc, getDoc, updateDoc } from "firebase/firestore";
+    import { _, locale, isLoading as isLoadingTranslation } from "svelte-i18n";
+    import { switchLanguage, languages } from "../lang/index";
     import {
         user,
         isAuthenticated,
@@ -146,9 +148,7 @@
     let house_price: number = 300000;
     let displayed_house_price: number = 300000;
     let is_fisrt_house: boolean = false;
-    let is_fisrt_house_label: string = "Agevolazione prima casa?";
     let is_sold_by_builder: boolean = false;
-    let is_sold_by_builder_label: string = "Vendita soggetta a IVA?";
     let is_sold_by_agency: boolean = false;
     let is_sold_by_agency_label: string = "Acquisto tramite agenzia?";
     let is_using_mortgage: boolean = false;
@@ -1482,197 +1482,247 @@
     }
 </script>
 
-<div
-    class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
->
-    <!-- Top Navigation Area -->
-    <div class="fixed top-4 left-0 right-4 z-50 px-4">
-        <div class="flex items-start justify-end gap-4">
-            <!-- Left side components (House name and SALVA button) -->
-            <div class="flex items-center gap-2">
-                {#if $isAuthenticated && $user && house_name}
-                    <div
-                        class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200"
-                        transition:slide={{ duration: 500 }}
-                    >
-                        <div class="flex items-center gap-2">
-                            <svg
-                                class="w-4 h-4 text-purple-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                />
-                                <polyline points="9,22 9,12 15,12 15,22" />
-                            </svg>
-                            <span class="text-sm font-medium text-purple-800"
-                                >Casa:</span
-                            >
-                            <span class="text-sm text-purple-700 font-semibold"
-                                >{house_name}</span
-                            >
-                        </div>
-                    </div>
-                {/if}
+{#if $isLoadingTranslation}{:else}
+    <div
+        class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
+    >
+        <div class="language-switcher">
+            <label for="language-select">{$_("language")}:</label>
+            <select
+                id="language-select"
+                bind:value={$locale}
+                on:change={(e) => {
+                    switchLanguage(e.target.value);
+                }}
+            >
+                {#each languages as lang}
+                    <option value={lang.code}>{lang.name}</option>
+                {/each}
+            </select>
+        </div>
 
-                {#if $isAuthenticated && $user && showCosts}
-                    <div
-                        transition:slide={{ duration: 300 }}
-                        class="overflow-hidden"
-                    >
+        <!-- Top Navigation Area -->
+        <div class="fixed top-4 left-0 right-4 z-50 px-4">
+            <div class="flex items-start justify-end gap-4">
+                <!-- Left side components (House name and SALVA button) -->
+                <div class="flex items-center gap-2">
+                    {#if $isAuthenticated && $user && house_name}
                         <div
-                            class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200 text-purple-800"
+                            class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200"
+                            transition:slide={{ duration: 500 }}
                         >
-                            <button on:click={() => (showNamePopup = true)}>
-                                SALVA
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Stylish Name Input Popup -->
-                    {#if showNamePopup}
-                        <SaveNamePopUp
-                            bind:house_name
-                            bind:isLoadingSaving
-                            bind:showNamePopup
-                            {handleSaveHouse}
-                            {handleOverwriteHouse}
-                        />
-                    {/if}
-                {/if}
-            </div>
-
-            <!-- Right side - User Menu -->
-            <div class="user-menu-container">
-                {#if $isLoading}
-                    <!-- Loading state -->
-                    <div
-                        class="bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg"
-                    >
-                        <div
-                            class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                        ></div>
-                    </div>
-                {:else if $isAuthenticated && $user}
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <button
-                            on:click={toggleUserMenu}
-                            class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105 flex items-center gap-2"
-                        >
-                            {#if $user.photoURL}
-                                <img
-                                    src={$user.photoURL}
-                                    alt="Profile"
-                                    class="w-6 h-6 rounded-full"
-                                />
-                            {:else}
-                                <div
-                                    class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                            <div class="flex items-center gap-2">
+                                <svg
+                                    class="w-4 h-4 text-purple-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                 >
-                                    {$user.firstName?.charAt(0) ||
-                                        $user.email?.charAt(0).toUpperCase()}
-                                </div>
-                            {/if}
-                            <span class="hidden sm:inline">
-                                {$user.firstName ||
-                                    $user.displayName?.split(" ")[0] ||
-                                    "Utente"}!
-                            </span>
-                            <span class="sm:hidden">
-                                {$user.firstName ||
-                                    $user.displayName?.split(" ")[0] ||
-                                    "Utente"}
-                            </span>
-                            <svg
-                                class="w-4 h-4 transition-transform duration-200"
-                                class:rotate-180={showUserMenu}
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                    />
+                                    <polyline points="9,22 9,12 15,12 15,22" />
+                                </svg>
+                                <span
+                                    class="text-sm font-medium text-purple-800"
+                                    >{$_("house.name")}</span
+                                >
+                                <span
+                                    class="text-sm text-purple-700 font-semibold"
+                                    >{house_name}</span
+                                >
+                            </div>
+                        </div>
+                    {/if}
 
-                        <!-- User Dropdown Menu -->
-                        {#if showUserMenu}
+                    {#if $isAuthenticated && $user && showCosts}
+                        <div
+                            transition:slide={{ duration: 300 }}
+                            class="overflow-hidden"
+                        >
                             <div
-                                class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-                                transition:slide={{ duration: 200 }}
+                                class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200 text-purple-800"
                             >
-                                <!-- User Info -->
-                                <div class="p-4 border-b border-gray-100">
-                                    <div class="flex items-center gap-3">
-                                        {#if $user.photoURL}
-                                            <img
-                                                src={$user.photoURL}
-                                                alt="Profile"
-                                                class="w-10 h-10 rounded-full"
-                                            />
-                                        {:else}
-                                            <div
-                                                class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold"
-                                            >
-                                                {$user.firstName?.charAt(0) ||
-                                                    $user.email
-                                                        ?.charAt(0)
-                                                        .toUpperCase()}
+                                <button on:click={() => (showNamePopup = true)}>
+                                    {$_("house.save")}
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Stylish Name Input Popup -->
+                        {#if showNamePopup}
+                            <SaveNamePopUp
+                                bind:house_name
+                                bind:isLoadingSaving
+                                bind:showNamePopup
+                                {handleSaveHouse}
+                                {handleOverwriteHouse}
+                            />
+                        {/if}
+                    {/if}
+                </div>
+
+                <!-- Right side - User Menu -->
+                <div class="user-menu-container">
+                    {#if $isLoading}
+                        <!-- Loading state -->
+                        <div
+                            class="bg-white/20 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg"
+                        >
+                            <div
+                                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                            ></div>
+                        </div>
+                    {:else if $isAuthenticated && $user}
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button
+                                on:click={toggleUserMenu}
+                                class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105 flex items-center gap-2"
+                            >
+                                {#if $user.photoURL}
+                                    <img
+                                        src={$user.photoURL}
+                                        alt="Profile"
+                                        class="w-6 h-6 rounded-full"
+                                    />
+                                {:else}
+                                    <div
+                                        class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                    >
+                                        {$user.firstName?.charAt(0) ||
+                                            $user.email
+                                                ?.charAt(0)
+                                                .toUpperCase()}
+                                    </div>
+                                {/if}
+                                <span class="hidden sm:inline">
+                                    {$user.firstName ||
+                                        $user.displayName?.split(" ")[0] ||
+                                        $_("auth.user")}!
+                                </span>
+                                <span class="sm:hidden">
+                                    {$user.firstName ||
+                                        $user.displayName?.split(" ")[0] ||
+                                        $_("auth.user")}
+                                </span>
+                                <svg
+                                    class="w-4 h-4 transition-transform duration-200"
+                                    class:rotate-180={showUserMenu}
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <!-- User Dropdown Menu -->
+                            {#if showUserMenu}
+                                <div
+                                    class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+                                    transition:slide={{ duration: 200 }}
+                                >
+                                    <!-- User Info -->
+                                    <div class="p-4 border-b border-gray-100">
+                                        <div class="flex items-center gap-3">
+                                            {#if $user.photoURL}
+                                                <img
+                                                    src={$user.photoURL}
+                                                    alt="Profile"
+                                                    class="w-10 h-10 rounded-full"
+                                                />
+                                            {:else}
+                                                <div
+                                                    class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold"
+                                                >
+                                                    {$user.firstName?.charAt(
+                                                        0,
+                                                    ) ||
+                                                        $user.email
+                                                            ?.charAt(0)
+                                                            .toUpperCase()}
+                                                </div>
+                                            {/if}
+                                            <div>
+                                                <p
+                                                    class="font-semibold text-gray-900 text-sm"
+                                                >
+                                                    {$user.displayName ||
+                                                        `${$user.firstName || ""} ${$user.lastName || ""}`.trim() ||
+                                                        $_("auth.user")}
+                                                </p>
+                                                <p
+                                                    class="text-gray-500 text-xs"
+                                                >
+                                                    {$user.email}
+                                                </p>
                                             </div>
-                                        {/if}
-                                        <div>
-                                            <p
-                                                class="font-semibold text-gray-900 text-sm"
-                                            >
-                                                {$user.displayName ||
-                                                    `${$user.firstName || ""} ${$user.lastName || ""}`.trim() ||
-                                                    "Utente"}
-                                            </p>
-                                            <p class="text-gray-500 text-xs">
-                                                {$user.email}
-                                            </p>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Menu Items -->
-                                <div class="py-2">
-                                    {#if !$user.pro}
-                                        <button
-                                            on:click={() => {
-                                                showUserMenu = false;
-                                                push("/getpro");
-                                            }}
-                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                            <svg
-                                                class="w-4 h-4"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
+                                    <!-- Menu Items -->
+                                    <div class="py-2">
+                                        {#if !$user.pro}
+                                            <button
+                                                on:click={() => {
+                                                    showUserMenu = false;
+                                                    push("/getpro");
+                                                }}
+                                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                             >
-                                                <path
-                                                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                                                />
-                                                <circle cx="12" cy="7" r="4" />
-                                            </svg>
-                                            Get pro!
-                                        </button>
-                                    {/if}
+                                                <svg
+                                                    class="w-4 h-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path
+                                                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                                    />
+                                                    <circle
+                                                        cx="12"
+                                                        cy="7"
+                                                        r="4"
+                                                    />
+                                                </svg>
+                                                {$_("auth.getPro")}
+                                            </button>
+                                        {/if}
 
-                                    <button
-                                        on:click={toggleSavedHouses}
-                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
-                                    >
-                                        <div class="flex items-center gap-2">
+                                        <button
+                                            on:click={toggleSavedHouses}
+                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                                        >
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <svg
+                                                    class="w-4 h-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path
+                                                        d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                                    />
+                                                    <polyline
+                                                        points="9,22 9,12 15,12 15,22"
+                                                    />
+                                                </svg>
+                                                {$_("house.saved")}
+                                            </div>
                                             <svg
-                                                class="w-4 h-4"
+                                                class="w-4 h-4 transition-transform duration-200 {showSavedHouses
+                                                    ? 'rotate-180'
+                                                    : ''}"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 stroke="currentColor"
@@ -1680,218 +1730,235 @@
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
                                             >
-                                                <path
-                                                    d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                                />
                                                 <polyline
-                                                    points="9,22 9,12 15,12 15,22"
+                                                    points="6,9 12,15 18,9"
                                                 />
                                             </svg>
-                                            Case salvate
-                                        </div>
-                                        <svg
-                                            class="w-4 h-4 transition-transform duration-200 {showSavedHouses
-                                                ? 'rotate-180'
-                                                : ''}"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <polyline points="6,9 12,15 18,9" />
-                                        </svg>
-                                    </button>
+                                        </button>
 
-                                    {#if showSavedHouses}
-                                        <div
-                                            transition:slide={{ duration: 300 }}
-                                            class="bg-gray-50"
-                                        >
-                                            {#each $user.saved_houses as house}
-                                                <div class="relative group">
-                                                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                                                    <!-- svelte-ignore a11y-no-static-element-interactions -->
-                                                    <div
-                                                        on:click={() =>
-                                                            selectHouse(house)}
-                                                        class="w-full text-left px-6 py-3 text-xs text-gray-600 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors duration-200 cursor-pointer
-                                                            {house_name ===
-                                                        house.house_name
-                                                            ? 'bg-purple-100 border-l-4 border-l-purple-500'
-                                                            : ''}"
-                                                    >
+                                        {#if showSavedHouses}
+                                            <div
+                                                transition:slide={{
+                                                    duration: 300,
+                                                }}
+                                                class="bg-gray-50"
+                                            >
+                                                {#each $user.saved_houses as house}
+                                                    <div class="relative group">
+                                                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                                                        <!-- svelte-ignore a11y-no-static-element-interactions -->
                                                         <div
-                                                            class="flex items-center gap-3"
+                                                            on:click={() =>
+                                                                selectHouse(
+                                                                    house,
+                                                                )}
+                                                            class="w-full text-left px-6 py-3 text-xs text-gray-600 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors duration-200 cursor-pointer
+                                                            {house_name ===
+                                                            house.house_name
+                                                                ? 'bg-purple-100 border-l-4 border-l-purple-500'
+                                                                : ''}"
                                                         >
                                                             <div
-                                                                class="w-8 h-8 bg-gray-300 rounded-md flex items-center justify-center"
+                                                                class="flex items-center gap-3"
                                                             >
-                                                                <svg
-                                                                    class="w-4 h-4 text-gray-500"
-                                                                    viewBox="0 0 24 24"
-                                                                    fill="currentColor"
+                                                                <div
+                                                                    class="w-8 h-8 bg-gray-300 rounded-md flex items-center justify-center"
                                                                 >
-                                                                    <path
-                                                                        d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                                                                    />
-                                                                    <polyline
-                                                                        points="9,22 9,12 15,12 15,22"
-                                                                    />
-                                                                </svg>
-                                                            </div>
-                                                            <div
-                                                                class="flex-1 min-w-0"
-                                                            >
-                                                                <p
-                                                                    class="font-medium text-gray-800 truncate"
+                                                                    <svg
+                                                                        class="w-4 h-4 text-gray-500"
+                                                                        viewBox="0 0 24 24"
+                                                                        fill="currentColor"
+                                                                    >
+                                                                        <path
+                                                                            d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                                                                        />
+                                                                        <polyline
+                                                                            points="9,22 9,12 15,12 15,22"
+                                                                        />
+                                                                    </svg>
+                                                                </div>
+                                                                <div
+                                                                    class="flex-1 min-w-0"
                                                                 >
-                                                                    {house.house_name}
-                                                                </p>
-                                                                <p
-                                                                    class="text-purple-600 font-semibold"
-                                                                >
-                                                                    {Intl.NumberFormat(
-                                                                        "it-IT",
-                                                                        {
-                                                                            style: "currency",
-                                                                            currency:
-                                                                                "EUR",
-                                                                            minimumFractionDigits: 0,
-                                                                            maximumFractionDigits: 0,
-                                                                        },
-                                                                    ).format(
-                                                                        house.house_price,
-                                                                    )}
-                                                                </p>
-                                                            </div>
+                                                                    <p
+                                                                        class="font-medium text-gray-800 truncate"
+                                                                    >
+                                                                        {house.house_name}
+                                                                    </p>
+                                                                    <p
+                                                                        class="text-purple-600 font-semibold"
+                                                                    >
+                                                                        {Intl.NumberFormat(
+                                                                            "it-IT",
+                                                                            {
+                                                                                style: "currency",
+                                                                                currency:
+                                                                                    "EUR",
+                                                                                minimumFractionDigits: 0,
+                                                                                maximumFractionDigits: 0,
+                                                                            },
+                                                                        ).format(
+                                                                            house.house_price,
+                                                                        )}
+                                                                    </p>
+                                                                </div>
 
-                                                            <!-- Trash Button -->
-                                                            <button
-                                                                on:click|stopPropagation={() =>
-                                                                    deleteHouse(
-                                                                        house.house_name,
+                                                                <!-- Trash Button -->
+                                                                <button
+                                                                    on:click|stopPropagation={() =>
+                                                                        deleteHouse(
+                                                                            house.house_name,
+                                                                        )}
+                                                                    class="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                                    title={$_(
+                                                                        "house.delete",
                                                                     )}
-                                                                class="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                                                                title="Elimina casa"
-                                                            >
-                                                                <svg
-                                                                    class="w-4 h-4"
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    viewBox="0 0 24 24"
                                                                 >
-                                                                    <path
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round"
-                                                                        stroke-width="2"
-                                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
-                                                                    />
-                                                                </svg>
-                                                            </button>
+                                                                    <svg
+                                                                        class="w-4 h-4"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        viewBox="0 0 24 24"
+                                                                    >
+                                                                        <path
+                                                                            stroke-linecap="round"
+                                                                            stroke-linejoin="round"
+                                                                            stroke-width="2"
+                                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
+                                                                        />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            {/each}
-                                        </div>
-                                    {/if}
+                                                {/each}
+                                            </div>
+                                        {/if}
 
-                                    <hr class="my-1 border-gray-100" />
-                                    <button
-                                        on:click={handleLogout}
-                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                    >
-                                        <svg
-                                            class="w-4 h-4"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
+                                        <hr class="my-1 border-gray-100" />
+                                        <button
+                                            on:click={handleLogout}
+                                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                                         >
-                                            <path
-                                                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
-                                            />
-                                            <polyline
-                                                points="16,17 21,12 16,7"
-                                            />
-                                            <line
-                                                x1="21"
-                                                y1="12"
-                                                x2="9"
-                                                y2="12"
-                                            />
-                                        </svg>
-                                        Esci
-                                    </button>
+                                            <svg
+                                                class="w-4 h-4"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <path
+                                                    d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                                                />
+                                                <polyline
+                                                    points="16,17 21,12 16,7"
+                                                />
+                                                <line
+                                                    x1="21"
+                                                    y1="12"
+                                                    x2="9"
+                                                    y2="12"
+                                                />
+                                            </svg>
+                                            {$_("auth.logout")}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        {/if}
-                    </div>
-                {:else}
-                    <!-- Login Button -->
-                    <button
-                        on:click={goToLogIn}
-                        class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105"
-                    >
-                        Accedi
-                    </button>
-                {/if}
+                            {/if}
+                        </div>
+                    {:else}
+                        <!-- Login Button -->
+                        <button
+                            on:click={goToLogIn}
+                            class="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg transition-all duration-300 font-medium text-sm sm:text-base hover:scale-105"
+                        >
+                            {$_("auth.login")}
+                        </button>
+                    {/if}
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Mobile-first responsive container -->
-    <div
-        class="w-full max-w-[1350px] mx-auto"
-        in:fly={{ x: -1000, duration: 500, delay: 100 }}
-    >
-        <!-- Mobile: Stack vertically, Desktop: Side by side -->
+        <!-- Mobile-first responsive container -->
         <div
-            class="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[70vh] items-start"
+            class="w-full max-w-[1350px] mx-auto"
+            in:fly={{ x: -1000, duration: 500, delay: 100 }}
         >
-            <!-- Left Panel: Form inputs -->
+            <!-- Mobile: Stack vertically, Desktop: Side by side -->
             <div
-                class="w-full lg:basis-[40%] bg-[#1e1f25] text-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 overflow-auto"
+                class="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[70vh] items-start"
             >
-                <h1
-                    class="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4"
+                <!-- Left Panel: Form inputs -->
+                <div
+                    class="w-full lg:basis-[40%] bg-[#1e1f25] text-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 overflow-auto"
                 >
-                    Scopri quanto costa,<br />
-                    <span class="text-purple-400"> per davvero, </span><br />
-                    la casa dei tuoi sogni. 🏡
-                </h1>
-                <p class="text-gray-400 text-xs sm:text-sm mt-2 mb-4">
-                    Il prezzo finale mostrato indica il costo totale il giorno
-                    del rogito. *Per spese variabili come il notaio/banca è
-                    stata fatta una stima veritiera su tutte le voci di costo.
-                </p>
+                    <h1
+                        class="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4"
+                    >
+                        {$_("hero.discover")}<br />
+                        <span class="text-purple-400">
+                            {$_("hero.really")}
+                        </span><br />
+                        {$_("hero.dreamHouse")}
+                    </h1>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-2 mb-4">
+                        {$_("disclaimer")}
+                    </p>
 
-                <div class="space-y-4 sm:space-y-6">
-                    <!-- House Price Input -->
-                    <div class="flex flex-col">
-                        <h2
-                            class="text-base sm:text-lg font-semibold leading-tight mb-2"
-                        >
-                            Costo casa:
-                        </h2>
-                        <div class="relative">
-                            <input
-                                type="number"
-                                inputmode="decimal"
-                                class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
-                                min="0"
-                                max="1000000"
-                                step="5000"
-                                bind:value={house_price}
-                                on:mouseup={showCosts &&
-                                selectedTab != "mortgage"
-                                    ? () => {
-                                          updateData();
-                                          updateCashVsMortgage();
-                                          updateMortgageCompare();
-                                      }
-                                    : () => {}}
+                    <div class="space-y-4 sm:space-y-6">
+                        <!-- House Price Input -->
+                        <div class="flex flex-col">
+                            <h2
+                                class="text-base sm:text-lg font-semibold leading-tight mb-2"
+                            >
+                                {$_("house.cost")}
+                            </h2>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    inputmode="decimal"
+                                    class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
+                                    min="0"
+                                    max="1000000"
+                                    step="5000"
+                                    bind:value={house_price}
+                                    on:mouseup={showCosts &&
+                                    selectedTab != "mortgage"
+                                        ? () => {
+                                              updateData();
+                                              updateCashVsMortgage();
+                                              updateMortgageCompare();
+                                          }
+                                        : () => {}}
+                                    on:change={showCosts &&
+                                    selectedTab != "mortgage"
+                                        ? () => {
+                                              updateData();
+                                              updateCashVsMortgage();
+                                              updateMortgageCompare();
+                                          }
+                                        : () => {}}
+                                />
+                                <!-- Separator Line -->
+                                <div
+                                    class="absolute inset-y-0 right-10 w-px bg-white"
+                                ></div>
+                                <!-- Euro Symbol -->
+                                <div
+                                    class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
+                                >
+                                    €
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes -->
+                        <div id="isFirstHouse">
+                            <Check
+                                label={$_("form.firstHouse")}
+                                bind:bind={is_fisrt_house}
+                                bind:showTooltip
+                                element={0}
                                 on:change={showCosts &&
                                 selectedTab != "mortgage"
                                     ? () => {
@@ -1901,147 +1968,69 @@
                                       }
                                     : () => {}}
                             />
-                            <!-- Separator Line -->
-                            <div
-                                class="absolute inset-y-0 right-10 w-px bg-white"
-                            ></div>
-                            <!-- Euro Symbol -->
-                            <div
-                                class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
-                            >
-                                €
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- Checkboxes -->
-                    <div id="isFirstHouse">
-                        <Check
-                            bind:label={is_fisrt_house_label}
-                            bind:bind={is_fisrt_house}
-                            bind:showTooltip
-                            element={0}
-                            on:change={showCosts && selectedTab != "mortgage"
-                                ? () => {
-                                      updateData();
-                                      updateCashVsMortgage();
-                                      updateMortgageCompare();
-                                  }
-                                : () => {}}
-                        />
-                    </div>
+                        <div id="isSoldByBuilder">
+                            <Check
+                                label={$_("form.soldByBuilder")}
+                                bind:bind={is_sold_by_builder}
+                                bind:showTooltip
+                                element={1}
+                                on:change={showCosts &&
+                                selectedTab != "mortgage"
+                                    ? () => {
+                                          updateData();
+                                          updateCashVsMortgage();
+                                          updateMortgageCompare();
+                                      }
+                                    : () => {}}
+                            />
+                        </div>
 
-                    <div id="isSoldByBuilder">
-                        <Check
-                            bind:label={is_sold_by_builder_label}
-                            bind:bind={is_sold_by_builder}
-                            bind:showTooltip
-                            element={1}
-                            on:change={showCosts && selectedTab != "mortgage"
-                                ? () => {
-                                      updateData();
-                                      updateCashVsMortgage();
-                                      updateMortgageCompare();
-                                  }
-                                : () => {}}
-                        />
-                    </div>
-
-                    <div id="isSoldByAgency">
-                        <Check
-                            bind:label={is_sold_by_agency_label}
-                            bind:bind={is_sold_by_agency}
-                            bind:showTooltip
-                            element={2}
-                            on:change={showCosts && selectedTab != "mortgage"
-                                ? () => {
-                                      updateData();
-                                      updateCashVsMortgage();
-                                      updateMortgageCompare();
-                                  }
-                                : () => {}}
-                        />
-                        {#if is_sold_by_agency}
-                            <div
-                                class="flex flex-col mt-3"
-                                transition:slide={{ duration: 300 }}
-                            >
-                                <h3
-                                    class="text-base font-semibold leading-tight mb-2"
+                        <div id="isSoldByAgency">
+                            <Check
+                                label={$_("form.soldByAgency")}
+                                bind:bind={is_sold_by_agency}
+                                bind:showTooltip
+                                element={2}
+                                on:change={showCosts &&
+                                selectedTab != "mortgage"
+                                    ? () => {
+                                          updateData();
+                                          updateCashVsMortgage();
+                                          updateMortgageCompare();
+                                      }
+                                    : () => {}}
+                            />
+                            {#if is_sold_by_agency}
+                                <div
+                                    class="flex flex-col mt-3"
+                                    transition:slide={{ duration: 300 }}
                                 >
-                                    Provvigione:
-                                </h3>
-                                <div class="relative">
-                                    <input
-                                        type="number"
-                                        class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
-                                        min="0"
-                                        max="7"
-                                        step="0.1"
-                                        bind:value={agencyFee}
-                                        on:change={showCosts
-                                            ? () => {
-                                                  updateData();
-                                                  updateCashVsMortgage();
-                                                  updateMortgageCompare();
-                                              }
-                                            : () => {}}
-                                        on:mouseup={showCosts
-                                            ? () => {
-                                                  updateData();
-                                                  updateCashVsMortgage();
-                                                  updateMortgageCompare();
-                                              }
-                                            : () => {}}
-                                    />
-                                    <!-- Separator Line -->
-                                    <div
-                                        class="absolute inset-y-0 right-10 w-px bg-white"
-                                    ></div>
-                                    <!-- % Symbol -->
-                                    <div
-                                        class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
-                                    >
-                                        %
-                                    </div>
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
-
-                    <div id="isUsingMortgage">
-                        <Check
-                            bind:label={is_using_mortgage_label}
-                            bind:bind={is_using_mortgage}
-                            bind:showTooltip
-                            element={3}
-                            on:change={showCosts ? updateData : () => {}}
-                        />
-                        {#if is_using_mortgage}
-                            <div
-                                class="space-y-2"
-                                transition:slide={{ duration: 300 }}
-                            >
-                                <!-- Mortgage Amount - Full Width -->
-                                <div class="flex flex-col">
                                     <h3
-                                        class="text-base font-semibold leading-tight mb-1"
+                                        class="text-base font-semibold leading-tight mb-2"
                                     >
-                                        Importo mutuo:
+                                        {$_("form.commission")}
                                     </h3>
                                     <div class="relative">
                                         <input
                                             type="number"
                                             class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
                                             min="0"
-                                            max={house_price == null
-                                                ? 0
-                                                : house_price}
-                                            step="5000"
-                                            bind:value={mortgage_amount}
+                                            max="7"
+                                            step="0.1"
+                                            bind:value={agencyFee}
                                             on:change={showCosts
                                                 ? () => {
                                                       updateData();
+                                                      updateCashVsMortgage();
+                                                      updateMortgageCompare();
+                                                  }
+                                                : () => {}}
+                                            on:mouseup={showCosts
+                                                ? () => {
+                                                      updateData();
+                                                      updateCashVsMortgage();
                                                       updateMortgageCompare();
                                                   }
                                                 : () => {}}
@@ -2050,70 +2039,50 @@
                                         <div
                                             class="absolute inset-y-0 right-10 w-px bg-white"
                                         ></div>
-                                        <!-- Euro Symbol -->
+                                        <!-- % Symbol -->
                                         <div
-                                            class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
+                                            class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
                                         >
-                                            €
+                                            %
                                         </div>
                                     </div>
                                 </div>
+                            {/if}
+                        </div>
 
-                                <!-- Duration and TAEG - Side by Side -->
+                        <div id="isUsingMortgage">
+                            <Check
+                                label={$_("form.usingMortgage")}
+                                bind:bind={is_using_mortgage}
+                                bind:showTooltip
+                                element={3}
+                                on:change={showCosts ? updateData : () => {}}
+                            />
+                            {#if is_using_mortgage}
                                 <div
-                                    class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                                    class="space-y-2"
+                                    transition:slide={{ duration: 300 }}
                                 >
-                                    <!-- Duration -->
+                                    <!-- Mortgage Amount - Full Width -->
                                     <div class="flex flex-col">
                                         <h3
-                                            class="text-base font-semibold leading-tight mb-2"
+                                            class="text-base font-semibold leading-tight mb-1"
                                         >
-                                            Durata:
+                                            {$_("form.mortgageAmount")}
                                         </h3>
                                         <div class="relative">
                                             <input
                                                 type="number"
                                                 class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
                                                 min="0"
-                                                bind:value={mortgage_duration}
+                                                max={house_price == null
+                                                    ? 0
+                                                    : house_price}
+                                                step="5000"
+                                                bind:value={mortgage_amount}
                                                 on:change={showCosts
                                                     ? () => {
                                                           updateData();
-                                                          updateCashVsMortgage();
-                                                      }
-                                                    : () => {}}
-                                            />
-                                            <!-- Separator Line -->
-                                            <div
-                                                class="absolute inset-y-0 right-10 w-px bg-white"
-                                            ></div>
-                                            <!-- A Symbol -->
-                                            <div
-                                                class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
-                                            >
-                                                A
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- TAEG -->
-                                    <div class="flex flex-col">
-                                        <h3
-                                            class="text-base font-semibold leading-tight mb-2"
-                                        >
-                                            TAEG:
-                                        </h3>
-                                        <div class="relative">
-                                            <input
-                                                type="number"
-                                                class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
-                                                min="0"
-                                                step="0.1"
-                                                bind:value={taeg}
-                                                on:change={showCosts
-                                                    ? () => {
-                                                          updateData();
-                                                          updateCashVsMortgage();
                                                           updateMortgageCompare();
                                                       }
                                                     : () => {}}
@@ -2122,192 +2091,835 @@
                                             <div
                                                 class="absolute inset-y-0 right-10 w-px bg-white"
                                             ></div>
-                                            <!-- % Symbol -->
+                                            <!-- Euro Symbol -->
                                             <div
-                                                class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                class="absolute inset-y-0 right-4 flex items-center text-white font-semibold"
                                             >
-                                                %
+                                                €
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Duration and TAEG - Side by Side -->
+                                    <div
+                                        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                                    >
+                                        <!-- Duration -->
+                                        <div class="flex flex-col">
+                                            <h3
+                                                class="text-base font-semibold leading-tight mb-2"
+                                            >
+                                                {$_("form.duration")}
+                                            </h3>
+                                            <div class="relative">
+                                                <input
+                                                    type="number"
+                                                    class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
+                                                    min="0"
+                                                    bind:value={
+                                                        mortgage_duration
+                                                    }
+                                                    on:change={showCosts
+                                                        ? () => {
+                                                              updateData();
+                                                              updateCashVsMortgage();
+                                                          }
+                                                        : () => {}}
+                                                />
+                                                <!-- Separator Line -->
+                                                <div
+                                                    class="absolute inset-y-0 right-10 w-px bg-white"
+                                                ></div>
+                                                <!-- A Symbol -->
+                                                <div
+                                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                >
+                                                    A
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- TAEG -->
+                                        <div class="flex flex-col">
+                                            <h3
+                                                class="text-base font-semibold leading-tight mb-2"
+                                            >
+                                                {$_("form.taeg")}
+                                            </h3>
+                                            <div class="relative">
+                                                <input
+                                                    type="number"
+                                                    class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
+                                                    min="0"
+                                                    step="0.1"
+                                                    bind:value={taeg}
+                                                    on:change={showCosts
+                                                        ? () => {
+                                                              updateData();
+                                                              updateCashVsMortgage();
+                                                              updateMortgageCompare();
+                                                          }
+                                                        : () => {}}
+                                                />
+                                                <!-- Separator Line -->
+                                                <div
+                                                    class="absolute inset-y-0 right-10 w-px bg-white"
+                                                ></div>
+                                                <!-- % Symbol -->
+                                                <div
+                                                    class="absolute inset-y-0 right-3 flex items-center text-white font-semibold"
+                                                >
+                                                    %
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            {/if}
+                        </div>
+                    </div>
+                    {#if !showCosts}
+                        <div
+                            transition:slide={{ duration: 300 }}
+                            class="overflow-hidden mt-6"
+                        >
+                            <div
+                                class="flex items-center space-x-2 transition-all duration-300"
+                            >
+                                <CustomButton
+                                    title={$_("form.howMuchCost")}
+                                    onClick={() => {
+                                        for (
+                                            let i = 0;
+                                            i < showTooltip.length;
+                                            i++
+                                        ) {
+                                            showTooltip[i] = false;
+                                        }
+                                        showCosts = true;
+                                    }}
+                                ></CustomButton>
                             </div>
-                        {/if}
-                    </div>
-                </div>
-                {#if !showCosts}
-                    <div
-                        transition:slide={{ duration: 300 }}
-                        class="overflow-hidden mt-6"
-                    >
-                        <div
-                            class="flex items-center space-x-2 transition-all duration-300"
-                        >
-                            <CustomButton
-                                title={"Quanto mi costi?"}
-                                onClick={() => {
-                                    for (
-                                        let i = 0;
-                                        i < showTooltip.length;
-                                        i++
-                                    ) {
-                                        showTooltip[i] = false;
-                                    }
-                                    showCosts = true;
-                                }}
-                            ></CustomButton>
                         </div>
-                    </div>
-                {:else if $isAuthenticated && $user}
-                    <div
-                        transition:slide={{ duration: 300 }}
-                        class="overflow-hidden mt-6"
-                    >
-                        <div
-                            class="flex items-center space-x-2 transition-all duration-300"
-                        >
-                            <button on:click={() => (showNamePopup = true)}>
-                                SALVA
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Stylish Name Input Popup -->
-                    {#if showNamePopup}
-                        <SaveNamePopUp
-                            bind:house_name
-                            bind:isLoadingSaving
-                            bind:showNamePopup
-                            {handleSaveHouse}
-                            {handleOverwriteHouse}
-                        />
                     {/if}
-                {/if}
-            </div>
+                </div>
 
-            <!-- Right Panel: Results -->
+                <!-- Right Panel: Results -->
 
-            <div class="relative w-full lg:basis-[55%]">
-                <!-- Right Content -->
-                <div
-                    class="bg-[#1e1f25] rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 overflow-auto w-full h-full min-h-[400px] lg:min-h-[600px] transition-all duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)]"
-                    class:opacity-100={showCosts}
-                    class:opacity-0={!showCosts}
-                    class:-translate-y-500={!showCosts}
-                    class:translate-y-0={showCosts}
-                    class:pointer-events-none={!showCosts}
-                >
-                    <div class="max-w-6xl mx-auto">
-                        <!-- Costs & Chart Section -->
-                        {#if showCosts}
-                            <div transition:fade={{ duration: 500 }}>
-                                <NavBar
-                                    bind:selectedTab
-                                    pro={$user?.pro || false}
-                                    getProFunction={goToPro}
-                                />
+                <div class="relative w-full lg:basis-[55%]">
+                    <!-- Right Content -->
+                    <div
+                        class="bg-[#1e1f25] rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 overflow-auto w-full h-full min-h-[400px] lg:min-h-[600px] transition-all duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)]"
+                        class:opacity-100={showCosts}
+                        class:opacity-0={!showCosts}
+                        class:-translate-y-500={!showCosts}
+                        class:translate-y-0={showCosts}
+                        class:pointer-events-none={!showCosts}
+                    >
+                        <div class="max-w-6xl mx-auto">
+                            <!-- Costs & Chart Section -->
+                            {#if showCosts}
+                                <div transition:fade={{ duration: 500 }}>
+                                    <NavBar
+                                        bind:selectedTab
+                                        pro={$user?.pro || false}
+                                        getProFunction={goToPro}
+                                    />
 
-                                {#if selectedTab == "summary"}
-                                    <!-- Main Chart + Cost Breakdown -->
-                                    <div transition:fade={{ duration: 500 }}>
-                                        <!-- Updated layout - horizontal on desktop, vertical on mobile -->
+                                    {#if selectedTab == "summary"}
+                                        <!-- Main Chart + Cost Breakdown -->
                                         <div
-                                            class="flex flex-col lg:flex-row gap-6 sm:gap-8 justify-center items-center w-full h-full"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:fade={{ duration: 500 }}
                                         >
-                                            <!-- Chart - takes up space on the left with subtle enhancement -->
+                                            <!-- Updated layout - horizontal on desktop, vertical on mobile -->
                                             <div
-                                                class="flex justify-center w-full lg:w-1/2 max-w-full h-[200px] sm:h-[250px] lg:h-[300px] relative group"
+                                                class="flex flex-col lg:flex-row gap-6 sm:gap-8 justify-center items-center w-full h-full"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
-                                                <!-- Subtle background enhancement -->
+                                                <!-- Chart - takes up space on the left with subtle enhancement -->
                                                 <div
-                                                    class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                ></div>
-                                                <canvas
-                                                    id="barChart"
-                                                    class="rounded-lg"
-                                                ></canvas>
+                                                    class="flex justify-center w-full lg:w-1/2 max-w-full h-[200px] sm:h-[250px] lg:h-[300px] relative group"
+                                                >
+                                                    <!-- Subtle background enhancement -->
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                    ></div>
+                                                    <canvas
+                                                        id="barChart"
+                                                        class="rounded-lg"
+                                                    ></canvas>
+                                                </div>
+
+                                                <!-- Total Price - takes up space on the right with hover effect -->
+                                                <div
+                                                    class="w-full lg:w-1/2 flex justify-center group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg w-full"
+                                                    >
+                                                        <!-- Subtle gradient overlay -->
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <TotalPriceTile
+                                                            number={totalAmount +
+                                                                displayed_house_price}
+                                                            dif={totalAmount}
+                                                            name={$_(
+                                                                "costs.totalCost",
+                                                            )}
+                                                            sub_text={$_(
+                                                                "costs.deed",
+                                                            )}
+                                                            vs={$_(
+                                                                "costs.vsHousePrice",
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <!-- Total Price - takes up space on the right with hover effect -->
+                                            <!-- Option 1: Simple 2x2 grid with enhanced hover effects -->
                                             <div
-                                                class="w-full lg:w-1/2 flex justify-center group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 sm:mt-6 w-full"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                <!-- Tasse tile with hover effect -->
+                                                <div
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
+                                                    >
+                                                        <!-- Subtle gradient overlay -->
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <SummaryDeltaPriceTile
+                                                            name={$_(
+                                                                "costs.taxes",
+                                                            )}
+                                                            number={groupedData[
+                                                                "Tax"
+                                                            ]}
+                                                            showVal={house_price !=
+                                                                0}
+                                                            delta={groupedData[
+                                                                "Tax"
+                                                            ] /
+                                                                displayed_house_price}
+                                                            sub_name={$_(
+                                                                "costs.extra",
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <!-- Notaio tile with hover effect -->
+                                                <div
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
+                                                    >
+                                                        <!-- Subtle gradient overlay -->
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <SummaryDeltaPriceTile
+                                                            name={$_(
+                                                                "costs.notary",
+                                                            )}
+                                                            number={groupedData[
+                                                                "Notary"
+                                                            ]}
+                                                            showVal={house_price !=
+                                                                0}
+                                                            delta={groupedData[
+                                                                "Notary"
+                                                            ] /
+                                                                displayed_house_price}
+                                                            sub_name={$_(
+                                                                "costs.extra",
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <!-- Agenzia tile with hover effect (conditional) -->
+                                                {#if is_sold_by_agency}
+                                                    <div
+                                                        class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                    >
+                                                        <div
+                                                            class="relative overflow-hidden rounded-lg"
+                                                        >
+                                                            <!-- Subtle gradient overlay -->
+                                                            <div
+                                                                class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                            ></div>
+                                                            <SummaryDeltaPriceTile
+                                                                name={$_(
+                                                                    "costs.agency",
+                                                                )}
+                                                                number={groupedData[
+                                                                    "Agency"
+                                                                ]}
+                                                                showVal={house_price >
+                                                                    0 &&
+                                                                    groupedData[
+                                                                        "Agency"
+                                                                    ] != null}
+                                                                delta={groupedData[
+                                                                    "Agency"
+                                                                ] /
+                                                                    displayed_house_price}
+                                                                sub_name={$_(
+                                                                    "costs.extra",
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                {/if}
+
+                                                <!-- Banca tile with hover effect (conditional) -->
+                                                {#if is_using_mortgage}
+                                                    <div
+                                                        class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                    >
+                                                        <div
+                                                            class="relative overflow-hidden rounded-lg"
+                                                        >
+                                                            <!-- Subtle gradient overlay -->
+                                                            <div
+                                                                class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                            ></div>
+                                                            <SummaryDeltaPriceTile
+                                                                name={$_(
+                                                                    "costs.bank",
+                                                                )}
+                                                                number={groupedData[
+                                                                    "Bank"
+                                                                ]}
+                                                                showVal={groupedData[
+                                                                    "Bank"
+                                                                ] != null}
+                                                                delta={groupedData[
+                                                                    "Bank"
+                                                                ] /
+                                                                    displayed_house_price}
+                                                                sub_name={$_(
+                                                                    "costs.extra",
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    {#if selectedTab == "base"}
+                                        <div
+                                            transition:fade={{ duration: 500 }}
+                                        >
+                                            <!-- Detail tiles - single column layout -->
+                                            <div
+                                                class="grid grid-cols-1 gap-4"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
                                                 <div
-                                                    class="relative overflow-hidden rounded-lg w-full"
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
-                                                    <!-- Subtle gradient overlay -->
                                                     <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <TotalPriceTile
-                                                        number={totalAmount +
-                                                            displayed_house_price}
-                                                        dif={totalAmount}
-                                                        name={"💰 Spesa totale"}
+                                                        class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-purple-500/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
+                                                    >
+                                                        <DetailTile
+                                                            data={dataByCategory}
+                                                            element={"Tax"}
+                                                            title={$_(
+                                                                "costs.taxes",
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-teal-400/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
+                                                    >
+                                                        <DetailTile
+                                                            data={dataByCategory}
+                                                            element={"Notary"}
+                                                            title={$_(
+                                                                "costs.notary",
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {#if "Agency" in dataByCategory}
+                                                    <div
+                                                        class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                    >
+                                                        <div
+                                                            class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-amber-500/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
+                                                        >
+                                                            <DetailTile
+                                                                data={dataByCategory}
+                                                                element={"Agency"}
+                                                                title={$_(
+                                                                    "costs.agency",
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                {/if}
+
+                                                {#if "Bank" in dataByCategory}
+                                                    <div
+                                                        class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                    >
+                                                        <div
+                                                            class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-indigo-700/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
+                                                        >
+                                                            <DetailTile
+                                                                data={dataByCategory}
+                                                                element={"Bank"}
+                                                                title={$_(
+                                                                    "costs.bank",
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    {#if selectedTab == "mortgage"}
+                                        <!-- Mortgage section -->
+                                        <div
+                                            transition:fade={{ duration: 500 }}
+                                        >
+                                            <!-- Summary tiles - responsive grid -->
+                                            <div
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                <div
+                                                    class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6"
+                                                    transition:slide={{
+                                                        duration: 500,
+                                                    }}
+                                                >
+                                                    <SummaryDeltaPriceTile
+                                                        number={mortgageInstallment}
+                                                        name={$_(
+                                                            "costs.monthlyInstallment",
+                                                        )}
+                                                        showVal={mortgageInstallment !=
+                                                            null}
+                                                        delta={null}
+                                                        sub_name=""
                                                     />
+                                                    <DeltaPriceTile
+                                                        number={is_using_mortgage
+                                                            ? interestsVal
+                                                            : 0}
+                                                        name={$_(
+                                                            "costs.interestsIn",
+                                                        )}
+                                                        duration={mortgage_duration}
+                                                        delta={interestsVal /
+                                                            displayed_mortgage_amount}
+                                                        showVal={mortgage_amount !=
+                                                            null &&
+                                                            displayed_mortgage_amount !=
+                                                                0 &&
+                                                            is_using_mortgage}
+                                                        vs={$_(
+                                                            "costs.vsMortgage",
+                                                        )}
+                                                    />
+                                                </div>
+
+                                                <!-- Chart title -->
+                                                <h2
+                                                    class="font-bold text-white leading-tight text-base sm:text-lg mt-4 sm:mt-2 mb-2 text-center"
+                                                >
+                                                    {$_(
+                                                        "costs.whatToReturn.what",
+                                                    )}
+                                                    <span
+                                                        class="font-bold text-purple-400"
+                                                        >{$_(
+                                                            "costs.whatToReturn.payBack",
+                                                        )}</span
+                                                    >
+                                                    {$_(
+                                                        "costs.whatToReturn.year",
+                                                    )}
+                                                </h2>
+
+                                                <!-- Chart - responsive sizing -->
+                                                <div
+                                                    class="w-full h-[300px] sm:h-[350px] relative"
+                                                >
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
+                                                    ></div>
+
+                                                    {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
+                                                        <div
+                                                            class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                        >
+                                                            <p
+                                                                class="text-gray-500 text-sm sm:text-base"
+                                                            >
+                                                                {$_(
+                                                                    "chart.insert",
+                                                                )}
+                                                                <strong
+                                                                    >{$_(
+                                                                        "chart.mortgageDurationTAEG",
+                                                                    )}</strong
+                                                                >
+                                                                {$_(
+                                                                    "chart.toVisualize",
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    {/if}
+                                                    <canvas
+                                                        id="interestsBarChart"
+                                                        class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                        class:opacity-0={mortgage_amount ==
+                                                            0 ||
+                                                            mortgage_amount ==
+                                                                null ||
+                                                            taeg == 0 ||
+                                                            taeg == null ||
+                                                            mortgage_duration ==
+                                                                0 ||
+                                                            mortgage_duration ==
+                                                                null}
+                                                        class:opacity-100={mortgage_amount >
+                                                            0 &&
+                                                            taeg > 0 &&
+                                                            mortgage_duration >
+                                                                0}
+                                                    ></canvas>
                                                 </div>
                                             </div>
                                         </div>
+                                    {/if}
 
-                                        <!-- Option 1: Simple 2x2 grid with enhanced hover effects -->
+                                    {#if selectedTab == "mortgage_compare"}
+                                        <!-- Mortgage comparison section -->
                                         <div
-                                            class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 sm:mt-6 w-full"
-                                            transition:slide={{ duration: 500 }}
+                                            transition:fade={{ duration: 500 }}
                                         >
-                                            <!-- Tasse tile with hover effect -->
+                                            <!-- Input section - responsive layout -->
+                                            <!-- Simple Mortgage comparison section -->
                                             <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                transition:fade={{
+                                                    duration: 500,
+                                                }}
                                             >
+                                                <!-- Input section -->
                                                 <div
-                                                    class="relative overflow-hidden rounded-lg"
+                                                    class="flex flex-col items-center gap-4 mb-4"
+                                                    transition:slide={{
+                                                        duration: 500,
+                                                    }}
                                                 >
-                                                    <!-- Subtle gradient overlay -->
+                                                    <!-- Text labels and inputs aligned -->
                                                     <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <SummaryDeltaPriceTile
-                                                        name={"🇮🇹 Tasse"}
-                                                        number={groupedData[
-                                                            "Tax"
-                                                        ]}
-                                                        showVal={house_price !=
-                                                            0}
-                                                        delta={groupedData[
-                                                            "Tax"
-                                                        ] /
-                                                            displayed_house_price}
-                                                    />
+                                                        class="flex justify-center items-center gap-4"
+                                                    >
+                                                        <!-- First column: Euro input with label -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="font-bold text-white text-sm sm:text-base text-center"
+                                                            >
+                                                                Quanto
+                                                                guadagno/amo <br
+                                                                />
+                                                                ogni anno?
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    step="2500"
+                                                                    bind:value={
+                                                                        yearlySaving
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >€</span
+                                                                >
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- First Arrow with Icon -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-1 mt-8"
+                                                        >
+                                                            <!-- Piggy bank icon for savings -->
+                                                            💰
+                                                            <!-- Arrow -->
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Second column: Savings rate input -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="font-bold text-white text-sm sm:text-base text-center"
+                                                            >
+                                                                Di cui
+                                                                riesco/amo a <br
+                                                                />risparmiare
+                                                                un...
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    step="1"
+                                                                    bind:value={
+                                                                        yearlySavingRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
+                                                                >
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Second Arrow with Icon -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-1 mt-8"
+                                                        >
+                                                            <!-- Growth/chart icon for investment returns -->
+                                                            💸
+                                                            <!-- Arrow -->
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Third column: Investment growth rate -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="font-bold text-white text-sm sm:text-base text-center"
+                                                            >
+                                                                Quanto fruttano
+                                                                i risparmi <br
+                                                                />ogni anno?
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    step="0.1"
+                                                                    bind:value={
+                                                                        yearlyGrowthgRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Notaio tile with hover effect -->
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                            <!-- Question with reduced top margin -->
+                                            <h2
+                                                class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
+                                                Come cresce il mio/nostro <span
+                                                    class="font-bold text-purple-400"
+                                                    >patrimonio</span
                                                 >
-                                                    <!-- Subtle gradient overlay -->
+                                                con
+                                                <span
+                                                    class="font-bold text-purple-400"
+                                                    >il mutuo selezionato</span
+                                                >, ma con diverse durate?
+                                            </h2>
+                                            <!-- Chart - responsive sizing with subtle enhancement -->
+                                            <div
+                                                class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                <!-- Subtle background enhancement -->
+                                                <div
+                                                    class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
+                                                ></div>
+                                                {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null}
                                                     <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <SummaryDeltaPriceTile
-                                                        name={"📜 Notaio"}
-                                                        number={groupedData[
-                                                            "Notary"
-                                                        ]}
-                                                        showVal={house_price !=
-                                                            0}
-                                                        delta={groupedData[
-                                                            "Notary"
-                                                        ] /
-                                                            displayed_house_price}
-                                                    />
-                                                </div>
+                                                        class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                    >
+                                                        <p
+                                                            class="text-gray-500 text-sm sm:text-base"
+                                                        >
+                                                            Inserisci <strong
+                                                                >Importo Mutuo</strong
+                                                            >
+                                                            e
+                                                            <strong>TAEG</strong
+                                                            > per visualizzare il
+                                                            grafico.
+                                                        </p>
+                                                    </div>
+                                                {/if}
+                                                <canvas
+                                                    id="lineChart"
+                                                    class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                    class:opacity-0={mortgage_amount ==
+                                                        0 ||
+                                                        mortgage_amount ==
+                                                            null ||
+                                                        taeg == 0 ||
+                                                        taeg == null}
+                                                    class:opacity-100={mortgage_amount >
+                                                        0 && taeg > 0}
+                                                ></canvas>
                                             </div>
 
-                                            <!-- Agenzia tile with hover effect (conditional) -->
-                                            {#if is_sold_by_agency}
+                                            <!-- Summary tiles - enhanced with subtle effects -->
+                                            <div
+                                                class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                <!-- Enhanced cards with subtle hover effects -->
+                                                <div
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
+                                                    >
+                                                        <!-- Subtle gradient overlay -->
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth[0]}
+                                                            name={"Mutuo 10 Anni"}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(98, 182, 170, 1)"}
+                                                            isValid={mortgageCompareData[0][
+                                                                "valid"
+                                                            ]}
+                                                            secondaryNumber={mortgageCompareData[0][
+                                                                "installment"
+                                                            ] / 12}
+                                                            secondaryLabel={"rata"}
+                                                            years={30}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                >
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
+                                                    >
+                                                        <!-- Subtle gradient overlay -->
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth[1]}
+                                                            name={"Mutuo 20 Anni"}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(133, 81, 182, 1)"}
+                                                            isValid={mortgageCompareData[1][
+                                                                "valid"
+                                                            ]}
+                                                            secondaryNumber={mortgageCompareData[1][
+                                                                "installment"
+                                                            ] / 12}
+                                                            secondaryLabel={"rata"}
+                                                            years={30}
+                                                        />
+                                                    </div>
+                                                </div>
+
                                                 <div
                                                     class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
@@ -2318,229 +2930,29 @@
                                                         <div
                                                             class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                                         ></div>
-                                                        <SummaryDeltaPriceTile
-                                                            name={"🏘️ Agenzia"}
-                                                            number={groupedData[
-                                                                "Agency"
+                                                        <ColoredSummaryPrice
+                                                            number={wealth[2]}
+                                                            name={"Mutuo 30 Anni"}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(249, 166, 0, 1)"}
+                                                            isValid={mortgageCompareData[2][
+                                                                "valid"
                                                             ]}
-                                                            showVal={house_price >
-                                                                0 &&
-                                                                groupedData[
-                                                                    "Agency"
-                                                                ] != null}
-                                                            delta={groupedData[
-                                                                "Agency"
-                                                            ] /
-                                                                displayed_house_price}
+                                                            secondaryNumber={mortgageCompareData[2][
+                                                                "installment"
+                                                            ] / 12}
+                                                            secondaryLabel={"rata"}
+                                                            years={30}
                                                         />
                                                     </div>
                                                 </div>
-                                            {/if}
-
-                                            <!-- Banca tile with hover effect (conditional) -->
-                                            {#if is_using_mortgage}
-                                                <div
-                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                                >
-                                                    <div
-                                                        class="relative overflow-hidden rounded-lg"
-                                                    >
-                                                        <!-- Subtle gradient overlay -->
-                                                        <div
-                                                            class="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                        ></div>
-                                                        <SummaryDeltaPriceTile
-                                                            name={"🏦 Banca"}
-                                                            number={groupedData[
-                                                                "Bank"
-                                                            ]}
-                                                            showVal={groupedData[
-                                                                "Bank"
-                                                            ] != null}
-                                                            delta={groupedData[
-                                                                "Bank"
-                                                            ] /
-                                                                displayed_house_price}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                {/if}
-
-                                {#if selectedTab == "base"}
-                                    <div transition:fade={{ duration: 500 }}>
-                                        <!-- Detail tiles - single column layout -->
-                                        <div
-                                            class="grid grid-cols-1 gap-4"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-purple-500/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
-                                                >
-                                                    <DetailTile
-                                                        data={dataByCategory}
-                                                        element={"Tax"}
-                                                        title={"🇮🇹 Tasse"}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-teal-400/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
-                                                >
-                                                    <DetailTile
-                                                        data={dataByCategory}
-                                                        element={"Notary"}
-                                                        title={"📜 Notaio"}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {#if "Agency" in dataByCategory}
-                                                <div
-                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                                >
-                                                    <div
-                                                        class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-amber-500/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
-                                                    >
-                                                        <DetailTile
-                                                            data={dataByCategory}
-                                                            element={"Agency"}
-                                                            title={"🏘️ Agenzia"}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            {/if}
-
-                                            {#if "Bank" in dataByCategory}
-                                                <div
-                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                                >
-                                                    <div
-                                                        class="relative rounded-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-indigo-700/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100 before:transition-opacity before:duration-300 before:pointer-events-none"
-                                                    >
-                                                        <DetailTile
-                                                            data={dataByCategory}
-                                                            element={"Bank"}
-                                                            title={"🏦 Banca"}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                {/if}
-
-                                {#if selectedTab == "mortgage"}
-                                    <!-- Mortgage section -->
-                                    <div transition:fade={{ duration: 500 }}>
-                                        <!-- Summary tiles - responsive grid -->
-                                        <div
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <div
-                                                class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6"
-                                                transition:slide={{
-                                                    duration: 500,
-                                                }}
-                                            >
-                                                <SummaryDeltaPriceTile
-                                                    number={mortgageInstallment}
-                                                    name={"💸 Rata mutuo mensile"}
-                                                    showVal={mortgageInstallment !=
-                                                        null}
-                                                    delta={null}
-                                                />
-                                                <DeltaPriceTile
-                                                    number={is_using_mortgage
-                                                        ? interestsVal
-                                                        : 0}
-                                                    name={"📈 Interessi in"}
-                                                    duration={mortgage_duration}
-                                                    delta={interestsVal /
-                                                        displayed_mortgage_amount}
-                                                    showVal={mortgage_amount !=
-                                                        null &&
-                                                        displayed_mortgage_amount !=
-                                                            0 &&
-                                                        is_using_mortgage}
-                                                />
-                                            </div>
-
-                                            <!-- Chart title -->
-                                            <h2
-                                                class="font-bold text-white leading-tight text-base sm:text-lg mt-4 sm:mt-2 mb-2 text-center"
-                                            >
-                                                Cosa vado a <span
-                                                    class="font-bold text-purple-400"
-                                                    >restituire</span
-                                                > ogni anno?
-                                            </h2>
-
-                                            <!-- Chart - responsive sizing -->
-                                            <div
-                                                class="w-full h-[300px] sm:h-[350px] relative"
-                                            >
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
-                                                ></div>
-
-                                                {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
-                                                    <div
-                                                        class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
-                                                    >
-                                                        <p
-                                                            class="text-gray-500 text-sm sm:text-base"
-                                                        >
-                                                            Inserisci <strong
-                                                                >Importo Mutuo</strong
-                                                            >,
-                                                            <strong
-                                                                >Durata</strong
-                                                            >
-                                                            e
-                                                            <strong>TAEG</strong
-                                                            > per visualizzare il
-                                                            grafico.
-                                                        </p>
-                                                    </div>
-                                                {/if}
-                                                <canvas
-                                                    id="interestsBarChart"
-                                                    class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
-                                                    class:opacity-0={mortgage_amount ==
-                                                        0 ||
-                                                        mortgage_amount ==
-                                                            null ||
-                                                        taeg == 0 ||
-                                                        taeg == null ||
-                                                        mortgage_duration ==
-                                                            0 ||
-                                                        mortgage_duration ==
-                                                            null}
-                                                    class:opacity-100={mortgage_amount >
-                                                        0 &&
-                                                        taeg > 0 &&
-                                                        mortgage_duration > 0}
-                                                ></canvas>
                                             </div>
                                         </div>
-                                    </div>
-                                {/if}
-
-                                {#if selectedTab == "mortgage_compare"}
-                                    <!-- Mortgage comparison section -->
-                                    <div transition:fade={{ duration: 500 }}>
-                                        <!-- Input section - responsive layout -->
-                                        <!-- Simple Mortgage comparison section -->
+                                    {/if}
+                                    {#if selectedTab == "cash_vs_mortgage"}
+                                        <!-- Cash vs mortgage section -->
                                         <div
                                             transition:fade={{ duration: 500 }}
                                         >
@@ -2551,11 +2963,11 @@
                                                     duration: 500,
                                                 }}
                                             >
-                                                <!-- Text labels and inputs aligned -->
+                                                <!-- First row: Main financial inputs -->
                                                 <div
                                                     class="flex justify-center items-center gap-4"
                                                 >
-                                                    <!-- First column: Euro input with label -->
+                                                    <!-- Annual income input -->
                                                     <div
                                                         class="flex flex-col items-center gap-2"
                                                     >
@@ -2563,8 +2975,7 @@
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
                                                             Quanto guadagno/amo <br
-                                                            />
-                                                            ogni anno?
+                                                            />ogni anno?
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -2576,7 +2987,7 @@
                                                                     yearlySaving
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updateMortgageCompare
+                                                                    ? updateCashVsMortgage
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2586,13 +2997,11 @@
                                                         </div>
                                                     </div>
 
-                                                    <!-- First Arrow with Icon -->
+                                                    <!-- Arrow -->
                                                     <div
                                                         class="flex flex-col items-center gap-1 mt-8"
                                                     >
-                                                        <!-- Piggy bank icon for savings -->
                                                         💰
-                                                        <!-- Arrow -->
                                                         <svg
                                                             class="w-6 h-6 text-white/70"
                                                             fill="none"
@@ -2608,7 +3017,7 @@
                                                         </svg>
                                                     </div>
 
-                                                    <!-- Second column: Savings rate input -->
+                                                    <!-- Savings rate input -->
                                                     <div
                                                         class="flex flex-col items-center gap-2"
                                                     >
@@ -2628,7 +3037,7 @@
                                                                     yearlySavingRate
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updateMortgageCompare
+                                                                    ? updateCashVsMortgage
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2638,13 +3047,11 @@
                                                         </div>
                                                     </div>
 
-                                                    <!-- Second Arrow with Icon -->
+                                                    <!-- Arrow -->
                                                     <div
                                                         class="flex flex-col items-center gap-1 mt-8"
                                                     >
-                                                        <!-- Growth/chart icon for investment returns -->
                                                         💸
-                                                        <!-- Arrow -->
                                                         <svg
                                                             class="w-6 h-6 text-white/70"
                                                             fill="none"
@@ -2660,7 +3067,7 @@
                                                         </svg>
                                                     </div>
 
-                                                    <!-- Third column: Investment growth rate -->
+                                                    <!-- Investment growth rate input -->
                                                     <div
                                                         class="flex flex-col items-center gap-2"
                                                     >
@@ -2681,7 +3088,7 @@
                                                                     yearlyGrowthgRate
                                                                 }
                                                                 on:change={showCosts
-                                                                    ? updateMortgageCompare
+                                                                    ? updateCashVsMortgage
                                                                     : () => {}}
                                                             />
                                                             <span
@@ -2692,479 +3099,196 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <!-- Question with reduced top margin -->
-                                        <h2
-                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            Come cresce il mio/nostro <span
-                                                class="font-bold text-purple-400"
-                                                >patrimonio</span
+                                            <!-- Question -->
+                                            <h2
+                                                class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
-                                            con
-                                            <span
-                                                class="font-bold text-purple-400"
-                                                >il mutuo selezionato</span
-                                            >, ma con diverse durate?
-                                        </h2>
-                                        <!-- Chart - responsive sizing with subtle enhancement -->
-                                        <div
-                                            class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <!-- Subtle background enhancement -->
-                                            <div
-                                                class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
-                                            ></div>
-                                            {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null}
-                                                <div
-                                                    class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
+                                                Mi conviene pagare tutto <span
+                                                    class="font-bold text-purple-400"
+                                                    >cash</span
                                                 >
-                                                    <p
-                                                        class="text-gray-500 text-sm sm:text-base"
+                                                oppure prendere un
+                                                <span
+                                                    class="font-bold text-purple-400"
+                                                    >mutuo</span
+                                                >?
+                                            </h2>
+
+                                            <!-- Chart -->
+                                            <div
+                                                class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                <div
+                                                    class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
+                                                ></div>
+
+                                                {#if taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
+                                                    <div
+                                                        class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
                                                     >
-                                                        Inserisci <strong
-                                                            >Importo Mutuo</strong
+                                                        <p
+                                                            class="text-gray-500 text-sm sm:text-base"
                                                         >
-                                                        e
-                                                        <strong>TAEG</strong> per
-                                                        visualizzare il grafico.
-                                                    </p>
-                                                </div>
-                                            {/if}
-                                            <canvas
-                                                id="lineChart"
-                                                class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
-                                                class:opacity-0={mortgage_amount ==
-                                                    0 ||
-                                                    mortgage_amount == null ||
-                                                    taeg == 0 ||
-                                                    taeg == null}
-                                                class:opacity-100={mortgage_amount >
-                                                    0 && taeg > 0}
-                                            ></canvas>
-                                        </div>
-
-                                        <!-- Summary tiles - enhanced with subtle effects -->
-                                        <div
-                                            class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <!-- Enhanced cards with subtle hover effects -->
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <!-- Subtle gradient overlay -->
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth[0]}
-                                                        name={"Mutuo 10 Anni"}
-                                                        showVal={mortgageInstallment !=
+                                                            Inserisci
+                                                            <strong
+                                                                >Durata mutuo</strong
+                                                            >
+                                                            e
+                                                            <strong>TAEG</strong
+                                                            > per visualizzare il
+                                                            grafico.
+                                                        </p>
+                                                    </div>
+                                                {/if}
+                                                <canvas
+                                                    id="cashVsMortgageChart"
+                                                    class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
+                                                    class:opacity-0={taeg ==
+                                                        0 ||
+                                                        taeg == null ||
+                                                        mortgage_duration ==
+                                                            0 ||
+                                                        mortgage_duration ==
                                                             null}
-                                                        delta={null}
-                                                        color={"rgba(98, 182, 170, 1)"}
-                                                        isValid={mortgageCompareData[0][
-                                                            "valid"
-                                                        ]}
-                                                        secondaryNumber={mortgageCompareData[0][
-                                                            "installment"
-                                                        ] / 12}
-                                                        secondaryLabel={"rata"}
-                                                        years={30}
-                                                    />
-                                                </div>
+                                                    class:opacity-100={taeg >
+                                                        0 &&
+                                                        mortgage_duration > 0}
+                                                ></canvas>
                                             </div>
 
+                                            <!-- Summary tiles -->
                                             <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
                                             >
                                                 <div
-                                                    class="relative overflow-hidden rounded-lg"
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
-                                                    <!-- Subtle gradient overlay -->
                                                     <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth[1]}
-                                                        name={"Mutuo 20 Anni"}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(133, 81, 182, 1)"}
-                                                        isValid={mortgageCompareData[1][
-                                                            "valid"
-                                                        ]}
-                                                        secondaryNumber={mortgageCompareData[1][
-                                                            "installment"
-                                                        ] / 12}
-                                                        secondaryLabel={"rata"}
-                                                        years={30}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <!-- Subtle gradient overlay -->
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth[2]}
-                                                        name={"Mutuo 30 Anni"}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(249, 166, 0, 1)"}
-                                                        isValid={mortgageCompareData[2][
-                                                            "valid"
-                                                        ]}
-                                                        secondaryNumber={mortgageCompareData[2][
-                                                            "installment"
-                                                        ] / 12}
-                                                        secondaryLabel={"rata"}
-                                                        years={30}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {/if}
-                                {#if selectedTab == "cash_vs_mortgage"}
-                                    <!-- Cash vs mortgage section -->
-                                    <div transition:fade={{ duration: 500 }}>
-                                        <!-- Input section -->
-                                        <div
-                                            class="flex flex-col items-center gap-4 mb-4"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <!-- First row: Main financial inputs -->
-                                            <div
-                                                class="flex justify-center items-center gap-4"
-                                            >
-                                                <!-- Annual income input -->
-                                                <div
-                                                    class="flex flex-col items-center gap-2"
-                                                >
-                                                    <h3
-                                                        class="font-bold text-white text-sm sm:text-base text-center"
+                                                        class="relative overflow-hidden rounded-lg"
                                                     >
-                                                        Quanto guadagno/amo <br
-                                                        />ogni anno?
-                                                    </h3>
-                                                    <div class="relative">
-                                                        <input
-                                                            type="number"
-                                                            class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                            min="0"
-                                                            step="2500"
-                                                            bind:value={
-                                                                yearlySaving
-                                                            }
-                                                            on:change={showCosts
-                                                                ? updateCashVsMortgage
-                                                                : () => {}}
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth_cash_vs_mortgage[0]}
+                                                            name={"Cash"}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(178, 178, 178, 1)"}
+                                                            isValid={true}
+                                                            years={mortgage_duration}
+                                                            secondaryLabel={"rata"}
+                                                            secondaryNumber={wealth_cash_vs_mortgage_installments[0]}
                                                         />
-                                                        <span
-                                                            class="absolute right-3 top-2 text-white font-semibold"
-                                                            >€</span
-                                                        >
                                                     </div>
                                                 </div>
 
-                                                <!-- Arrow -->
                                                 <div
-                                                    class="flex flex-col items-center gap-1 mt-8"
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
-                                                    💰
-                                                    <svg
-                                                        class="w-6 h-6 text-white/70"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
                                                     >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth_cash_vs_mortgage[1]}
+                                                            name={`Mutuo ${mortgage_duration} Anni (25%)`}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(98, 182, 170, 1)"}
+                                                            isValid={true}
+                                                            years={mortgage_duration}
+                                                            secondaryLabel={"rata"}
+                                                            secondaryNumber={wealth_cash_vs_mortgage_installments[1]}
                                                         />
-                                                    </svg>
-                                                </div>
-
-                                                <!-- Savings rate input -->
-                                                <div
-                                                    class="flex flex-col items-center gap-2"
-                                                >
-                                                    <h3
-                                                        class="font-bold text-white text-sm sm:text-base text-center"
-                                                    >
-                                                        Di cui riesco/amo a <br
-                                                        />risparmiare un...
-                                                    </h3>
-                                                    <div class="relative">
-                                                        <input
-                                                            type="number"
-                                                            class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                            min="0"
-                                                            step="1"
-                                                            bind:value={
-                                                                yearlySavingRate
-                                                            }
-                                                            on:change={showCosts
-                                                                ? updateCashVsMortgage
-                                                                : () => {}}
-                                                        />
-                                                        <span
-                                                            class="absolute right-3 top-2 text-white font-semibold"
-                                                            >%</span
-                                                        >
                                                     </div>
                                                 </div>
 
-                                                <!-- Arrow -->
                                                 <div
-                                                    class="flex flex-col items-center gap-1 mt-8"
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
-                                                    💸
-                                                    <svg
-                                                        class="w-6 h-6 text-white/70"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
                                                     >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth_cash_vs_mortgage[2]}
+                                                            name={`Mutuo ${mortgage_duration} Anni (50%)`}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(133, 81, 182, 1)"}
+                                                            isValid={true}
+                                                            years={mortgage_duration}
+                                                            secondaryLabel={"rata"}
+                                                            secondaryNumber={wealth_cash_vs_mortgage_installments[2]}
                                                         />
-                                                    </svg>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Investment growth rate input -->
                                                 <div
-                                                    class="flex flex-col items-center gap-2"
+                                                    class="group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
-                                                    <h3
-                                                        class="font-bold text-white text-sm sm:text-base text-center"
+                                                    <div
+                                                        class="relative overflow-hidden rounded-lg"
                                                     >
-                                                        Quanto fruttano i
-                                                        risparmi <br />ogni
-                                                        anno?
-                                                    </h3>
-                                                    <div class="relative">
-                                                        <input
-                                                            type="number"
-                                                            class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                            min="0"
-                                                            step="0.1"
-                                                            bind:value={
-                                                                yearlyGrowthgRate
-                                                            }
-                                                            on:change={showCosts
-                                                                ? updateCashVsMortgage
-                                                                : () => {}}
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                        ></div>
+                                                        <ColoredSummaryPrice
+                                                            number={wealth_cash_vs_mortgage[3]}
+                                                            name={`Mutuo ${mortgage_duration} Anni (80%)`}
+                                                            showVal={mortgageInstallment !=
+                                                                null}
+                                                            delta={null}
+                                                            color={"rgba(249, 166, 0, 1)"}
+                                                            isValid={true}
+                                                            years={mortgage_duration}
+                                                            secondaryLabel={"rata"}
+                                                            secondaryNumber={wealth_cash_vs_mortgage_installments[3]}
                                                         />
-                                                        <span
-                                                            class="absolute right-3 top-2 text-white font-semibold"
-                                                            >%</span
-                                                        >
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!-- Question -->
-                                        <h2
-                                            class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            Mi conviene pagare tutto <span
-                                                class="font-bold text-purple-400"
-                                                >cash</span
-                                            >
-                                            oppure prendere un
-                                            <span
-                                                class="font-bold text-purple-400"
-                                                >mutuo</span
-                                            >?
-                                        </h2>
-
-                                        <!-- Chart -->
-                                        <div
-                                            class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <div
-                                                class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
-                                            ></div>
-
-                                            {#if taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
-                                                <div
-                                                    class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
-                                                >
-                                                    <p
-                                                        class="text-gray-500 text-sm sm:text-base"
-                                                    >
-                                                        Inserisci
-                                                        <strong
-                                                            >Durata mutuo</strong
-                                                        >
-                                                        e
-                                                        <strong>TAEG</strong> per
-                                                        visualizzare il grafico.
-                                                    </p>
-                                                </div>
-                                            {/if}
-                                            <canvas
-                                                id="cashVsMortgageChart"
-                                                class="absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out"
-                                                class:opacity-0={taeg == 0 ||
-                                                    taeg == null ||
-                                                    mortgage_duration == 0 ||
-                                                    mortgage_duration == null}
-                                                class:opacity-100={taeg > 0 &&
-                                                    mortgage_duration > 0}
-                                            ></canvas>
-                                        </div>
-
-                                        <!-- Summary tiles -->
-                                        <div
-                                            class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6"
-                                            transition:slide={{ duration: 500 }}
-                                        >
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth_cash_vs_mortgage[0]}
-                                                        name={"Cash"}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(178, 178, 178, 1)"}
-                                                        isValid={true}
-                                                        years={mortgage_duration}
-                                                        secondaryLabel={"rata"}
-                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[0]}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth_cash_vs_mortgage[1]}
-                                                        name={`Mutuo ${mortgage_duration} Anni (25%)`}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(98, 182, 170, 1)"}
-                                                        isValid={true}
-                                                        years={mortgage_duration}
-                                                        secondaryLabel={"rata"}
-                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[1]}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-indigo-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth_cash_vs_mortgage[2]}
-                                                        name={`Mutuo ${mortgage_duration} Anni (50%)`}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(133, 81, 182, 1)"}
-                                                        isValid={true}
-                                                        years={mortgage_duration}
-                                                        secondaryLabel={"rata"}
-                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[2]}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="group cursor-pointer transition-transform duration-200 hover:scale-105"
-                                            >
-                                                <div
-                                                    class="relative overflow-hidden rounded-lg"
-                                                >
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                    ></div>
-                                                    <ColoredSummaryPrice
-                                                        number={wealth_cash_vs_mortgage[3]}
-                                                        name={`Mutuo ${mortgage_duration} Anni (80%)`}
-                                                        showVal={mortgageInstallment !=
-                                                            null}
-                                                        delta={null}
-                                                        color={"rgba(249, 166, 0, 1)"}
-                                                        isValid={true}
-                                                        years={mortgage_duration}
-                                                        secondaryLabel={"rata"}
-                                                        secondaryNumber={wealth_cash_vs_mortgage_installments[3]}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {/if}
-                                {#if selectedTab == "prices"}
-                                    <Prices
-                                        bind:showErrorPopup
-                                        bind:showRateLimitPopup
-                                        bind:apiURL
-                                    />
-                                {/if}
-                            </div>
-                        {/if}
+                                    {/if}
+                                    {#if selectedTab == "prices"}
+                                        <Prices
+                                            bind:showErrorPopup
+                                            bind:showRateLimitPopup
+                                            bind:apiURL
+                                        />
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
-                </div>
 
-                <!-- Tooltips (Overlay) -->
-                <TooltipFirstHouse {showTooltip} index={0} />
-                <TooltipVat {showTooltip} index={1} />
-                <TooltipAgency {showTooltip} index={2} />
-                <TooltipMortgage {showTooltip} index={3} />
+                    <!-- Tooltips (Overlay) -->
+                    <TooltipFirstHouse {showTooltip} index={0} />
+                    <TooltipVat {showTooltip} index={1} />
+                    <TooltipAgency {showTooltip} index={2} />
+                    <TooltipMortgage {showTooltip} index={3} />
+                </div>
             </div>
         </div>
     </div>
-</div>
+{/if}
 
-<style>
-</style>
+<style></style>

@@ -1,0 +1,83 @@
+{
+  "hero": {
+    "discover": "Find out how much it costs,",
+    "really": "for real,",
+    "dreamHouse": "the house of your dreams. 🏡"
+  },
+  "disclaimer": "The final price shown indicates the total cost on the day of the deed. *For variable expenses such as notary/bank, a truthful estimate has been made on all cost items.",
+  "house": {
+    "cost": "House cost:",
+    "name": "House:",
+    "saved": "Saved houses",
+    "save": "SAVE",
+    "delete": "Delete house"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "user": "User",
+    "getPro": "Get pro!"
+  },
+  "form": {
+    "firstHouse": "First-home buyer benefits?",
+    "soldByBuilder": "Sale subject to VAT?",
+    "soldByAgency": "Purchase via a real estate agency?",
+    "usingMortgage": "Are you using a mortgage?",
+    "commission": "Fee:",
+    "mortgageAmount": "Mortgage amount:",
+    "duration": "Duration:",
+    "taeg": "APR:",
+    "howMuchCost": "How much does it cost me?"
+  },
+  "costs": {
+    "totalCost": "💰 Total expense",
+    "deed": "upon deed signing",
+    "vsHousePrice": "vs house price",
+    "taxes": "🇮🇹 Taxes",
+    "notary": "📜 Notary",
+    "agency": "🏘️ Agency",
+    "bank": "🏦 Bank",
+    "extra": "extra",
+    "monthlyInstallment": "💸 Monthly mortgage payment",
+    "interestsIn": "📈 Interest in",
+    "vsMortgage": "on mortgage",
+    "whatToReturn": {
+      "what": "What am I going to ",
+      "payBack": "pay back ",
+      "year": "each year?"
+    },
+    "insertMortgageData": "Enter Mortgage Amount, Duration and APR to view the chart.",
+    "insertMortgageBasic": "Enter Mortgage Amount and APR to view the chart.",
+    "insertDurationTaeg": "Enter mortgage duration and APR to view the chart."
+  },
+  "chart": {
+    "insert": "Enter ",
+    "mortgageDurationTAEG": "Mortgage Amount, Duration and APR ",
+    "mortgageTAEG": "Mortgage Amount and APR ",
+    "DurationTAEG": "mortgage duration and APR ",
+    "toVisualize": "to view the chart."
+  },
+  "mortgage": {
+    "comparison": "How does my/our wealth grow with the selected mortgage, but with different durations?",
+    "mortgage10": "10-Year Mortgage",
+    "mortgage20": "20-Year Mortgage",
+    "mortgage30": "30-Year Mortgage",
+    "installment": "payment"
+  },
+  "cashVsMortgage": {
+    "question": "Should I pay everything in cash or take out a mortgage?",
+    "cash": "Cash",
+    "mortgage25": "{duration}-Year Mortgage (25%)",
+    "mortgage50": "{duration}-Year Mortgage (50%)",
+    "mortgage80": "{duration}-Year Mortgage (80%)"
+  },
+  "income": {
+    "yearlyIncome": "How much do I/we earn each year?",
+    "savingRate": "Of which I/we manage to save...",
+    "investmentReturn": "How much do savings yield each year?"
+  },
+  "loading": "Loading...",
+  "years": "Y",
+  "percentage": "%",
+  "currency": "€"
+}
