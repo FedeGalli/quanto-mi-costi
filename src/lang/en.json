@@ -51,21 +51,51 @@
     "insertDurationTaeg": "Enter mortgage duration and APR to view the chart."
   },
   "chart": {
+    "check": "Check ",
+    "usingMortgage": "\"Are you using a mortgage?\" ",
+    "and": "and",
     "insert": "Enter ",
     "mortgageDurationTAEG": "Mortgage Amount, Duration and APR ",
     "mortgageTAEG": "Mortgage Amount and APR ",
     "DurationTAEG": "mortgage duration and APR ",
-    "toVisualize": "to view the chart."
+    "toVisualize": "to view the chart.",
+    "interestBarChart": {
+      "interests": "Interests",
+      "capital": "Capital"
+    },
+    "lineChart": {
+      "label": "{years} Years mortgage",
+      "capital": "Capital",
+      "text": "Owned Whealth (€)"
+    },
+    "cashVsMortgageChart": {
+      "cash": "Cash",
+      "label": "{mortgage_percentage}% Mortgage",
+      "text": "Owned Whealth (€)"
+    }
   },
   "mortgage": {
-    "comparison": "How does my/our wealth grow with the selected mortgage, but with different durations?",
+    "question": {
+      "how": "How does my/our ",
+      "wealth": "wealth grow ",
+      "with": "with the ",
+      "mortgage": "selected mortgage",
+      "end": ", but with different durations?"
+    },
     "mortgage10": "10-Year Mortgage",
     "mortgage20": "20-Year Mortgage",
     "mortgage30": "30-Year Mortgage",
-    "installment": "payment"
+    "installment": "installment",
+    "futureWealth": "Whealth in {years} years",
+    "installmentTooHigh": "Monthly installment unaffordable!"
   },
   "cashVsMortgage": {
-    "question": "Should I pay everything in cash or take out a mortgage?",
+    "question": {
+      "how": "Should I pay everything in ",
+      "cash": "cash ",
+      "otherwise": "or take out a ",
+      "mortgage": "mortgage?"
+    },
     "cash": "Cash",
     "mortgage25": "{duration}-Year Mortgage (25%)",
     "mortgage50": "{duration}-Year Mortgage (50%)",
@@ -76,8 +106,49 @@
     "savingRate": "Of which I/we manage to save...",
     "investmentReturn": "How much do savings yield each year?"
   },
-  "loading": "Loading...",
-  "years": "Y",
-  "percentage": "%",
-  "currency": "€"
+  "prices": {
+    "question": {
+      "how": "How much do houses",
+      "costs": "cost ",
+      "houses": "in my ",
+      "zone": "area?"
+    },
+    "select": "Select",
+    "findMunicipality": "Find municipality...",
+    "municipality": "Municipality",
+    "municipalityFirst": "Select a municipality first",
+    "area": "Area",
+    "areaFirst": "Select an area first",
+    "type": "Type",
+    "typeFirst": "Select a type first",
+    "conservation": "Conservation",
+    "conservationFirst": "Select a conservation first",
+    "m2": "m²",
+    "calculate": "Calculate",
+    "results": "Search results",
+    "newSearch": "New Search",
+    "houseAvgPrice": "House Average Price",
+    "priceRange": "Price range",
+    "marketSize": "Market Size",
+    "trend": "Trend",
+    "volume": "Volume",
+    "price": "Price",
+    "minPrice": "Max Price m² (€)",
+    "maxPrice": "Min Price m² (€)",
+    "volumeBuySell": "Trading Volume"
+  },
+  "navBar": {
+    "recap": "Recap",
+    "costsDetail": "Costs Detail",
+    "mortgage": "Mortgage",
+    "durationCompare": "Duration compare",
+    "cashCompare": "Cash vs Mortgage",
+    "prices": "Prices"
+  },
+  "categories": {
+    "tax": "Tax",
+    "agency": "Agency",
+    "notary": "Notary",
+    "bank": "Bank"
+  }
 }

@@ -13,6 +13,7 @@ class DataManager:
         self.municipality_info = get_municipality_info()
 
     def _get_volume_filtered(self, com: str, year:str):
+
         return self.volumes_data.filter((pl.col("DES_COMUNE") == com) & (pl.col("ANNO") == year))
 
     def _get_prices_filtered(self, com: str, month_year:str):

@@ -49,21 +49,51 @@
     }
   },
   "chart": {
+    "check": "Spunta ",
+    "usingMortgage": "\"Utilizzi un mutuo?\" ",
+    "and": "e",
     "insert": "Inserisci ",
     "mortgageDurationTAEG": "Importo Mutuo, Durata e TAEG ",
     "mortgageTAEG": "Importo Mutuo e TAEG ",
     "DurationTAEG": "Durata mutuo e TAEG ",
-    "toVisualize": "per visualizzare il grafico."
+    "toVisualize": "per visualizzare il grafico.",
+    "interestBarChart": {
+      "interests": "Interessi",
+      "capital": "Capitale"
+    },
+    "lineChart": {
+      "label": "Mutuo {years} anni",
+      "capital": "Capital",
+      "text": "Patrimonio Posseduto (€)"
+    },
+    "cashVsMortgageChart": {
+      "cash": "Cash",
+      "label": "{mortgage_percentage}% Mutuo",
+      "text": "Patrimonio Posseduto (€)"
+    }
   },
   "mortgage": {
-    "comparison": "Come cresce il mio/nostro patrimonio con il mutuo selezionato, ma con diverse durate?",
+    "question": {
+      "how": "Come cresce il mio/nostro ",
+      "wealth": "patrimonio ",
+      "with": "con il ",
+      "mortgage": "mutuo selezionato",
+      "end": ", ma con diverse durate?"
+    },
     "mortgage10": "Mutuo 10 Anni",
     "mortgage20": "Mutuo 20 Anni",
     "mortgage30": "Mutuo 30 Anni",
-    "installment": "rata"
+    "installment": "rata",
+    "futureWealth": "Patrimonio fra {years} anni",
+    "installmentTooHigh": "Rata del mutuo troppo alta!"
   },
   "cashVsMortgage": {
-    "question": "Mi conviene pagare tutto cash oppure prendere un mutuo?",
+    "question": {
+      "how": "Mi conviene pagare tutto ",
+      "cash": "cash ",
+      "otherwise": "oppure prendere un ",
+      "mortgage": "mutuo?"
+    },
     "cash": "Cash",
     "mortgage25": "Mutuo {duration} Anni (25%)",
     "mortgage50": "Mutuo {duration} Anni (50%)",
@@ -74,8 +104,49 @@
     "savingRate": "Di cui riesco/amo a risparmiare un...",
     "investmentReturn": "Quanto fruttano i risparmi ogni anno?"
   },
-  "loading": "Caricamento...",
-  "years": "A",
-  "percentage": "%",
-  "currency": "€"
+  "prices": {
+    "question": {
+      "how": "Quanto ",
+      "costs": "costano ",
+      "houses": "le case nella mia ",
+      "zone": "zona?"
+    },
+    "select": "Seleziona",
+    "findMunicipality": "Cerca comune...",
+    "municipality": "Comune",
+    "municipalityFirst": "Prima scegli comune",
+    "area": "Zona",
+    "areaFirst": "Prima scegli zona",
+    "type": "Tipologia",
+    "typeFirst": "Prima scegli tipologia",
+    "conservation": "Conservazione",
+    "conservationFirst": "Prima scegli conservazione",
+    "m2": "m²",
+    "calculate": "Calculate",
+    "results": "Search results",
+    "newSearch": "New Search",
+    "houseAvgPrice": "House Average Price",
+    "priceRange": "Price range",
+    "marketSize": "Dimensione del Mercato",
+    "trend": "Andamento storico",
+    "volume": "Volume",
+    "price": "Prezzo",
+    "minPrice": "Prezzo Minimo m² (€)",
+    "maxPrice": "Prezzo Massimo m² (€)",
+    "volumeBuySell": "Volume Compravendite"
+  },
+  "navBar": {
+    "recap": "Riepilogo",
+    "costsDetail": "Dettaglio Costi",
+    "mortgage": "Mutuo",
+    "durationCompare": "Comparatore durata",
+    "cashCompare": "Cash vs Mutuo",
+    "prices": "Prezzi"
+  },
+  "categories": {
+    "taxes": "Tasse",
+    "agency": "Agenzia",
+    "notary": "Notaio",
+    "bank": "Banca"
+  }
 }

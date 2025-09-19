@@ -3,6 +3,7 @@
     import { onMount, tick } from "svelte";
     import * as Chart from "chart.js";
     import CustomButton from "../assets/CustomButton.svelte";
+    import { _ } from "svelte-i18n";
 
     let selectedComune: string = "";
     let selectedZona: string = "";
@@ -112,7 +113,7 @@
                     labels: priceVolumesData.volume_trend.labels,
                     datasets: [
                         {
-                            label: "Volume Compravendite",
+                            label: $_("prices.volumeBuySell"),
                             data: volumeData,
                             borderColor: "#a855f7",
                             backgroundColor: "rgba(168, 85, 247, 0.1)",
@@ -161,7 +162,7 @@
                     labels: priceVolumesData.price_trend.labels,
                     datasets: [
                         {
-                            label: "Prezzo Minimo m² (€)",
+                            label: $_("prices.minPrice"),
                             data: priceVolumesData.price_trend.datasets[0].data,
                             borderColor: "#10b981",
                             backgroundColor: "rgba(16, 185, 129, 0.1)",
@@ -175,7 +176,7 @@
                             pointHoverRadius: 8,
                         },
                         {
-                            label: "Prezzo Massimo m² (€)",
+                            label: $_("prices.maxPrice"),
                             data: priceVolumesData.price_trend.datasets[1].data,
                             borderColor: "#ef4444",
                             backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -336,7 +337,7 @@
 
     function getZoneOptions() {
         zoneOptions = [];
-        const zoneSet = new Set<string>(); // or Set<any> if not string
+        const zoneSet = new Set<string>();
         comuniInfo.forEach((prop) => {
             zoneSet.add(prop[1]);
         });
@@ -345,7 +346,7 @@
 
     function getTypeOptions(zona: string) {
         tipologieOptions = [];
-        const tipologieSet = new Set<string>(); // or Set<any> if not string
+        const tipologieSet = new Set<string>();
         comuniInfo.forEach((prop) => {
             if (prop[1] == zona) {
                 tipologieSet.add(prop[2]);
@@ -354,11 +355,11 @@
         tipologieOptions = Array.from(tipologieSet);
     }
 
-    function getStatoOptions(zona: string) {
+    function getStatoOptions(zona: string, type: string) {
         statoOptions = [];
-        const statoSet = new Set<string>(); // or Set<any> if not string
+        const statoSet = new Set<string>();
         comuniInfo.forEach((prop) => {
-            if (prop[2] == zona) {
+            if (prop[1] == zona && prop[2] == type) {
                 statoSet.add(prop[3]);
             }
         });
@@ -431,9 +432,9 @@
         selectedStato = "";
     }
 
-    function selectTipologia(zona: string): void {
+    function selectTipologia(type: string): void {
         tipologiaChange();
-        getStatoOptions(zona);
+        getStatoOptions(selectedZona, type);
     }
 
     onMount(async () => {
@@ -466,9 +467,14 @@
             <h2
                 class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-4"
             >
-                Quanto <span class="font-bold text-purple-400">costano</span>
-                le case nella mia
-                <span class="font-bold text-purple-400">zona</span>?
+                {$_("prices.question.how")}
+                <span class="font-bold text-purple-400"
+                    >{$_("prices.question.costs")}</span
+                >
+                {$_("prices.question.houses")}
+                <span class="font-bold text-purple-400"
+                    >{$_("prices.question.zone")}</span
+                >
             </h2>
 
             <!-- Form Fields - Stacked Layout for narrow panel -->
@@ -481,7 +487,7 @@
                             >1</span
                         >
                         <h3 class="font-bold text-white text-sm text-left">
-                            Comune
+                            {$_("prices.municipality")}
                         </h3>
                         {#if selectedComune}
                             <svg
@@ -503,7 +509,7 @@
                             class="w-full border rounded-lg px-4 py-3 text-white bg-transparent focus:outline-none placeholder-gray-300 text-sm {validationErrors.comune
                                 ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                                 : 'border-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20'}"
-                            placeholder="Cerca comune..."
+                            placeholder={$_("prices.findMunicipality")}
                             bind:value={selectedComune}
                             on:input={filterComuni}
                             on:focus={() => (showComuniDropdown = true)}
@@ -544,7 +550,7 @@
                                     ? 'text-white'
                                     : 'text-gray-400'}"
                             >
-                                Zona
+                                {$_("prices.area")}
                             </h3>
                             {#if selectedZona}
                                 <svg
@@ -577,8 +583,8 @@
                             >
                                 <option value="" class="text-black bg-white">
                                     {selectedComune
-                                        ? "Seleziona"
-                                        : "Prima scegli comune"}
+                                        ? $_("prices.select")
+                                        : $_("prices.municipalityFirst")}
                                 </option>
                                 {#each zoneOptions as zona}
                                     <option
@@ -622,7 +628,7 @@
                                     ? 'text-white'
                                     : 'text-gray-400'}"
                             >
-                                Tipologia
+                                {$_("prices.type")}
                             </h3>
                             {#if selectedTipologia}
                                 <svg
@@ -655,8 +661,8 @@
                             >
                                 <option value="" class="text-black bg-white">
                                     {selectedZona
-                                        ? "Seleziona"
-                                        : "Prima scegli zona"}
+                                        ? $_("prices.select")
+                                        : $_("prices.areaFirst")}
                                 </option>
                                 {#each tipologieOptions as tipologia}
                                     <option
@@ -703,7 +709,7 @@
                                     ? 'text-white'
                                     : 'text-gray-400'}"
                             >
-                                Stato
+                                {$_("prices.conservation")}
                             </h3>
                             {#if selectedStato}
                                 <svg
@@ -731,8 +737,8 @@
                             >
                                 <option value="" class="text-black bg-white">
                                     {selectedTipologia
-                                        ? "Seleziona"
-                                        : "Prima scegli tipologia"}
+                                        ? $_("prices.select")
+                                        : $_("prices.typeFirst")}
                                 </option>
                                 {#each statoOptions as stato}
                                     <option
@@ -776,7 +782,7 @@
                                     ? 'text-white'
                                     : 'text-gray-400'}"
                             >
-                                m²
+                                {$_("prices.m2")}
                             </h3>
                             {#if selectedMq}
                                 <svg
@@ -803,7 +809,7 @@
                             max="500"
                             placeholder={selectedStato
                                 ? "120"
-                                : "Prima scegli stato"}
+                                : $_("prices.conservationFirst")}
                             bind:value={selectedMq}
                             disabled={!selectedStato}
                             on:input={() => {
@@ -839,7 +845,7 @@
                 <!-- Calculate Button -->
                 <div class="pt-2">
                     <CustomButton
-                        title={"Calcola"}
+                        title={$_("prices.calculate")}
                         onClick={() => {
                             // Reset previous validation errors
                             validationErrors = {
@@ -929,7 +935,7 @@
                 <!-- Header with back button -->
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="font-bold text-white text-xl">
-                        Risultati Analisi
+                        {$_("prices.results")}
                     </h2>
                     <button
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
@@ -938,7 +944,7 @@
                             priceVolumesData = null;
                         }}
                     >
-                        Nuova Ricerca
+                        {$_("prices.newSearch")}
                     </button>
                 </div>
 
@@ -954,7 +960,7 @@
                                 <h3
                                     class="text-purple-300 text-sm font-medium mb-2"
                                 >
-                                    Prezzo Medio Immobile
+                                    {$_("prices.houseAvgPrice")}
                                 </h3>
                                 <div class="text-white text-5xl font-bold mb-1">
                                     {(
@@ -965,11 +971,12 @@
                                     ).toLocaleString("it-IT")} €
                                 </div>
                                 <div class="text-gray-400 text-sm">
-                                    {selectedMq} m² • €{(
+                                    {selectedMq}
+                                    {$_("prices.m2")} • €{(
                                         (priceVolumesData.current_max_price +
                                             priceVolumesData.current_min_price) /
                                         2
-                                    ).toLocaleString("it-IT")}/m²
+                                    ).toLocaleString("it-IT")}/{$_("prices.m2")}
                                 </div>
                             </div>
 
@@ -1003,7 +1010,7 @@
                                     </div>
                                 </div>
                                 <div class="text-center text-xs text-gray-400">
-                                    Range di prezzo
+                                    {$_("prices.priceRange")}
                                 </div>
                             </div>
                         </div>
@@ -1018,7 +1025,7 @@
                             <h3
                                 class="text-purple-300 text-sm font-medium mb-2"
                             >
-                                Dimensione del Mercato<br />{selectedComune}
+                                {$_("prices.marketSize")}<br />{selectedComune}
                             </h3>
 
                             <div
@@ -1040,7 +1047,8 @@
 
                         <!-- Volume Details -->
                         <div class="text-gray-400 text-sm mt-1">
-                            Volume <br />{priceVolumesData.mq_range}
+                            {$_("prices.volume")}<br
+                            />{priceVolumesData.mq_range}
                         </div>
                         <div class="text-white text-2xl font-bold mt-2">
                             {priceVolumesData.current_volume_mq.toLocaleString(
@@ -1050,7 +1058,9 @@
                     </div>
                 </div>
 
-                <h2 class="font-bold text-white text-xl">Andamento storico</h2>
+                <h2 class="font-bold text-white text-xl">
+                    {$_("prices.trend")}
+                </h2>
                 <!-- Chart Section -->
                 <div
                     class="bg-gradient-to-br from-white/5 to-transparent rounded-lg"
@@ -1065,7 +1075,7 @@
                                 class:text-gray-300={chartType !== "prices"}
                                 on:click={() => (chartType = "prices")}
                             >
-                                Prezzi
+                                {$_("prices.price")}
                             </button>
                             <button
                                 class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
@@ -1074,7 +1084,7 @@
                                 class:text-gray-300={chartType !== "volume"}
                                 on:click={() => (chartType = "volume")}
                             >
-                                Volume
+                                {$_("prices.volume")}
                             </button>
                         </div>
                     </div>

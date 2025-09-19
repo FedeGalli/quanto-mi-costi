@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query
 import data_manager as dm
 from fastapi.middleware.cors import CORSMiddleware
 
-data_manager = dm.DataManager()
+data = dm.DataManager()
 app = FastAPI(title="Houses cost/volumes API")
 
 # Allowed origins GO BACKEND ONLY
@@ -27,11 +27,11 @@ def get_price_volume_data(
     state: str = Query(...),
     mq: int = Query(...)):
 
-    current_market_size = data_manager.get_volume_market_size(com)
-    current_volume_mq = data_manager.get_current_volume_mq(com, mq)
-    current_min_price, current_max_price= data_manager.get_current_price(com, zone, type, state)
-    volume_trend = data_manager.get_volume_trend_mq(com, mq)
-    price_trend = data_manager.get_price_trend(com, zone, type, state)
+    current_market_size = data.get_volume_market_size(com)
+    current_volume_mq = data.get_current_volume_mq(com, mq)
+    current_min_price, current_max_price= data.get_current_price(com, zone, type, state)
+    volume_trend = data.get_volume_trend_mq(com, mq)
+    price_trend = data.get_price_trend(com, zone, type, state)
     mq_range = ""
     for col in volume_trend.columns:
         if 'm²' in col:
@@ -63,7 +63,6 @@ def get_price_volume_data(
             }
         ]
     }
-
     # Return processed data as list of dicts
     return {
         "market_size": current_market_size.to_series().item(),
@@ -78,7 +77,7 @@ def get_price_volume_data(
 
 @app.get("/get-municipalities-info")
 def get_municipalities_info(com: str = Query(...)):
-    info = data_manager.get_municipalities_info(com)
+    info = data.get_municipalities_info(com)
     return {
         "DATA" : info.rows(named=False)
 
@@ -86,7 +85,7 @@ def get_municipalities_info(com: str = Query(...)):
 
 @app.get("/get-municipalities-list")
 def get_municipalities_list():
-    info = data_manager.get_municipalities()
+    info = data.get_municipalities()
     return {
         "DATA" : [t[0] for t in info.rows(named=False)]
     }

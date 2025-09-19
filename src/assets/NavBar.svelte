@@ -4,6 +4,7 @@
     export let selectedTab = "summary";
     export let pro = false;
     export let getProFunction: () => void;
+    import { _ } from "svelte-i18n";
 </script>
 
 <div
@@ -19,7 +20,11 @@
         type="button"
     >
         📊
-        <span><h1 class="text-xs font-bold leading-tight">Riepilogo</h1></span>
+        <span
+            ><h1 class="text-xs font-bold leading-tight">
+                {$_("navBar.recap")}
+            </h1></span
+        >
     </button>
 
     <button
@@ -33,7 +38,7 @@
         📦
         <span
             ><h1 class="text-xs font-bold leading-tight">
-                Dettaglio costi
+                {$_("navBar.costsDetail")}
             </h1></span
         >
     </button>
@@ -48,7 +53,11 @@
         transition:slide={{ duration: 500 }}
     >
         💰
-        <span><h1 class="text-xs font-bold leading-tight">Mutuo</h1></span>
+        <span
+            ><h1 class="text-xs font-bold leading-tight">
+                {$_("navBar.mortgage")}
+            </h1></span
+        >
     </button>
 
     {#if pro}
@@ -64,7 +73,7 @@
             ⚖️
             <span
                 ><h1 class="text-xs font-bold leading-tight">
-                    Comparatore
+                    {$_("navBar.durationCompare")}
                 </h1></span
             >
         </button>
@@ -81,7 +90,7 @@
             🔮
             <span
                 ><h1 class="text-xs font-bold leading-tight">
-                    Cash vs Mutuo
+                    {$_("navBar.cashCompare")}
                 </h1></span
             >
         </button>
@@ -95,8 +104,12 @@
             type="button"
             transition:slide={{ duration: 500 }}
         >
-            📈
-            <span><h1 class="text-xs font-bold leading-tight">Prices</h1></span>
+            🏡
+            <span
+                ><h1 class="text-xs font-bold leading-tight">
+                    {$_("navBar.prices")}
+                </h1></span
+            >
         </button>
     {:else}
         <button

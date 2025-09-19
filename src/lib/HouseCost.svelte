@@ -200,12 +200,20 @@
         Agenzia: "rgba(249, 166, 0, 0.7)",
         Notaio: "rgba(98, 182, 170, 0.7)",
         Banca: "rgba(76, 51, 141, 0.7)",
+        Tax: "rgba(133, 81, 182, 0.7)",
+        Agency: "rgba(249, 166, 0, 0.7)",
+        Notary: "rgba(98, 182, 170, 0.7)",
+        Bank: "rgba(76, 51, 141, 0.7)",
     };
     const categoryBorderColors: Record<string, string> = {
         Tasse: "rgba(133, 81, 182, 1)",
         Agenzia: "rgba(249, 166, 0, 1)",
         Notaio: "rgba(98, 182, 170, 1)",
         Banca: "rgba(76, 51, 141, 1)",
+        Tax: "rgba(133, 81, 182, 1)",
+        Agency: "rgba(249, 166, 0, 1)",
+        Notary: "rgba(98, 182, 170, 1)",
+        Bank: "rgba(76, 51, 141, 1)",
     };
 
     $: displayed_mortgage_amount = mortgage_amount;
@@ -680,12 +688,15 @@
         let categories = Object.keys(chartData);
 
         for (let i = 0; i < categories.length; i++) {
-            if (categories[i] == "Agency") {
-                categories[i] = "Agenzia";
+            if (categories[i] == "Tasse") {
+                categories[i] = $_("categories.taxes");
+            } else if (categories[i] == "Agency") {
+                categories[i] = $_("categories.agency");
             } else if (categories[i] == "Notary") {
-                categories[i] = "Notaio";
-            } else if (categories[i] == "Bank") categories[i] = "Banca";
-            else categories[i] = "Tasse";
+                categories[i] = $_("categories.notary");
+            } else if (categories[i] == "Bank") {
+                categories[i] = $_("categories.bank");
+            }
         }
 
         return categories;
@@ -1073,7 +1084,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: "Patrimonio Posseduto (€)",
+                                text: $_("chart.lineChart.text"),
                             },
                             ticks: {
                                 callback: function (value) {
@@ -1218,7 +1229,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: "Patrimonio Posseduto (€)",
+                                text: $_("chart.cashVsMortgageChart.text"),
                             },
                             ticks: {
                                 callback: function (value) {
@@ -1346,14 +1357,14 @@
         interestsBarChartInstance.data.labels = labels; // Update dataset (values and colors)
         interestsBarChartInstance.data.datasets = [
             {
-                label: "Interessi",
+                label: $_("chart.interestBarChart.interests"),
                 data: interestsData,
                 backgroundColor: ["rgba(249, 166, 0, 0.7)"],
                 borderColor: ["rgba(249, 166, 0, 1)"],
                 borderWidth: 2,
             },
             {
-                label: "Capitale",
+                label: $_("chart.interestBarChart.capital"),
                 data: capitalData,
                 backgroundColor: ["rgba(133, 81, 182, 0.7)"],
                 borderColor: ["rgba(133, 81, 182, 1)"],
@@ -1386,7 +1397,11 @@
         const updatedDatasets = durations.map((duration, idx) => {
             const data = mortgageCompareData[idx]["values"];
             return {
-                label: `Mutuo ${duration} anni`,
+                label: $_("chart.lineChart.label", {
+                    values: {
+                        years: duration,
+                    },
+                }),
                 data,
                 borderColor: [
                     mortgageCompareData[idx]["valid"]
@@ -1443,7 +1458,11 @@
                     label:
                         mortgage_percentage == 0
                             ? `Cash`
-                            : `${mortgage_percentage}% mutuo`,
+                            : $_("chart.cashVsMortgageChart.label", {
+                                  values: {
+                                      mortgage_percentage: mortgage_percentage,
+                                  },
+                              }),
                     data,
                     borderColor: [
                         "rgba(178, 178, 178, 1)",
@@ -2574,18 +2593,30 @@
                                                 <!-- Chart - responsive sizing -->
                                                 <div
                                                     class="w-full h-[300px] sm:h-[350px] relative"
+                                                    transition:slide={{
+                                                        duration: 500,
+                                                    }}
                                                 >
                                                     <div
                                                         class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                                     ></div>
 
-                                                    {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
+                                                    {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null || is_using_mortgage == false}
                                                         <div
                                                             class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
                                                         >
                                                             <p
                                                                 class="text-gray-500 text-sm sm:text-base"
                                                             >
+                                                                {$_(
+                                                                    "chart.check",
+                                                                )}<strong
+                                                                    >{$_(
+                                                                        "chart.usingMortgage",
+                                                                    )}</strong
+                                                                >{$_(
+                                                                    "chart.and",
+                                                                )}<br />
                                                                 {$_(
                                                                     "chart.insert",
                                                                 )}
@@ -2654,10 +2685,9 @@
                                                             <h3
                                                                 class="font-bold text-white text-sm sm:text-base text-center"
                                                             >
-                                                                Quanto
-                                                                guadagno/amo <br
-                                                                />
-                                                                ogni anno?
+                                                                {$_(
+                                                                    "income.yearlyIncome",
+                                                                )}
                                                             </h3>
                                                             <div
                                                                 class="relative"
@@ -2710,10 +2740,9 @@
                                                             <h3
                                                                 class="font-bold text-white text-sm sm:text-base text-center"
                                                             >
-                                                                Di cui
-                                                                riesco/amo a <br
-                                                                />risparmiare
-                                                                un...
+                                                                {$_(
+                                                                    "income.savingRate",
+                                                                )}
                                                             </h3>
                                                             <div
                                                                 class="relative"
@@ -2766,9 +2795,9 @@
                                                             <h3
                                                                 class="font-bold text-white text-sm sm:text-base text-center"
                                                             >
-                                                                Quanto fruttano
-                                                                i risparmi <br
-                                                                />ogni anno?
+                                                                {$_(
+                                                                    "income.investmentReturn",
+                                                                )}
                                                             </h3>
                                                             <div
                                                                 class="relative"
@@ -2802,15 +2831,21 @@
                                                     duration: 500,
                                                 }}
                                             >
-                                                Come cresce il mio/nostro <span
+                                                {$_(
+                                                    "mortgage.question.how",
+                                                )}<span
                                                     class="font-bold text-purple-400"
-                                                    >patrimonio</span
+                                                    >{$_(
+                                                        "mortgage.question.wealth",
+                                                    )}</span
                                                 >
-                                                con
+                                                {$_("mortgage.question.with")}
                                                 <span
                                                     class="font-bold text-purple-400"
-                                                    >il mutuo selezionato</span
-                                                >, ma con diverse durate?
+                                                    >{$_(
+                                                        "mortgage.question.mortgage",
+                                                    )}</span
+                                                >{$_("mortgage.question.end")}
                                             </h2>
                                             <!-- Chart - responsive sizing with subtle enhancement -->
                                             <div
@@ -2823,20 +2858,31 @@
                                                 <div
                                                     class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                                 ></div>
-                                                {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null}
+                                                {#if mortgage_amount == 0 || mortgage_amount == null || taeg == 0 || taeg == null || is_using_mortgage == false}
                                                     <div
                                                         class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
                                                     >
                                                         <p
                                                             class="text-gray-500 text-sm sm:text-base"
                                                         >
-                                                            Inserisci <strong
-                                                                >Importo Mutuo</strong
-                                                            >
-                                                            e
-                                                            <strong>TAEG</strong
-                                                            > per visualizzare il
-                                                            grafico.
+                                                            {$_(
+                                                                "chart.check",
+                                                            )}<strong
+                                                                >{$_(
+                                                                    "chart.usingMortgage",
+                                                                )}</strong
+                                                            >{$_(
+                                                                "chart.and",
+                                                            )}<br />
+                                                            {$_(
+                                                                "chart.insert",
+                                                            )}<strong
+                                                                >{$_(
+                                                                    "chart.mortgageTAEG",
+                                                                )}</strong
+                                                            >{$_(
+                                                                "chart.toVisualize",
+                                                            )}
                                                         </p>
                                                     </div>
                                                 {/if}
@@ -2848,9 +2894,14 @@
                                                         mortgage_amount ==
                                                             null ||
                                                         taeg == 0 ||
-                                                        taeg == null}
+                                                        taeg == null ||
+                                                        is_using_mortgage ==
+                                                            false}
                                                     class:opacity-100={mortgage_amount >
-                                                        0 && taeg > 0}
+                                                        0 &&
+                                                        taeg > 0 &&
+                                                        is_using_mortgage ==
+                                                            true}
                                                 ></canvas>
                                             </div>
 
@@ -2874,7 +2925,9 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth[0]}
-                                                            name={"Mutuo 10 Anni"}
+                                                            name={$_(
+                                                                "mortgage.mortgage10",
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
@@ -2885,8 +2938,20 @@
                                                             secondaryNumber={mortgageCompareData[0][
                                                                 "installment"
                                                             ] / 12}
-                                                            secondaryLabel={"rata"}
-                                                            years={30}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_durations[0],
+                                                                    },
+                                                                },
+                                                            )}
+                                                            installmentTooHigh={$_(
+                                                                "mortgage.installmentTooHigh",
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -2903,7 +2968,9 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth[1]}
-                                                            name={"Mutuo 20 Anni"}
+                                                            name={$_(
+                                                                "mortgage.mortgage20",
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
@@ -2914,8 +2981,20 @@
                                                             secondaryNumber={mortgageCompareData[1][
                                                                 "installment"
                                                             ] / 12}
-                                                            secondaryLabel={"rata"}
-                                                            years={30}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_durations[1],
+                                                                    },
+                                                                },
+                                                            )}
+                                                            installmentTooHigh={$_(
+                                                                "mortgage.installmentTooHigh",
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -2932,7 +3011,9 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth[2]}
-                                                            name={"Mutuo 30 Anni"}
+                                                            name={$_(
+                                                                "mortgage.mortgage30",
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
@@ -2943,8 +3024,20 @@
                                                             secondaryNumber={mortgageCompareData[2][
                                                                 "installment"
                                                             ] / 12}
-                                                            secondaryLabel={"rata"}
-                                                            years={30}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_durations[2],
+                                                                    },
+                                                                },
+                                                            )}
+                                                            installmentTooHigh={$_(
+                                                                "mortgage.installmentTooHigh",
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -2974,8 +3067,9 @@
                                                         <h3
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
-                                                            Quanto guadagno/amo <br
-                                                            />ogni anno?
+                                                            {$_(
+                                                                "income.yearlyIncome",
+                                                            )}
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -3024,8 +3118,9 @@
                                                         <h3
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
-                                                            Di cui riesco/amo a <br
-                                                            />risparmiare un...
+                                                            {$_(
+                                                                "income.savingRate",
+                                                            )}
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -3074,9 +3169,9 @@
                                                         <h3
                                                             class="font-bold text-white text-sm sm:text-base text-center"
                                                         >
-                                                            Quanto fruttano i
-                                                            risparmi <br />ogni
-                                                            anno?
+                                                            {$_(
+                                                                "income.investmentReturn",
+                                                            )}
                                                         </h3>
                                                         <div class="relative">
                                                             <input
@@ -3107,15 +3202,23 @@
                                                     duration: 500,
                                                 }}
                                             >
-                                                Mi conviene pagare tutto <span
+                                                {$_(
+                                                    "cashVsMortgage.question.how",
+                                                )}<span
                                                     class="font-bold text-purple-400"
-                                                    >cash</span
+                                                    >{$_(
+                                                        "cashVsMortgage.question.cash",
+                                                    )}</span
                                                 >
-                                                oppure prendere un
+                                                {$_(
+                                                    "cashVsMortgage.question.otherwise",
+                                                )}
                                                 <span
                                                     class="font-bold text-purple-400"
-                                                    >mutuo</span
-                                                >?
+                                                    >{$_(
+                                                        "cashVsMortgage.question.mortgage",
+                                                    )}</span
+                                                >
                                             </h2>
 
                                             <!-- Chart -->
@@ -3129,21 +3232,30 @@
                                                     class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-lg -z-10"
                                                 ></div>
 
-                                                {#if taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null}
+                                                {#if taeg == 0 || taeg == null || mortgage_duration == 0 || mortgage_duration == null || is_using_mortgage == false}
                                                     <div
                                                         class="absolute inset-0 flex items-center justify-center text-center px-4 z-10"
                                                     >
                                                         <p
                                                             class="text-gray-500 text-sm sm:text-base"
                                                         >
-                                                            Inserisci
+                                                            {$_(
+                                                                "chart.check",
+                                                            )}<strong
+                                                                >{$_(
+                                                                    "chart.usingMortgage",
+                                                                )}</strong
+                                                            >{$_(
+                                                                "chart.and",
+                                                            )}<br />
+                                                            {$_("chart.insert")}
                                                             <strong
-                                                                >Durata mutuo</strong
-                                                            >
-                                                            e
-                                                            <strong>TAEG</strong
-                                                            > per visualizzare il
-                                                            grafico.
+                                                                >{$_(
+                                                                    "chart.DurationTAEG",
+                                                                )}</strong
+                                                            >{$_(
+                                                                "chart.toVisualize",
+                                                            )}
                                                         </p>
                                                     </div>
                                                 {/if}
@@ -3156,10 +3268,14 @@
                                                         mortgage_duration ==
                                                             0 ||
                                                         mortgage_duration ==
-                                                            null}
+                                                            null ||
+                                                        is_using_mortgage ==
+                                                            false}
                                                     class:opacity-100={taeg >
                                                         0 &&
-                                                        mortgage_duration > 0}
+                                                        mortgage_duration > 0 &&
+                                                        is_using_mortgage ==
+                                                            true}
                                                 ></canvas>
                                             </div>
 
@@ -3181,15 +3297,26 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth_cash_vs_mortgage[0]}
-                                                            name={"Cash"}
+                                                            name={$_(
+                                                                "cashVsMortgage.cash",
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
                                                             color={"rgba(178, 178, 178, 1)"}
                                                             isValid={true}
-                                                            years={mortgage_duration}
-                                                            secondaryLabel={"rata"}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
                                                             secondaryNumber={wealth_cash_vs_mortgage_installments[0]}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -3205,15 +3332,32 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth_cash_vs_mortgage[1]}
-                                                            name={`Mutuo ${mortgage_duration} Anni (25%)`}
+                                                            name={$_(
+                                                                "cashVsMortgage.mortgage25",
+                                                                {
+                                                                    values: {
+                                                                        duration:
+                                                                            mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
                                                             color={"rgba(98, 182, 170, 1)"}
                                                             isValid={true}
-                                                            years={mortgage_duration}
-                                                            secondaryLabel={"rata"}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
                                                             secondaryNumber={wealth_cash_vs_mortgage_installments[1]}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -3229,15 +3373,32 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth_cash_vs_mortgage[2]}
-                                                            name={`Mutuo ${mortgage_duration} Anni (50%)`}
+                                                            name={$_(
+                                                                "cashVsMortgage.mortgage50",
+                                                                {
+                                                                    values: {
+                                                                        duration:
+                                                                            mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
                                                             color={"rgba(133, 81, 182, 1)"}
                                                             isValid={true}
-                                                            years={mortgage_duration}
-                                                            secondaryLabel={"rata"}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
                                                             secondaryNumber={wealth_cash_vs_mortgage_installments[2]}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
@@ -3253,15 +3414,32 @@
                                                         ></div>
                                                         <ColoredSummaryPrice
                                                             number={wealth_cash_vs_mortgage[3]}
-                                                            name={`Mutuo ${mortgage_duration} Anni (80%)`}
+                                                            name={$_(
+                                                                "cashVsMortgage.mortgage80",
+                                                                {
+                                                                    values: {
+                                                                        duration:
+                                                                            mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                             showVal={mortgageInstallment !=
                                                                 null}
                                                             delta={null}
                                                             color={"rgba(249, 166, 0, 1)"}
                                                             isValid={true}
-                                                            years={mortgage_duration}
-                                                            secondaryLabel={"rata"}
+                                                            secondaryLabel={$_(
+                                                                "mortgage.installment",
+                                                            )}
                                                             secondaryNumber={wealth_cash_vs_mortgage_installments[3]}
+                                                            thirdLabel={$_(
+                                                                "mortgage.futureWealth",
+                                                                {
+                                                                    values: {
+                                                                        years: mortgage_duration,
+                                                                    },
+                                                                },
+                                                            )}
                                                         />
                                                     </div>
                                                 </div>
