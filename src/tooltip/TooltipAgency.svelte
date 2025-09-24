@@ -1,6 +1,7 @@
 <script lang="ts">
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
+    import { _ } from "svelte-i18n";
 </script>
 
 <!-- Tooltip (Overlay) -->
@@ -21,56 +22,47 @@
     </button>
     <div class="space-y-6">
         <h2 class="text-4xl font-bold leading-tight">
-            Come capire se la vedita è curata da un <span
-                class="text-purple-400">agenzia</span
-            >?
+            {$_("tooltip.agency.title.how")}
+            <span class="text-purple-400"
+                >{$_("tooltip.agency.title.agency")}</span
+            >
         </h2>
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">1.</span> Controllare approfonditamente
-            l'annuncio dell'immobile
+            <span class="text-purple-400">1. </span>
+            {$_("tooltip.agency.paragraph1.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                Se l’annuncio riporta il nome dell’agenzia (es. Tecnocasa,
-                Gabetti, Remax, ecc.) o contatti con email tipo
-                “@agenziaimmobiliare.it”, quasi sicuramente è tramite agenzia.
+                {$_("tooltip.agency.paragraph1.bullet1")}
             </li>
             <li>
-                Spesso c’è scritto anche “si richiede provvigione” o “trattativa
-                tramite agenzia”.
+                {$_("tooltip.agency.paragraph1.bullet2")}
             </li>
         </ul>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">2.</span> Best practice
+            <span class="text-purple-400">2. </span>
+            {$_("tooltip.agency.paragraph2.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                E' sempre buona pratica, quando si contatta l'inserzionista
-                dell'annuncio, chiedere esplicitamente se la vendita è fra
-                "privati" oppure "tramite agenzia".
+                {$_("tooltip.agency.paragraph2.bullet1")}
             </li>
             <li>
-                Chiedere sempre a quanto ammonta la percentuale di provvigione
-                dell'agenzia e verificare quando è dovuto il pagamento di tale
-                importo.
+                {$_("tooltip.agency.paragraph2.bullet2")}
             </li>
         </ul>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">3.</span> Pagamento dell'importo
+            <span class="text-purple-400">3. </span>
+            {$_("tooltip.agency.paragraph3.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                Attenzione che alcune agenzie vincolano il pagamento della
-                provigione durante l'atto preliminare di vendita e non durante
-                il rogito. Pertanto se il rogito non dovesse andare a buon fine
-                (per esempio la parte venditrice/acquirente si ritira dalla
-                vendita, oppure non viene concesso il mutuo) il pagamento
-                all'agenzia è comunque dovuto!
+                {$_("tooltip.agency.paragraph3.bullet1")}
             </li>
         </ul>
     </div>

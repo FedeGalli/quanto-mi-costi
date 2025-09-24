@@ -11,8 +11,8 @@ export function switchLanguage(newLocale: string) {
 }
 
 export const languages = [
-  { code: "en", name: "English" },
-  { code: "it", name: "Italiano" },
+  { code: "en", name: "🇬🇧 English" },
+  { code: "it", name: "🇮🇹 Italiano" },
 ];
 
 // Get initial locale from localStorage or browser

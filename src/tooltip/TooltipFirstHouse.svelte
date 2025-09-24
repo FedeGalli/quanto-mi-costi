@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from "svelte-i18n";
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
 </script>
@@ -21,43 +22,39 @@
     </button>
     <div class="space-y-6">
         <h2 class="text-4xl font-bold leading-tight">
-            Hai l'agevolazione <span class="text-purple-400">prima casa</span>
-            se...
+            {$_("tooltip.firstHouse.title.do")}<span class="text-purple-400"
+                >{$_("tooltip.firstHouse.title.first")}</span
+            >
+            {$_("tooltip.firstHouse.title.if")}
         </h2>
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">1.</span> Requisiti sull'immobile acquistato
+            <span class="text-purple-400">1. </span>
+            {$_("tooltip.firstHouse.paragraph1.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                Non appartenere alle categorie catastali di lusso: quindi NO A1
-                (abitazioni signorili), A8 (ville), A9 (castelli).
+                {$_("tooltip.firstHouse.paragraph1.bullet1")}
             </li>
             <li>
-                Essere ubicato nel comune dove hai o avrai la residenza (entro
-                18 mesi dall'acquisto).
+                {$_("tooltip.firstHouse.paragraph1.bullet2")}
             </li>
             <li>
-                Se vendi la casa acquistata con agevolazioni entro 5 anni, per
-                non perdere il beneficio devi riacquistare entro 1 anno un'altra
-                prima casa.
+                {$_("tooltip.firstHouse.paragraph1.bullet3")}
             </li>
         </ul>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">2.</span> Requisiti personali dell’acquirente
+            <span class="text-purple-400">2. </span>
+            {$_("tooltip.firstHouse.paragraph2.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                Non deve essere titolare, esclusivo o in comunione con il
-                coniuge, di altra abitazione nel territorio del comune dove si
-                trova l’immobile.
+                {$_("tooltip.firstHouse.paragraph2.bullet1")}
             </li>
             <li>
-                Non deve possedere altri immobili acquistati con le agevolazioni
-                prima casa, su tutto il territorio nazionale, a meno che li
-                venda entro 12 mesi dall’acquisto della nuova casa.
+                {$_("tooltip.firstHouse.paragraph2.bullet2")}
             </li>
         </ul>
     </div>

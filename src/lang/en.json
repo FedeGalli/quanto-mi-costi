@@ -150,5 +150,130 @@
     "agency": "Agency",
     "notary": "Notary",
     "bank": "Bank"
+  },
+  "general": {
+    "language": "Language:"
+  },
+  "tooltip": {
+    "agency": {
+      "title": {
+        "how": "How to understand if the sale is handled by an ",
+        "agency": "agency?"
+      },
+      "paragraph1": {
+        "title": "Check the property listing thoroughly",
+        "bullet1": "If the listing shows the agency name (e.g. Tecnocasa, Gabetti, Remax, etc.) or contacts with emails like \"@realestateagency.it\", it's almost certainly through an agency.",
+        "bullet2": "Often it also says \"commission required\" or \"transaction through agency\"."
+      },
+      "paragraph2": {
+        "title": "Best practice",
+        "bullet1": "It's always good practice, when contacting the listing advertiser, to explicitly ask if the sale is between \"private parties\" or \"through an agency\".",
+        "bullet2": "Always ask what the agency commission percentage is and verify when payment of this amount is due."
+      },
+      "paragraph3": {
+        "title": "Payment of the amount",
+        "bullet1": "Be careful that some agencies require commission payment during the preliminary sales agreement and not at the time of the deed. Therefore, if the deed does not go through successfully (for example the seller/buyer withdraws from the sale, or the mortgage is not granted) payment to the agency is still due!"
+      }
+    },
+    "firstHouse": {
+      "title": {
+        "do": "You have the ",
+        "first": "first home ",
+        "if": "benefit if..."
+      },
+      "paragraph1": {
+        "title": "Requirements for the purchased property",
+        "bullet1": "Must not belong to luxury cadastral categories: so NO to A1 (luxury homes), A8 (villas), A9 (castles).",
+        "bullet2": "Must be located in the municipality where you have or will have residency (within 18 months of purchase).",
+        "bullet3": "If you sell the house purchased with benefits within 5 years, to not lose the benefit you must repurchase another first home within 1 year."
+      },
+      "paragraph2": {
+        "title": "Requirements for the buyer",
+        "bullet1": "Must not be the owner, exclusively or jointly with spouse, of another dwelling in the territory of the municipality where the property is located.",
+        "bullet2": "Must not own other properties purchased with first home benefits, throughout the national territory, unless they sell them within 12 months of purchasing the new home."
+      }
+    },
+    "mortgage": {
+      "title": {
+        "info": "Main information for a ",
+        "mortgage": "mortgage ",
+        "dots": "..."
+      },
+      "paragraph1": {
+        "title": "Mortgage amount:",
+        "bullet1": "The total capital requested from the bank."
+      },
+      "paragraph2": {
+        "title": "Duration (Years)",
+        "bullet1": "The time required to repay the requested capital."
+      },
+      "paragraph3": {
+        "title": "APR:",
+        "bullet1": "The annual interest rate applied to the remaining capital to be repaid. APR, unlike the nominal rate, includes all actual costs that are applied, including insurance costs for mandatory fire insurance policies/life insurance policies."
+      },
+      "paragraph4": {
+        "title": "To increase the chances of obtaining a mortgage:",
+        "subParagraph1": {
+          "title": "Income and repayment capacity",
+          "bullet1": {
+            "title": "Job stability: ",
+            "content": "Permanent employment for at least 6–12 months. In case of self-employment or VAT number, at least 2 years of activity with stable declared income is required."
+          },
+          "bullet2": {
+            "title": "Installment/income ratio: ",
+            "content": "The monthly mortgage payment must not exceed 30–35% of the monthly net family income."
+          },
+          "bullet3": {
+            "title": "Aggregate family income: ",
+            "content": "If there are multiple mortgage holders, the total income is considered."
+          }
+        },
+        "subParagraph2": {
+          "title": "Applicant's age",
+          "bullet1": "Generally, the mortgage must end before the applicant reaches 75–80 years of age."
+        },
+        "subParagraph3": {
+          "title": "Requested amount and property value",
+          "bullet1": {
+            "title": "LTV (Loan-to-Value) ratio: ",
+            "content": "The mortgage amount is calculated against the property value. Usually banks finance up to 80% of the appraisal value."
+          },
+          "bullet2": {
+            "title": "Land registry and mortgages: ",
+            "content": "The property must be properly registered in the land registry, free from previous mortgages and in good condition."
+          }
+        },
+        "subParagraph4": {
+          "title": "Credit reliability",
+          "bullet1": {
+            "title": "Credit situation check: ",
+            "content": "Banks consult databases to verify if you have other ongoing loans and any payment delays."
+          },
+          "bullet2": {
+            "title": "Credit history: ",
+            "content": "Having a previous history of regular payments or mortgages/loans completely repaid without issues increases your credibility and reliability in the bank's eyes."
+          }
+        }
+      }
+    },
+    "vat": {
+      "title": {
+        "pay": "You pay ",
+        "vat": "VAT ",
+        "if": "if..."
+      },
+      "paragraph1": {
+        "title": "Requirements for the purchased property",
+        "bullet1": "You buy the property from a construction or renovation company within 5 years from the completion of the work (construction or renovation).",
+        "bullet2": "Even after 5 years, but only if the company chooses to subject the sale to VAT (it's optional, but must be indicated in the deed).",
+        "bullet3": "The payment of VAT, provided the conditions just mentioned are respected, is still due even when using an intermediary such as a real estate agency."
+      }
+    }
+  },
+  "error": {
+    "api": {
+      "rateLimit": "Hey, too many requests, slow down and try again in a few seconds.",
+      "genericError": "Something went wrong. Try again in a few seconds."
+    }
   }
 }

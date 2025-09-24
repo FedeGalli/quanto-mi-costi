@@ -1505,21 +1505,6 @@
     <div
         class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
     >
-        <div class="language-switcher">
-            <label for="language-select">{$_("language")}:</label>
-            <select
-                id="language-select"
-                bind:value={$locale}
-                on:change={(e) => {
-                    switchLanguage(e.target.value);
-                }}
-            >
-                {#each languages as lang}
-                    <option value={lang.code}>{lang.name}</option>
-                {/each}
-            </select>
-        </div>
-
         <!-- Top Navigation Area -->
         <div class="fixed top-4 left-0 right-4 z-50 px-4">
             <div class="flex items-start justify-end gap-4">
@@ -1562,13 +1547,12 @@
                             transition:slide={{ duration: 300 }}
                             class="overflow-hidden"
                         >
-                            <div
+                            <button
+                                on:click={() => (showNamePopup = true)}
                                 class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200 text-purple-800"
                             >
-                                <button on:click={() => (showNamePopup = true)}>
-                                    {$_("house.save")}
-                                </button>
-                            </div>
+                                {$_("house.save")}
+                            </button>
                         </div>
                         <!-- Stylish Name Input Popup -->
                         {#if showNamePopup}
@@ -1897,6 +1881,30 @@
                 </div>
             </div>
         </div>
+
+        {#if showRateLimitPopup || showErrorPopup}
+            <div
+                class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg z-50 transition-all duration-300 animate-fadeInDown max-w-[90vw]"
+                transition:slide={{ duration: 300 }}
+            >
+                <div class="flex items-center justify-between gap-2 sm:gap-4">
+                    <span class="text-sm sm:text-base"
+                        >{showRateLimitPopup
+                            ? $_("error.api.rateLimit")
+                            : $_("error.api.genericError")}
+                    </span>
+                    <button
+                        on:click={() => {
+                            showRateLimitPopup = false;
+                            showErrorPopup = false;
+                        }}
+                        class="text-white hover:text-red-200 font-bold text-lg leading-none min-w-[24px]"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
+        {/if}
 
         <!-- Mobile-first responsive container -->
         <div
@@ -3467,6 +3475,63 @@
             </div>
         </div>
     </div>
+    <footer class="w-full bg-[#1e1f25] border-t border-white/20">
+        <div class="w-full px-4 sm:px-6 py-3">
+            <div
+                class="flex flex-col sm:flex-row justify-between items-center gap-3"
+            >
+                <!-- Language Switcher -->
+                <div
+                    class="language-switcher flex items-center gap-2 text-white text-sm"
+                >
+                    <label for="language-select" class="font-medium">
+                        {$_("general.language")}
+                    </label>
+                    <select
+                        id="language-select"
+                        bind:value={$locale}
+                        on:change={(e) => {
+                            switchLanguage(e.target.value);
+                        }}
+                        class="bg-white/20 backdrop-blur-sm border border-white/30 rounded-md px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-transparent [&>option]:bg-gray-800 [&>option]:text-white"
+                    >
+                        {#each languages as lang}
+                            <option
+                                value={lang.code}
+                                class="bg-gray-800 text-white"
+                            >
+                                {lang.name}
+                            </option>
+                        {/each}
+                    </select>
+                </div>
+
+                <!-- Support Email -->
+                <div class="flex items-center gap-2 text-white text-sm">
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                    </svg>
+                    <span>support:</span>
+                    <a
+                        href="mailto:asd"
+                        class="text-purple-300 hover:text-purple-200 transition-colors duration-200"
+                    >
+                        asd
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
 {/if}
 
 <style></style>
