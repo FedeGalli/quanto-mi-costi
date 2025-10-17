@@ -1,13 +1,13 @@
 steps:
-  # Build using Google Cloud Buildpacks
-  - name: "gcr.io/k8s-skaffold/pack"
-    entrypoint: "pack"
+  # Build using Dockerfile
+  - name: "gcr.io/cloud-builders/docker"
     args:
       - "build"
+      - "-t"
       - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
-      - "--builder=gcr.io/buildpacks/builder:google-22"
-      - "--path=."
-      - "--env=GOOGLE_ENTRYPOINT=./server"
+      - "-f"
+      - "Dockerfile"
+      - "."
 
   # Push the image
   - name: "gcr.io/cloud-builders/docker"
