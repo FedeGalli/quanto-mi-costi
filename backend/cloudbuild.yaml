@@ -1,22 +1,26 @@
 steps:
-  # Build using Dockerfile
+  # Build image
   - name: "gcr.io/cloud-builders/docker"
     args:
-      - "build"
-      - "-t"
-      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
-      - "-f"
-      - "Dockerfile"
-      - "."
+      [
+        "build",
+        "-t",
+        "europe-west4-docker.pkg.dev/${PROJECT_ID}/firebaseapphosting-images/backend-go:${BUILD_ID}",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
 
-  # Push the image
+  # Push image
   - name: "gcr.io/cloud-builders/docker"
     args:
-      - "push"
-      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
+      [
+        "push",
+        "europe-west4-docker.pkg.dev/${PROJECT_ID}/firebaseapphosting-images/backend-go:${BUILD_ID}",
+      ]
 
 images:
-  - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
+  - "europe-west4-docker.pkg.dev/${PROJECT_ID}/firebaseapphosting-images/backend-go:${BUILD_ID}"
 
 options:
   logging: CLOUD_LOGGING_ONLY
