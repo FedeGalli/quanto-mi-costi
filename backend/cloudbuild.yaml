@@ -1,37 +1,22 @@
 steps:
-  # Step 1: Build the Go application
-  - name: "golang:1.22"
-    args: ["go", "build", "-o", "server", "."]
-    env:
-      - "CGO_ENABLED=0"
-      - "GOOS=linux"
-      - "GOARCH=amd64"
-
-  # Step 2: Build the Docker image
-  - name: "gcr.io/cloud-builders/docker"
+  # Build using Google Cloud Buildpacks
+  - name: "gcr.io/k8s-skaffold/pack"
+    entrypoint: "pack"
     args:
       - "build"
-      - "-t"
       - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
-      - "-t"
-      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
-      - "."
+      - "--builder=gcr.io/buildpacks/builder:google-22"
+      - "--path=."
+      - "--env=GOOGLE_ENTRYPOINT=./server"
 
-  # Step 3: Push the Docker image to Artifact Registry
+  # Push the image
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "push"
       - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
 
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      - "push"
-      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
-
-# Specify the images to be stored
 images:
   - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
-  - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY
