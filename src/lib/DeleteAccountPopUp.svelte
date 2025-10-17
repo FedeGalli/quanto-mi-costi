@@ -1,62 +1,42 @@
 <script lang="ts">
     import { _ } from "svelte-i18n";
 
-    export let isLoadingSaving = false;
-    export let house_name = "";
-    export let showNamePopup = false;
-    export let handleSaveHouse: (arg0: string) => Promise<boolean>;
-    export let handleOverwriteHouse: (arg0: string) => Promise<boolean>;
-    let currentHouseName = house_name;
+    export let isDeleting = false;
+    export let showDeletePopup = false;
+    export let handleDeleteUser: () => Promise<boolean>;
+    let passKey = "";
 
     let errorMessage = "";
-    let showOverwriteConfirm = false;
 
-    async function onSaveClick() {
+    async function onDeleteClick() {
         errorMessage = ""; // Clear previous errors
-        showOverwriteConfirm = false;
 
-        const result = await handleSaveHouse(currentHouseName);
+        if (passKey != "Delete") {
+            errorMessage = $_("error.userDelete.typeError");
+            return;
+        }
+
+        const result = await handleDeleteUser();
 
         if (result === false) {
-            showOverwriteConfirm = true;
-            errorMessage = $_("error.houseSaving.sameNameError");
+            errorMessage = $_("error.userDelete.generalError");
         }
-    }
-
-    async function confirmOverwrite() {
-        showOverwriteConfirm = false;
-        errorMessage = "";
-
-        const result = await handleOverwriteHouse(currentHouseName);
-
-        if (result) {
-            closePopup();
-        } else {
-            errorMessage = $_("error.houseSaving.overwriteError");
-        }
-    }
-
-    function cancelOverwrite() {
-        showOverwriteConfirm = false;
-        errorMessage = "";
     }
 
     function handleKeydown(event: any) {
         if (event.key === "Enter") {
-            onSaveClick();
+            onDeleteClick();
         } else if (event.key === "Escape") {
-            showNamePopup = false;
-            currentHouseName = "";
+            showDeletePopup = false;
+            passKey = "";
             errorMessage = "";
-            showOverwriteConfirm = false;
         }
     }
 
     function closePopup() {
-        showNamePopup = false;
-        currentHouseName = "";
+        showDeletePopup = false;
+        passKey = "";
         errorMessage = "";
-        showOverwriteConfirm = false;
     }
 </script>
 
@@ -73,28 +53,29 @@
         <!-- Icon and Title -->
         <div class="text-center mb-6">
             <div
-                class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                class="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4"
             >
                 <svg
-                    class="w-8 h-8 text-purple-600"
+                    class="w-8 h-8 text-red-600"
+                    viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                    />
-                    <polyline points="9,22 9,12 15,12 15,22" />
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
                 </svg>
             </div>
             <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                {$_("houseSaving.saveHome")}
+                {$_("userDelete.delete")}
             </h3>
             <p class="text-gray-600 text-sm">
-                {$_("houseSaving.insert")}
+                {$_("userDelete.deleteInfo")}
             </p>
         </div>
 
@@ -104,25 +85,21 @@
                 for="house-name-input"
                 class="block text-sm font-medium text-gray-700 mb-2"
             >
-                {$_("houseSaving.hoseName")}
+                {$_("userDelete.type")}
             </label>
             <input
                 id="house-name-input"
                 type="text"
-                bind:value={currentHouseName}
+                bind:value={passKey}
                 on:keydown={handleKeydown}
                 on:input={() => {
                     errorMessage = "";
-                    showOverwriteConfirm = false;
                 }}
-                placeholder={house_name == ""
-                    ? $_("houseSaving.placeHolder")
-                    : ""}
                 class="w-full px-4 py-3 border-2 rounded-xl focus:ring-0 outline-none transition-all duration-200 text-gray-800 placeholder-gray-400
                     {errorMessage
                     ? 'border-red-300 focus:border-red-500'
                     : 'border-gray-200 focus:border-purple-500'}"
-                disabled={isLoadingSaving}
+                disabled={isDeleting}
             />
 
             <!-- Error Message with Overwrite Options -->
@@ -144,32 +121,6 @@
                         </svg>
                         <span>{errorMessage}</span>
                     </div>
-
-                    {#if showOverwriteConfirm}
-                        <div
-                            class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                        >
-                            <p class="text-yellow-800 text-sm mb-3">
-                                {$_("houseSaving.wantOverwrite")}
-                            </p>
-                            <div class="flex gap-2">
-                                <button
-                                    on:click={confirmOverwrite}
-                                    class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-sm rounded transition-colors duration-200"
-                                    disabled={isLoadingSaving}
-                                >
-                                    {$_("houseSaving.overwrite")}
-                                </button>
-                                <button
-                                    on:click={cancelOverwrite}
-                                    class="px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm rounded transition-colors duration-200"
-                                    disabled={isLoadingSaving}
-                                >
-                                    {$_("houseSaving.abort")}
-                                </button>
-                            </div>
-                        </div>
-                    {/if}
                 </div>
             {/if}
         </div>
@@ -179,16 +130,16 @@
             <button
                 on:click={closePopup}
                 class="flex-1 px-4 py-3 text-gray-600 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
-                disabled={isLoadingSaving}
+                disabled={isDeleting}
             >
                 {$_("houseSaving.abort")}
             </button>
             <button
-                on:click={onSaveClick}
-                class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-purple-500/25"
-                disabled={isLoadingSaving || !currentHouseName.trim()}
+                on:click={onDeleteClick}
+                class="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-600 hover:to-red-800 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-purple-500/25"
+                disabled={isDeleting || !passKey.trim()}
             >
-                {#if isLoadingSaving}
+                {#if isDeleting}
                     <svg
                         class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                         fill="none"
@@ -208,7 +159,7 @@
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                     </svg>
-                    {$_("houseSaving.saving")}
+                    {$_("userDelete.deleting")}
                 {:else}
                     <svg
                         class="w-4 h-4 mr-2"
@@ -223,7 +174,7 @@
                             d="M5 13l4 4L19 7"
                         />
                     </svg>
-                    {$_("houseSaving.save")}
+                    {$_("userDelete.deleteButton")}
                 {/if}
             </button>
         </div>

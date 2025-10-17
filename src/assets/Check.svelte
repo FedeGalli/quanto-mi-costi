@@ -1,5 +1,5 @@
 <script lang="ts">
-    export let label = "";
+    export let label: any = "";
     export let bind = false;
     export let showTooltip: boolean[];
     export let element: number = 0;

@@ -1,0 +1,447 @@
+{
+  "hero": {
+    "discover": "Découvrez combien coûte,",
+    "really": "vraiment,",
+    "dreamHouse": "la maison de vos rêves. 🏡"
+  },
+  "disclaimer": "Le prix final affiché indique le coût total le jour de l'acte notarié. *Pour les frais variables comme le notaire/banque, une estimation réaliste a été faite sur tous les postes de coût.",
+  "house": {
+    "cost": "Coût maison:",
+    "name": "Maison:",
+    "saved": "Maisons sauvegardées",
+    "save": "SAUVEGARDER",
+    "delete": "Supprimer la maison"
+  },
+  "settings": {
+    "title": "paramètres",
+    "delete": "Supprimer Le Compte"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "user": "Utilisateur",
+    "getPro": "Devenir pro!"
+  },
+  "form": {
+    "firstHouse": "Avantage première maison?",
+    "soldByBuilder": "Vente soumise à TVA?",
+    "soldByAgency": "Achat via agence?",
+    "usingMortgage": "Utilisez-vous un prêt?",
+    "commission": "Commission:",
+    "mortgageAmount": "Montant du prêt:",
+    "duration": "Durée:",
+    "taeg": "TAEG:",
+    "howMuchCost": "Combien ça me coûte?"
+  },
+  "costs": {
+    "totalCost": "💰 Dépense totale",
+    "deed": "à l'acte notarié",
+    "vsHousePrice": "vs coût maison",
+    "taxes": "🇮🇹 Taxes",
+    "notary": "📜 Notaire",
+    "agency": "🏘️ Agence",
+    "bank": "🏦 Banque",
+    "extra": "extra",
+    "monthlyInstallment": "💸 Mensualité du prêt",
+    "interestsIn": "📈 Intérêts en",
+    "vsMortgage": "sur le prêt",
+    "whatToReturn": {
+      "what": "Que vais-je ",
+      "payBack": "rembourser ",
+      "year": "chaque année?"
+    }
+  },
+  "chart": {
+    "check": "Cochez ",
+    "usingMortgage": "\"Utilisez-vous un prêt?\" ",
+    "and": "et",
+    "insert": "Insérez ",
+    "mortgageDurationTAEG": "Montant du prêt, Durée et TAEG ",
+    "mortgageTAEG": "Montant du prêt et TAEG ",
+    "DurationTAEG": "Durée du prêt et TAEG ",
+    "toVisualize": "pour visualiser le graphique.",
+    "interestBarChart": {
+      "interests": "Intérêts",
+      "capital": "Capital"
+    },
+    "lineChart": {
+      "label": "Prêt {years} ans",
+      "capital": "Capital",
+      "text": "Patrimoine possédé (€)"
+    },
+    "cashVsMortgageChart": {
+      "cash": "Comptant",
+      "label": "{mortgage_percentage}% Prêt",
+      "text": "Patrimoine possédé (€)"
+    }
+  },
+  "mortgage": {
+    "question": {
+      "how": "Comment évolue mon/notre ",
+      "wealth": "patrimoine ",
+      "with": "avec le ",
+      "mortgage": "prêt sélectionné",
+      "end": ", mais avec différentes durées?"
+    },
+    "mortgage10": "Prêt 10 ans",
+    "mortgage20": "Prêt 20 ans",
+    "mortgage30": "Prêt 30 ans",
+    "installment": "mensualité",
+    "futureWealth": "Patrimoine dans {years} ans",
+    "installmentTooHigh": "Mensualité du prêt trop élevée!"
+  },
+  "cashVsMortgage": {
+    "question": {
+      "how": "Est-il préférable de payer tout ",
+      "cash": "comptant ",
+      "otherwise": "ou de prendre un ",
+      "mortgage": "prêt?"
+    },
+    "cash": "Comptant",
+    "mortgage25": "Prêt {duration} ans (25%)",
+    "mortgage50": "Prêt {duration} ans (50%)",
+    "mortgage80": "Prêt {duration} ans (80%)"
+  },
+  "income": {
+    "yearlyIncome": "Combien je gagne/nous gagnons chaque année?",
+    "savingRate": "Dont je peux/nous pouvons épargner un...",
+    "investmentReturn": "Combien rapportent les économies chaque année?"
+  },
+  "prices": {
+    "question": {
+      "how": "Combien ",
+      "costs": "coûtent ",
+      "houses": "les maisons dans ma ",
+      "zone": "zone?"
+    },
+    "select": "Sélectionner",
+    "findMunicipality": "Rechercher commune...",
+    "municipality": "Commune",
+    "municipalityFirst": "D'abord choisir la commune",
+    "area": "Zone",
+    "areaFirst": "D'abord choisir la zone",
+    "type": "Type",
+    "typeFirst": "D'abord choisir le type",
+    "conservation": "Conservation",
+    "conservationFirst": "D'abord choisir la conservation",
+    "m2": "m²",
+    "calculate": "Calculer",
+    "results": "Résultats de recherche",
+    "newSearch": "Nouvelle recherche",
+    "houseAvgPrice": "Prix moyen de la maison",
+    "priceRange": "Fourchette de prix",
+    "marketSize": "Taille du marché",
+    "trend": "Évolution historique",
+    "volume": "Volume",
+    "price": "Prix",
+    "minPrice": "Prix minimum m² (€)",
+    "maxPrice": "Prix maximum m² (€)",
+    "volumeBuySell": "Volume de transactions"
+  },
+  "navBar": {
+    "recap": "Récapitulatif",
+    "costsDetail": "Détail des coûts",
+    "mortgage": "Prêt",
+    "durationCompare": "Comparateur de durée",
+    "cashCompare": "Comptant vs Prêt",
+    "prices": "Prix"
+  },
+  "categories": {
+    "taxes": "Taxes",
+    "agency": "Agence",
+    "notary": "Notaire",
+    "bank": "Banque"
+  },
+  "general": {
+    "language": "Langue:",
+    "contacts": "Contact: "
+  },
+  "tooltip": {
+    "agency": {
+      "title": {
+        "how": "Comment savoir si la vente est gérée par une ",
+        "agency": "agence?"
+      },
+      "paragraph1": {
+        "title": "Vérifier attentivement l'annonce du bien",
+        "bullet1": "Si l'annonce indique le nom de l'agence (ex. Tecnocasa, Gabetti, Remax, etc.) ou des contacts avec un email type \"@agenceimmobiliere.fr\", c'est presque certainement via une agence.",
+        "bullet2": "Souvent il est également écrit \"commission demandée\" ou \"négociation via agence\"."
+      },
+      "paragraph2": {
+        "title": "Meilleures pratiques",
+        "bullet1": "C'est toujours une bonne pratique, lorsque vous contactez l'annonceur, de demander explicitement si la vente est \"entre particuliers\" ou \"via agence\".",
+        "bullet2": "Toujours demander à combien s'élève le pourcentage de commission de l'agence et vérifier quand le paiement de ce montant est dû."
+      },
+      "paragraph3": {
+        "title": "Paiement du montant",
+        "bullet1": "Attention, certaines agences lient le paiement de la commission lors de l'acte préliminaire de vente et non au moment de l'acte notarié. Par conséquent, si l'acte notarié ne devait pas aboutir (par exemple la partie vendeur/acheteur se retire de la vente, ou le prêt n'est pas accordé), le paiement à l'agence est quand même dû!"
+      }
+    },
+    "firstHouse": {
+      "title": {
+        "do": "Vous avez l'avantage ",
+        "first": "première maison ",
+        "if": "si..."
+      },
+      "paragraph1": {
+        "title": "Conditions sur le bien acheté",
+        "bullet1": "Ne pas appartenir aux catégories cadastrales de luxe: donc PAS A1 (habitations de prestige), A8 (villas), A9 (châteaux).",
+        "bullet2": "Être situé dans la commune où vous avez ou aurez votre résidence (dans les 18 mois suivant l'achat).",
+        "bullet3": "Si vous vendez la maison achetée avec avantages dans les 5 ans, pour ne pas perdre le bénéfice vous devez racheter dans l'année une autre première maison."
+      },
+      "paragraph2": {
+        "title": "Conditions sur l'acheteur",
+        "bullet1": "Ne doit pas être propriétaire, exclusif ou en commun avec le conjoint, d'une autre habitation sur le territoire de la commune où se trouve le bien.",
+        "bullet2": "Ne doit pas posséder d'autres biens achetés avec les avantages première maison, sur tout le territoire national, à moins de les vendre dans les 12 mois suivant l'achat de la nouvelle maison."
+      }
+    },
+    "mortgage": {
+      "title": {
+        "info": "Informations principales pour un ",
+        "mortgage": "prêt ",
+        "dots": "..."
+      },
+      "paragraph1": {
+        "title": "Montant du prêt:",
+        "bullet1": "La totalité du capital demandé à la banque."
+      },
+      "paragraph2": {
+        "title": "Durée (Années)",
+        "bullet1": "Le temps nécessaire avec lequel on souhaite rembourser le capital demandé."
+      },
+      "paragraph3": {
+        "title": "TAEG:",
+        "bullet1": "Le taux d'intérêt annuel appliqué au capital restant à rembourser. Le TAEG contrairement au TAN comprend tous les coûts réels qui sont appliqués, y compris ceux d'assurance pour la police incendie-explosion obligatoire / polices vie."
+      },
+      "paragraph4": {
+        "title": "Pour augmenter les chances d'obtenir un prêt:",
+        "subParagraph1": {
+          "title": "Revenu et capacité de remboursement",
+          "bullet1": {
+            "title": "Stabilité professionnelle: ",
+            "content": "Contrat à durée indéterminée, depuis au moins 6-12 mois. En cas de travail indépendant ou profession libérale, il faut au moins 2 ans d'activité avec des revenus déclarés stables."
+          },
+          "bullet2": {
+            "title": "Ratio mensualité/revenu: ",
+            "content": "La mensualité du prêt ne doit pas dépasser 30-35% du revenu net mensuel familial."
+          },
+          "bullet3": {
+            "title": "Revenu familial agrégé: ",
+            "content": "S'il y a plusieurs titulaires du prêt, on considère le revenu global."
+          }
+        },
+        "subParagraph2": {
+          "title": "Âge du demandeur",
+          "bullet1": "En général, le prêt doit se terminer avant 75-80 ans du demandeur."
+        },
+        "subParagraph3": {
+          "title": "Montant demandé et valeur du bien",
+          "bullet1": {
+            "title": "Ratio LTV (Loan-to-Value): ",
+            "content": "Le montant du prêt est calculé par rapport à la valeur du bien. Généralement les banques financent jusqu'à 80% de la valeur d'expertise."
+          },
+          "bullet2": {
+            "title": "Cadastre et hypothèques: ",
+            "content": "Le bien doit être régulièrement cadastré, libre d'hypothèques antérieures et en bon état."
+          }
+        },
+        "subParagraph4": {
+          "title": "Fiabilité crédit",
+          "bullet1": {
+            "title": "Contrôle de la situation de crédit: ",
+            "content": "Les banques consultent des bases de données pour vérifier si vous avez d'autres prêts en cours et d'éventuels retards de paiement."
+          },
+          "bullet2": {
+            "title": "Historique de crédit: ",
+            "content": "Avoir un historique de paiements réguliers ou de prêts/crédits entièrement remboursés sans problème, augmente votre crédibilité et fiabilité aux yeux de la banque."
+          }
+        }
+      }
+    },
+    "vat": {
+      "title": {
+        "pay": "Vous payez ",
+        "vat": "la TVA ",
+        "if": "si..."
+      },
+      "paragraph1": {
+        "title": "Conditions sur le bien acheté",
+        "bullet1": "Vous achetez le bien auprès d'une entreprise de construction ou de rénovation dans les 5 ans suivant la fin des travaux (construction ou rénovation).",
+        "bullet2": "Même après 5 ans, mais seulement si l'entreprise choisit de soumettre la vente à la TVA (c'est facultatif, mais doit être indiqué dans l'acte).",
+        "bullet3": "Le paiement de la TVA, à condition de respecter les conditions mentionnées, est de toute façon dû même en cas d'utilisation d'un intermédiaire comme par exemple une agence immobilière."
+      }
+    }
+  },
+  "error": {
+    "api": {
+      "rateLimit": "Hey que de requêtes, ralentissez et réessayez dans quelques secondes.",
+      "genericError": "Quelque chose s'est mal passé. Réessayez dans quelques secondes."
+    },
+    "userDelete": {
+      "generalError": "Erreur lors de la suppression. Réessayez.",
+      "typeError": "Le mot saisi ne correspond pas à : Delete"
+    },
+    "houseSaving": {
+      "sameNameError": "Une maison sauvegardée avec ce nom existe déjà.",
+      "overwriteError": "Erreur lors de l'écrasement. Réessayez."
+    },
+    "checkout": {
+      "paymentIntentError": "La création de l'intention de paiement a échoué.",
+      "paymentError": "Une erreur s'est produite lors du paiement. Réessayez.",
+      "serverConfirmError": "La confirmation avec le serveur a échoué.",
+      "proActivationError": "L'activation PRO a échoué.",
+      "paymentNotCompleted": "Paiement non complété. Statut: {status}",
+      "nullEmailError": "Email requis",
+      "missingEmailError": "Entrez une adresse email valide",
+      "nullNameError": "Nom complet requis",
+      "nameLengthError": "Le nom ne doit contenir que des lettres (2-50 caractères)",
+      "missingNameError": "Entrez nom et prénom",
+      "nullAddressError": "Adresse requise",
+      "wrongAddressError": "Adresse non valide (3-100 caractères, uniquement lettres, chiffres et ponctuation courante)",
+      "nullCityError": "Ville requise",
+      "wrongCiryError": "La ville ne doit contenir que des lettres (2-50 caractères)",
+      "nullCapError": "Code postal requis",
+      "capError": "Le code postal doit être exactement de 5 chiffres"
+    },
+    "signin": {
+      "duplicateEmailError": "Cette adresse email est déjà enregistrée",
+      "invalidEmailError": "Adresse email non valide",
+      "notAllowedError": "Opération non autorisée",
+      "weakPswError": "Le mot de passe est trop faible",
+      "disableAccountError": "Compte désactivé",
+      "userNotFoundError": "Utilisateur non trouvé",
+      "wrongPswError": "Mot de passe incorrect",
+      "invadiCredentialsError": "Identifiants non valides",
+      "tooManyAttempsError": "Trop de tentatives. Réessayez plus tard",
+      "emailNotCheckedError": "Email non vérifié. Vérifiez votre boîte mail",
+      "closedError": "Popup fermé par l'utilisateur",
+      "popUpBlockedError": "Popup bloqué par le navigateur. Activez les popups pour ce site",
+      "popUpError": "Demande de popup annulée",
+      "duplicateAccount": "Un compte existe déjà avec cette adresse email mais avec une méthode de connexion différente",
+      "generalError": "Erreur d'authentification.",
+      "termNotAcceptedError": "Vous devez accepter les termes et conditions",
+      "pswResetError": "Erreur de réinitialisation du mot de passe: ",
+      "resendEmailFailedError": "Erreur lors du renvoi de l'email de vérification: ",
+      "checkError": "Erreur lors de la vérification. Réessayez.",
+      "networkError": "Erreur de connexion. Vérifiez votre connexion internet",
+      "internalError": "Erreur interne. Réessayez plus tard"
+    }
+  },
+  "houseSaving": {
+    "saveHome": "Sauvegardez votre maison",
+    "insert": "Entrez un nom pour identifier cette configuration",
+    "hoseName": "Nom de la maison",
+    "placeHolder": "Ex. Maison à la mer, Villa à la montagne...",
+    "wantOverwrite": "Voulez-vous écraser la maison existante avec ces nouvelles valeurs?",
+    "overwrite": "Écraser",
+    "abort": "Annuler",
+    "saving": "Sauvegarde...",
+    "save": "Sauvegarder"
+  },
+  "userDelete": {
+    "delete": "Vous êtes sur le point de SUPPRIMER votre compte",
+    "deleteInfo": "En supprimant votre compte, vous perdrez toutes les personnalisations et les achats liés à votre compte !",
+    "type": "Tapez \"Supprimer\" pour confirmer la suppression de votre compte",
+    "abort": "Annuler",
+    "deleteButton": "Supprimer"
+  },
+  "getPro": {
+    "title": {
+      "house": "Une maison s'achète ",
+      "few": "peu de fois dans la vie!",
+      "subTitle": "Prenez les bonnes décisions financières pour votre avenir, votre maison et surtout, pour votre portefeuille."
+    },
+    "std": "Standard",
+    "free": "GRATUIT",
+    "freeDesc": "Utilisez nos outils essentiels pour le calcul de votre maison. Parfait pour savoir combien coûte réellement votre maison et le coût d'un prêt.",
+    "freeBenefit": {
+      "row1": "Présentation des coûts totaux",
+      "row2": "Détail des postes de coût individuels",
+      "row3": "Détail du prêt"
+    },
+    "alwaysFree": "Toujours gratuit",
+    "useFreeVersion": "Utiliser la version gratuite",
+    "pro": "Pro",
+    "proCaps": "PRO",
+    "proDesc": "Débloquez des outils d'analyse avancés pour des décisions financières plus approfondies. Comprenez comment votre patrimoine évoluerait dans différents scénarios et économisez des milliers d'euros sur l'achat de votre maison avec les bons choix financiers pour vous, en obtenant des réponses à:",
+    "proBenefit": {
+      "row1": "Est-il préférable de prendre un prêt ou de payer comptant?",
+      "row2": "Quelle durée de prêt me convient?",
+      "row3": "Combien coûtent les maisons dans ma zone?",
+      "row4": "Quels sont les volumes de transactions dans ma zone?",
+      "row5": "Comment étaient les prix et volumes de transactions dans le passé?"
+    },
+    "vat": "TVA incluse",
+    "access": "Accès pendant quatre mois • Pas d'abonnement",
+    "getProNow": "🚀 Obtenir Pro maintenant"
+  },
+  "checkout": {
+    "plan": "Plan ",
+    "vat": "TVA ",
+    "total": "Total",
+    "info": "Informations de paiement",
+    "email": "Email",
+    "fullName": "Nom complet",
+    "ccInfo": "Informations carte de crédit",
+    "providerLoading": "Chargement des données du fournisseur...",
+    "billingAddress": "Adresse de facturation",
+    "address": "Adresse",
+    "city": "Ville",
+    "cap": "Code postal",
+    "country": "Pays",
+    "selectCountry": "Sélectionner un pays",
+    "procesing": "Traitement...",
+    "loading": "Chargement...",
+    "payment": "Procéder au paiement",
+    "proActivated": "🎉 Pro activé!",
+    "paymentOk": "Le paiement a été effectué avec succès!",
+    "access": "Vous avez maintenant accès à toutes les fonctionnalités Pro.",
+    "redirect": "Vous allez être redirigé vers le tableau de bord...",
+    "mailPlaceholder": "votre@mail.com",
+    "namePlaceholder": "Jean Dupont",
+    "addressPlaceholder": "Rue de la République, 12",
+    "cityPlaceholder": "Lyon"
+  },
+  "signin": {
+    "checkEmail": "Inscription complétée! Vérifiez votre email pour vérifier votre compte.",
+    "logInSucces": "Connexion réussie!",
+    "resetEmail": "Email de réinitialisation du mot de passe envoyé! Vérifiez votre boîte mail.",
+    "resentEmail": "Email de vérification envoyé à nouveau!",
+    "checkedEmail": "Email vérifié! Bienvenue!",
+    "logInSuccesRedirect": "Connexion réussie! Redirection...",
+    "resetPsw": "Réinitialiser le mot de passe 🔑",
+    "welcome": "Bienvenue! 🎉",
+    "welcomeBack": "Bon retour! 👋",
+    "resetPswText": "Entrez votre email pour réinitialiser le mot de passe",
+    "welcomeText": "Créez votre compte pour commencer",
+    "welcomeBackText": "Connectez-vous à votre compte",
+    "checkEmailText": "📧 Vérifiez votre email pour vérifier votre compte",
+    "resendEmailText": "🔄 Renvoyer l'email",
+    "checkDoneText": "✅ J'ai vérifié l'email",
+    "notValidEmail": "Entrez un email valide",
+    "loading": "Chargement...",
+    "resetText": "Envoyer l'email de réinitialisation",
+    "form": {
+      "name": "Prénom:",
+      "lastName": "Nom:",
+      "email": "Email:",
+      "psw": "Mot de passe:",
+      "pswConfirm": "Confirmer le mot de passe:"
+    },
+    "pswCheck": "Le mot de passe doit contenir au moins 8 caractères",
+    "pswConformNoMatch": "Les mots de passe ne correspondent pas",
+    "accept": "J'accepte ",
+    "term": "les Termes et conditions",
+    "and": "et ",
+    "privacy": "la Politique de confidentialité",
+    "register": "S'inscrire",
+    "access": "Se connecter",
+    "rememberPsw": "Vous vous souvenez du mot de passe?",
+    "backTo": "Retour à la connexion",
+    "haveAccount": "Vous avez déjà un compte?",
+    "noHaveAccount": "Vous n'avez pas de compte?",
+    "forgotPsw": "Mot de passe oublié?",
+    "or": "ou",
+    "googleLogIn": "Continuer avec Google"
+  }
+}

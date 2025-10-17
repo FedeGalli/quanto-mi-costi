@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from "svelte-i18n";
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
 </script>
@@ -21,27 +22,24 @@
     </button>
     <div class="space-y-6">
         <h2 class="text-4xl font-bold leading-tight">
-            Paghi <span class="text-purple-400">l'IVA</span> se...
+            {$_("tooltip.vat.title.pay")}
+            <span class="text-purple-400">{$_("tooltip.vat.title.vat")}</span
+            >{$_("tooltip.vat.title.if")}
         </h2>
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">1.</span> Requisiti sull'immobile acquistato
+            <span class="text-purple-400">1. </span>
+            {$_("tooltip.vat.paragraph1.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base font-bold leading-tight space-y-2">
             <li>
-                Compri l'immobile da una impresa costruttrice o di
-                ristrutturazioni entro 5 anni dalla fine dei lavori (costruzione
-                o ristrutturazione).
+                {$_("tooltip.vat.paragraph1.bullet1")}
             </li>
             <li>
-                Anche dopo i 5 anni, ma solo se l'impresa sceglie di
-                assoggettare la vendita a IVA (è facoltativo, ma deve essere
-                indicato nell’atto).
+                {$_("tooltip.vat.paragraph1.bullet2")}
             </li>
             <li>
-                Il pagamento dell'IVA, a patto di rispttare le condizione appena
-                citate, è comunque dovuto anche in caso di utilizzo di un
-                intemediario come per esempio una agenzia immobiliare.
+                {$_("tooltip.vat.paragraph1.bullet3")}
             </li>
         </ul>
     </div>

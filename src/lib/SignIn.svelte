@@ -4,6 +4,7 @@
     import { doc, setDoc, getDoc } from "firebase/firestore";
     import { onMount } from "svelte";
     import { push, location, querystring } from "svelte-spa-router";
+    import { _ } from "svelte-i18n";
     import {
         createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
@@ -17,7 +18,7 @@
         sendPasswordResetEmail,
         onAuthStateChanged,
     } from "firebase/auth";
-    import type { AuthError } from "firebase/auth";
+    import type { AuthError, User } from "firebase/auth";
     import { auth, db } from "./auth/credentials"; // Adjust path as needed
     import { user, isAuthenticated, initAuthStore } from "./auth/auth-store"; // Import auth store
 
@@ -94,35 +95,35 @@
     function handleFirebaseError(error: AuthError) {
         switch (error.code) {
             case "auth/email-already-in-use":
-                return "Questo indirizzo email è già registrato";
+                return $_("error.signin.duplicateEmailError");
             case "auth/invalid-email":
-                return "Indirizzo email non valido";
+                return $_("error.signin.invalidEmailError");
             case "auth/operation-not-allowed":
-                return "Operazione non consentita";
+                return $_("error.signin.notAllowedError");
             case "auth/weak-password":
-                return "La password è troppo debole";
+                return $_("error.signin.weakPswError");
             case "auth/user-disabled":
-                return "Account disabilitato";
+                return $_("error.signin.disableAccountError");
             case "auth/user-not-found":
-                return "Utente non trovato";
+                return $_("error.signin.userNotFoundError");
             case "auth/wrong-password":
-                return "Password errata";
+                return $_("error.signin.wrongPswError");
             case "auth/invalid-credential":
-                return "Credenziali non valide";
+                return $_("error.signin.invadiCredentialsError");
             case "auth/too-many-requests":
-                return "Troppi tentativi. Riprova più tardi";
+                return $_("error.signin.tooManyAttempsError");
             case "auth/email-not-verified":
-                return "Email non verificata. Controlla la tua casella di posta";
+                return $_("error.signin.emailNotCheckedError");
             case "auth/popup-closed-by-user":
-                return "Popup chiuso dall'utente";
+                return $_("error.signin.closedError");
             case "auth/popup-blocked":
-                return "Popup bloccato dal browser. Abilita i popup per questo sito";
+                return $_("error.signin.popUpBlockedError");
             case "auth/cancelled-popup-request":
-                return "Richiesta popup cancellata";
+                return $_("error.signin.popUpError");
             case "auth/account-exists-with-different-credential":
-                return "Esiste già un account con questo indirizzo email ma con un metodo di accesso diverso";
+                return $_("error.signin.duplicateAccount");
             default:
-                return "Errore di autenticazione. Riprova più tardi";
+                return $_("error.signin.generalError");
         }
     }
 
@@ -146,7 +147,7 @@
         }
 
         if (isSignUp && !acceptTerms) {
-            showError("Devi accettare i termini e condizioni");
+            showError($_("error.signin.termNotAcceptedError"));
             return;
         }
 
@@ -170,9 +171,7 @@
                 // Send email verification
                 await sendEmailVerification(firebaseUser);
 
-                showSuccess(
-                    "Registrazione completata! Controlla la tua email per verificare l'account.",
-                );
+                showSuccess($_("signin.checkEmail"));
                 showEmailVerificationMessage = true;
             } else {
                 // Sign in existing user
@@ -185,14 +184,12 @@
 
                 // Check if email is verified
                 if (!firebaseUser.emailVerified) {
-                    showError(
-                        "Email non verificata. Controlla la tua casella di posta per il link di verifica.",
-                    );
+                    showError($_("error.signin.emailNotCheckedError"));
                     showEmailVerificationMessage = true;
                     return;
                 }
 
-                showSuccess("Accesso effettuato con successo!");
+                showSuccess($_("signin.welcomeBack"));
 
                 // The auth store will handle the user state automatically
                 // Redirect to home page after a short delay
@@ -201,7 +198,7 @@
                 }, 1500);
             }
         } catch (error) {
-            console.error("Authentication error:", error);
+            console.error($_("error.signin.generalError"), error);
             showError(handleFirebaseError(error as AuthError));
         } finally {
             isLoading = false;
@@ -220,13 +217,11 @@
 
         try {
             await sendPasswordResetEmail(auth, resetEmail);
-            showSuccess(
-                "Email di reset password inviata! Controlla la tua casella di posta.",
-            );
+            showSuccess($_("error.signin.resetEmail"));
             showForgotPassword = false;
             resetEmail = "";
         } catch (error) {
-            console.error("Password reset error:", error);
+            console.error($_("error.signin.pswResetError"), error);
             showError(handleFirebaseError(error as AuthError));
         } finally {
             isLoading = false;
@@ -236,7 +231,7 @@
     // Resend email verification
     async function resendEmailVerification() {
         if (!auth.currentUser) {
-            showError("Nessun utente trovato. Riprova la registrazione.");
+            showError($_("error.signin.userNotFoundError"));
             return;
         }
 
@@ -244,16 +239,16 @@
 
         try {
             await sendEmailVerification(auth.currentUser);
-            showSuccess("Email di verifica inviata nuovamente!");
+            showSuccess($_("signin.resentEmail"));
         } catch (error) {
-            console.error("Resend verification error:", error);
+            console.error($_("error.signin.resendEmailFailedError"), error);
             showError(handleFirebaseError(error as AuthError));
         } finally {
             isLoading = false;
         }
     }
 
-    async function createUserDocument(uid: string) {
+    async function createUserDocumentFromMail(uid: string) {
         try {
             const userDocRef = doc(db, "users", uid);
 
@@ -264,12 +259,38 @@
                 // Create new user document
                 await setDoc(userDocRef, {
                     uid: uid,
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
                     is_pro: false,
                     saved_houses: [],
                 });
-                console.log("User document created successfully");
-            } else {
-                console.log("User document already exists");
+            }
+        } catch (error) {
+            console.error("Error creating user document:", error);
+            // Don't throw error to avoid disrupting the login flow
+        }
+    }
+    async function createUserDocumentFromGoogle(firebaseUser: User) {
+        try {
+            const userDocRef = doc(db, "users", firebaseUser.uid);
+
+            // Check if document already exists
+            const userDoc = await getDoc(userDocRef);
+
+            if (!userDoc.exists()) {
+                // Create new user document
+                await setDoc(userDocRef, {
+                    uid: firebaseUser.uid,
+                    firstName: firebaseUser.displayName?.split(" ")[0],
+                    lastName: firebaseUser.displayName
+                        ?.split(" ")
+                        .slice(1)
+                        .join(" "),
+                    email: firebaseUser.email,
+                    is_pro: false,
+                    saved_houses: [],
+                });
             }
         } catch (error) {
             console.error("Error creating user document:", error);
@@ -290,21 +311,19 @@
             await auth.currentUser.reload();
 
             if (auth.currentUser.emailVerified) {
-                showSuccess("Email verificata! Benvenuto!");
+                showSuccess($_("signin.checkedEmail"));
                 showEmailVerificationMessage = false;
 
-                createUserDocument(auth.currentUser.uid);
+                createUserDocumentFromMail(auth.currentUser.uid);
                 setTimeout(() => {
                     push(redirectUrl);
                 }, 1500);
             } else {
-                showError(
-                    "Email non ancora verificata. Controlla la tua casella di posta.",
-                );
+                showError($_("error.signin.emailNotCheckedError"));
             }
         } catch (error) {
             console.error("Check verification error:", error);
-            showError("Errore durante la verifica. Riprova.");
+            showError($_("error.signin.checkError"));
         } finally {
             isLoading = false;
         }
@@ -355,9 +374,6 @@
                     popupError.code === "auth/popup-closed-by-user" ||
                     /mobile/i.test(navigator.userAgent)
                 ) {
-                    console.log(
-                        "Popup blocked or mobile detected, using redirect method",
-                    );
                     await signInWithRedirect(auth, provider);
                     // The redirect will handle the rest, so we return here
                     return;
@@ -368,12 +384,12 @@
 
             const firebaseUser = result.user;
 
-            showSuccess("Accesso con Google completato!");
+            showSuccess($_("signin.welcomeBack"));
 
             // Clear any existing form data
             clearForm();
 
-            createUserDocument(firebaseUser.uid);
+            createUserDocumentFromGoogle(firebaseUser);
             setTimeout(() => {
                 push(redirectUrl);
             }, 1500);
@@ -382,17 +398,13 @@
 
             // More specific error handling for Google sign-in
             if (error.code === "auth/popup-closed-by-user") {
-                showError("Accesso annullato dall'utente");
+                showError($_("error.signin.closedError"));
             } else if (error.code === "auth/popup-blocked") {
-                showError(
-                    "Popup bloccato dal browser. Abilita i popup e riprova",
-                );
+                showError($_("error.signin.popUpBlockedError"));
             } else if (error.code === "auth/network-request-failed") {
-                showError(
-                    "Errore di connessione. Controlla la tua connessione internet",
-                );
+                showError($_("error.signin.networkError"));
             } else if (error.code === "auth/internal-error") {
-                showError("Errore interno. Riprova più tardi");
+                showError($_("error.signin.internalError"));
             } else {
                 showError(handleFirebaseError(error as AuthError));
             }
@@ -430,7 +442,7 @@
                     // User successfully signed in via redirect
                     const firebaseUser = result.user;
                     console.log("Redirect sign-in successful:", firebaseUser);
-                    showSuccess("Accesso completato!");
+                    showSuccess($_("signin.welcome"));
 
                     setTimeout(() => {
                         push(redirectUrl);
@@ -457,9 +469,7 @@
                     )
                 ) {
                     // The auth store will handle the redirect automatically
-                    showSuccess(
-                        "Autenticazione completata! Reindirizzamento...",
-                    );
+                    showSuccess($_("signin.logInSuccesRedirect"));
                     setTimeout(() => {
                         push(redirectUrl);
                     }, 1500);
@@ -537,20 +547,20 @@
             <div class="text-center mb-8">
                 <h1 class="text-3xl sm:text-4xl font-bold leading-tight mb-2">
                     {#if showForgotPassword}
-                        Reset Password 🔑
+                        {$_("signin.resetPsw")}
                     {:else if isSignUp}
-                        Benvenuto! 🎉
+                        {$_("signin.welcome")}
                     {:else}
-                        Bentornato! 👋
+                        {$_("signin.welcomeBack")}
                     {/if}
                 </h1>
                 <p class="text-gray-400 text-sm">
                     {#if showForgotPassword}
-                        Inserisci la tua email per resettare la password
+                        {$_("signin.resetPswText")}
                     {:else if isSignUp}
-                        Crea il tuo account per iniziare
+                        {$_("signin.welcomeText")}
                     {:else}
-                        Accedi al tuo account
+                        {$_("signin.welcomeBackText")}
                     {/if}
                 </p>
             </div>
@@ -562,7 +572,7 @@
                 >
                     <div class="text-center">
                         <p class="text-blue-300 text-sm mb-4">
-                            📧 Controlla la tua email per verificare l'account
+                            {$_("signin.checkEmailText")}
                         </p>
                         <div
                             class="flex flex-col sm:flex-row gap-3 justify-center"
@@ -572,14 +582,14 @@
                                 disabled={isLoading}
                                 class="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-purple-300 hover:text-purple-200 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-all duration-200 hover:scale-105"
                             >
-                                🔄 Invia nuovamente email
+                                {$_("signin.resendEmailText")}
                             </button>
                             <button
                                 on:click={checkEmailVerification}
                                 disabled={isLoading}
                                 class="bg-green-500/20 hover:bg-green-500/30 border border-green-400/50 text-green-300 hover:text-green-200 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-all duration-200 hover:scale-105"
                             >
-                                ✅ Ho verificato l'email
+                                {$_("signin.checkDoneText")}
                             </button>
                         </div>
                     </div>
@@ -598,7 +608,7 @@
                             class="text-sm font-semibold mb-2"
                             for="resetEmail"
                         >
-                            Email:
+                            {$_("signin.form.email")}
                         </label>
                         <input
                             id="resetEmail"
@@ -614,7 +624,7 @@
                         />
                         {#if !resetEmailValid}
                             <span class="text-red-400 text-xs mt-1"
-                                >Inserisci un'email valida</span
+                                >{$_("signin.notValidEmail")}</span
                             >
                         {/if}
                     </div>
@@ -631,10 +641,10 @@
                                 <div
                                     class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                                 ></div>
-                                <span>Caricamento...</span>
+                                <span>{$_("signin.loading")}</span>
                             </div>
                         {:else}
-                            Invia email di reset
+                            {$_("signin.resetText")}
                         {/if}
                     </button>
                 </form>
@@ -652,7 +662,7 @@
                                     class="text-sm font-semibold mb-2"
                                     for="firstName"
                                 >
-                                    Nome:
+                                    {$_("signin.form.name")}
                                 </label>
                                 <input
                                     id="firstName"
@@ -668,7 +678,7 @@
                                     class="text-sm font-semibold mb-2"
                                     for="lastName"
                                 >
-                                    Cognome:
+                                    {$_("signin.form.lastName")}
                                 </label>
                                 <input
                                     id="lastName"
@@ -685,7 +695,7 @@
                     <!-- Email -->
                     <div class="flex flex-col">
                         <label class="text-sm font-semibold mb-2" for="email">
-                            Email:
+                            {$_("signin.form.email")}
                         </label>
                         <input
                             id="email"
@@ -700,7 +710,7 @@
                         />
                         {#if !emailValid}
                             <span class="text-red-400 text-xs mt-1"
-                                >Inserisci un'email valida</span
+                                >{$_("signin.notValidEmail")}</span
                             >
                         {/if}
                     </div>
@@ -711,7 +721,7 @@
                             class="text-sm font-semibold mb-2"
                             for="password"
                         >
-                            Password:
+                            {$_("signin.form.psw")}
                         </label>
                         <input
                             id="password"
@@ -727,7 +737,7 @@
                         />
                         {#if !passwordValid}
                             <span class="text-red-400 text-xs mt-1"
-                                >La password deve contenere almeno 8 caratteri</span
+                                >{$_("signin.pswCheck")}</span
                             >
                         {/if}
                     </div>
@@ -742,7 +752,7 @@
                                 class="text-sm font-semibold mb-2"
                                 for="confirmPassword"
                             >
-                                Conferma Password:
+                                {$_("signin.form.pswConfirm")}
                             </label>
                             <input
                                 id="confirmPassword"
@@ -759,7 +769,7 @@
                             />
                             {#if !confirmPasswordValid}
                                 <span class="text-red-400 text-xs mt-1"
-                                    >Le password non coincidono</span
+                                    >{$_("signin.pswConformNoMatch")}</span
                                 >
                             {/if}
                         </div>
@@ -781,16 +791,19 @@
                                 for="acceptTerms"
                                 class="text-sm text-gray-300"
                             >
-                                Accetto i <a
-                                    href="#"
-                                    class="text-purple-400 hover:text-purple-300 underline"
-                                    >termini e condizioni</a
-                                >
-                                e la
+                                {$_("signin.accept")}
                                 <a
-                                    href="#"
+                                    href="src/documents/terms-and-conditions.pdf"
+                                    target="_blank"
                                     class="text-purple-400 hover:text-purple-300 underline"
-                                    >privacy policy</a
+                                    >{$_("signin.term")}</a
+                                >
+                                {$_("signin.and")}
+                                <a
+                                    href="src/documents/privacy-policy.pdf"
+                                    target="_blank"
+                                    class="text-purple-400 hover:text-purple-300 underline"
+                                    >{$_("signin.privacy")}</a
                                 >
                             </label>
                         </div>
@@ -809,10 +822,12 @@
                                 <div
                                     class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                                 ></div>
-                                <span>Caricamento...</span>
+                                <span>{$_("signin.loading")}</span>
                             </div>
                         {:else}
-                            {isSignUp ? "Registrati" : "Accedi"}
+                            {isSignUp
+                                ? $_("signin.register")
+                                : $_("signin.access")}
                         {/if}
                     </button>
                 </form>
@@ -822,26 +837,28 @@
             <div class="text-center mt-6">
                 {#if showForgotPassword}
                     <p class="text-gray-400 text-sm">
-                        Ricordi la password?
+                        {$_("signin.rememberPsw")}
                         <button
                             on:click={toggleForgotPassword}
                             class="text-purple-400 hover:text-purple-300 font-semibold ml-1 underline transition-colors duration-200"
                         >
-                            Torna al login
+                            {$_("signin.backTo")}
                         </button>
                     </p>
                 {:else}
                     <p class="text-gray-400 text-sm">
                         {#if isSignUp}
-                            Hai già un account?
+                            {$_("signin.haveAccount")}
                         {:else}
-                            Non hai un account?
+                            {$_("signin.noHaveAccount")}
                         {/if}
                         <button
                             on:click={toggleMode}
                             class="text-purple-400 hover:text-purple-300 font-semibold ml-1 underline transition-colors duration-200"
                         >
-                            {isSignUp ? "Accedi" : "Registrati"}
+                            {isSignUp
+                                ? $_("signin.access")
+                                : $_("signin.register")}
                         </button>
                     </p>
 
@@ -852,7 +869,7 @@
                                 on:click={toggleForgotPassword}
                                 class="text-purple-400 hover:text-purple-300 font-semibold underline transition-colors duration-200"
                             >
-                                Password dimenticata?
+                                {$_("signin.forgotPsw")}
                             </button>
                         </p>
                     {/if}
@@ -864,7 +881,9 @@
                 <!-- Divider -->
                 <div class="flex items-center my-6">
                     <div class="flex-1 border-t border-gray-600"></div>
-                    <span class="px-4 text-gray-400 text-sm">oppure</span>
+                    <span class="px-4 text-gray-400 text-sm"
+                        >{$_("signin.or")}</span
+                    >
                     <div class="flex-1 border-t border-gray-600"></div>
                 </div>
 
@@ -894,7 +913,7 @@
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             />
                         </svg>
-                        <span>Continua con Google</span>
+                        <span>{$_("signin.googleLogIn")}</span>
                     </button>
                 </div>
             {/if}

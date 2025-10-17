@@ -6,6 +6,7 @@
     export let delta: number;
     export let name: string;
     export let duration: number;
+    export let vs: string;
 </script>
 
 <div class="flex-1 min-w-[160px]">
@@ -41,7 +42,7 @@
                     signDisplay: "always",
                 }}
                 class="text-lg text-red-500 font-semibold"
-            /> <span class="text-xs"> sul mutuo</span>
+            /> <span class="text-xs"> {vs}</span>
         </NumberFlowGroup>
     </div>
 </div>

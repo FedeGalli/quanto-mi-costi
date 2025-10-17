@@ -1,0 +1,448 @@
+{
+  "hero": {
+    "discover": "Scopri quanto costa,",
+    "really": "per davvero,",
+    "dreamHouse": "la casa dei tuoi sogni. 🏡"
+  },
+  "disclaimer": "Il prezzo finale mostrato indica il costo totale il giorno del rogito. *Per spese variabili come il notaio/banca è stata fatta una stima veritiera su tutte le voci di costo.",
+  "house": {
+    "cost": "Costo casa:",
+    "name": "Casa:",
+    "saved": "Case salvate",
+    "save": "SALVA",
+    "delete": "Elimina casa"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "delete": "Elimina Account"
+  },
+  "auth": {
+    "login": "Accedi",
+    "logout": "Esci",
+    "user": "Utente",
+    "getPro": "Diventa pro!"
+  },
+  "form": {
+    "firstHouse": "Agevolazione prima casa?",
+    "soldByBuilder": "Vendita soggetta a IVA?",
+    "soldByAgency": "Acquisto tramite agenzia?",
+    "usingMortgage": "Utilizzi un mutuo?",
+    "commission": "Provvigione:",
+    "mortgageAmount": "Importo mutuo:",
+    "duration": "Durata:",
+    "taeg": "TAEG:",
+    "howMuchCost": "Quanto mi costi?"
+  },
+
+  "costs": {
+    "totalCost": "💰 Spesa totale",
+    "deed": "al rogito",
+    "vsHousePrice": "vs costo casa",
+    "taxes": "🇮🇹 Tasse",
+    "notary": "📜 Notaio",
+    "agency": "🏘️ Agenzia",
+    "bank": "🏦 Banca",
+    "extra": "extra",
+    "monthlyInstallment": "💸 Rata mutuo mensile",
+    "interestsIn": "📈 Interessi in",
+    "vsMortgage": "sul mutuo",
+    "whatToReturn": {
+      "what": "Cosa vado a ",
+      "payBack": "restituire ",
+      "year": "ogni anno?"
+    }
+  },
+  "chart": {
+    "check": "Spunta ",
+    "usingMortgage": "\"Utilizzi un mutuo?\" ",
+    "and": "e",
+    "insert": "Inserisci ",
+    "mortgageDurationTAEG": "Importo Mutuo, Durata e TAEG ",
+    "mortgageTAEG": "Importo Mutuo e TAEG ",
+    "DurationTAEG": "Durata mutuo e TAEG ",
+    "toVisualize": "per visualizzare il grafico.",
+    "interestBarChart": {
+      "interests": "Interessi",
+      "capital": "Capitale"
+    },
+    "lineChart": {
+      "label": "Mutuo {years} anni",
+      "capital": "Capital",
+      "text": "Patrimonio Posseduto (€)"
+    },
+    "cashVsMortgageChart": {
+      "cash": "Cash",
+      "label": "{mortgage_percentage}% Mutuo",
+      "text": "Patrimonio Posseduto (€)"
+    }
+  },
+  "mortgage": {
+    "question": {
+      "how": "Come cresce il mio/nostro ",
+      "wealth": "patrimonio ",
+      "with": "con il ",
+      "mortgage": "mutuo selezionato",
+      "end": ", ma con diverse durate?"
+    },
+    "mortgage10": "Mutuo 10 Anni",
+    "mortgage20": "Mutuo 20 Anni",
+    "mortgage30": "Mutuo 30 Anni",
+    "installment": "rata",
+    "futureWealth": "Patrimonio fra {years} anni",
+    "installmentTooHigh": "Rata del mutuo troppo alta!"
+  },
+  "cashVsMortgage": {
+    "question": {
+      "how": "Mi conviene pagare tutto ",
+      "cash": "cash ",
+      "otherwise": "oppure prendere un ",
+      "mortgage": "mutuo?"
+    },
+    "cash": "Cash",
+    "mortgage25": "Mutuo {duration} Anni (25%)",
+    "mortgage50": "Mutuo {duration} Anni (50%)",
+    "mortgage80": "Mutuo {duration} Anni (80%)"
+  },
+  "income": {
+    "yearlyIncome": "Quanto guadagno/amo ogni anno?",
+    "savingRate": "Di cui riesco/amo a risparmiare un...",
+    "investmentReturn": "Quanto fruttano i risparmi ogni anno?"
+  },
+  "prices": {
+    "question": {
+      "how": "Quanto ",
+      "costs": "costano ",
+      "houses": "le case nella mia ",
+      "zone": "zona?"
+    },
+    "select": "Seleziona",
+    "findMunicipality": "Cerca comune...",
+    "municipality": "Comune",
+    "municipalityFirst": "Prima scegli comune",
+    "area": "Zona",
+    "areaFirst": "Prima scegli zona",
+    "type": "Tipologia",
+    "typeFirst": "Prima scegli tipologia",
+    "conservation": "Conservazione",
+    "conservationFirst": "Prima scegli conservazione",
+    "m2": "m²",
+    "calculate": "Calculate",
+    "results": "Search results",
+    "newSearch": "New Search",
+    "houseAvgPrice": "House Average Price",
+    "priceRange": "Price range",
+    "marketSize": "Dimensione del Mercato",
+    "trend": "Andamento storico",
+    "volume": "Volume",
+    "price": "Prezzo",
+    "minPrice": "Prezzo Minimo m² (€)",
+    "maxPrice": "Prezzo Massimo m² (€)",
+    "volumeBuySell": "Volume Compravendite"
+  },
+  "navBar": {
+    "recap": "Riepilogo",
+    "costsDetail": "Dettaglio Costi",
+    "mortgage": "Mutuo",
+    "durationCompare": "Comparatore durata",
+    "cashCompare": "Cash vs Mutuo",
+    "prices": "Prezzi"
+  },
+  "categories": {
+    "taxes": "Tasse",
+    "agency": "Agenzia",
+    "notary": "Notaio",
+    "bank": "Banca"
+  },
+  "general": {
+    "language": "Lingua:",
+    "contacts": "Contatti: "
+  },
+  "tooltip": {
+    "agency": {
+      "title": {
+        "how": "Come capire se la vedita è curata da un ",
+        "agency": "agenzia?"
+      },
+      "paragraph1": {
+        "title": "Controllare approfonditamente l'annuncio dell'immobile",
+        "bullet1": "Se l’annuncio riporta il nome dell’agenzia (es. Tecnocasa, Gabetti, Remax, ecc.) o contatti con email tipo “@agenziaimmobiliare.it”, quasi sicuramente è tramite agenzia.",
+        "bullet2": "Spesso c’è scritto anche “si richiede provvigione” o “trattativa tramite agenzia”."
+      },
+      "paragraph2": {
+        "title": "Best practice",
+        "bullet1": "E' sempre buona pratica, quando si contatta l'inserzionista dell'annuncio, chiedere esplicitamente se la vendita è fra \"privati\" oppure \"tramite agenzia\".",
+        "bullet2": "Chiedere sempre a quanto ammonta la percentuale di provvigione dell'agenzia e verificare quando è dovuto il pagamento di tale importo."
+      },
+      "paragraph3": {
+        "title": "Pagamento dell'importo",
+        "bullet1": "Attenzione che alcune agenzie vincolano il pagamento della provigione durante l'atto preliminare di vendita e non al momento del rogito. Pertanto se il rogito non dovesse andare a buon fine (per esempio la parte venditrice/acquirente si ritira dalla vendita, oppure non viene concesso il mutuo) il pagamento all'agenzia è comunque dovuto!"
+      }
+    },
+    "firstHouse": {
+      "title": {
+        "do": "Hai l'agevolazione ",
+        "first": "prima casa ",
+        "if": "se..."
+      },
+      "paragraph1": {
+        "title": "Requisiti sull'immobile acquistato",
+        "bullet1": "Non appartenere alle categorie catastali di lusso: quindi NO A1 (abitazioni signorili), A8 (ville), A9 (castelli).",
+        "bullet2": "Essere ubicato nel comune dove hai o avrai la residenza (entro 18 mesi dall'acquisto).",
+        "bullet3": "Se vendi la casa acquistata con agevolazioni entro 5 anni, per non perdere il beneficio devi riacquistare entro 1 anno un'altra prima casa."
+      },
+      "paragraph2": {
+        "title": "Requisiti sull'immobile acquistato",
+        "bullet1": "Non deve essere titolare, esclusivo o in comunione con il coniuge, di altra abitazione nel territorio del comune dove si trova l’immobile.",
+        "bullet2": "Non deve possedere altri immobili acquistati con le agevolazioni prima casa, su tutto il territorio nazionale, a meno che li venda entro 12 mesi dall’acquisto della nuova casa."
+      }
+    },
+    "mortgage": {
+      "title": {
+        "info": "Informazioni principali per un ",
+        "mortgage": "mutuo ",
+        "dots": "..."
+      },
+      "paragraph1": {
+        "title": "Importo mutuo:",
+        "bullet1": "La totalità del capitale richiesto alla banca."
+      },
+      "paragraph2": {
+        "title": "Durata (Anni)",
+        "bullet1": "Il tempo necessario con il quale si desidera ripagare il capitale richiesto."
+      },
+      "paragraph3": {
+        "title": "TAEG:",
+        "bullet1": "Il tasso di interesse annuale applicato al capitale residuo da restituire. Il TAEG a differenza del TAN è comprensivo di tutti i costi reali che vengono applicati, anche quelli assicurativi per polizza scoppio inecendio obbligatoria / polize vita."
+      },
+      "paragraph4": {
+        "title": "Per aumentare le chache di ottenere un mutuo:",
+        "subParagraph1": {
+          "title": "Reddito e capacità di rimborso",
+          "bullet1": {
+            "title": "Stabilità lavorativa: ",
+            "content": "Lavoro a tempo indeterminato, da almeno 6–12 mesi. In caso di lavoro autonomo o partita IVA, servono almeno 2 anni di attività con redditi dichiarati stabili."
+          },
+          "bullet2": {
+            "title": "Rapporto rata/reddito: ",
+            "content": "La rata mensile del mutuo non deve superare il 30–35% del reddito netto mensile familiare."
+          },
+          "bullet3": {
+            "title": "Reddito familiare aggregato: ",
+            "content": "Se ci sono più intestatari del mutuo, si considera il reddito complessivo."
+          }
+        },
+        "subParagraph2": {
+          "title": "Età del richiedente",
+          "bullet1": "In genere, il mutuo deve terminare prima dei 75–80 anni di età del richiedente."
+        },
+        "subParagraph3": {
+          "title": "Importo richiesto e valore dell’immobile",
+          "bullet1": {
+            "title": "Rapporto LTV (Loan-to-Value): ",
+            "content": "L’importo del mutuo viene calcolato rispetto al valore dell’immobile. Di solito le banche finanziano fino all’80% del valore di perizia."
+          },
+          "bullet2": {
+            "title": "Catasto e ipoteche: ",
+            "content": "L'immobile deve essere regolarmente accatastato, libero da ipoteche pregresse e in buono stato."
+          }
+        },
+        "subParagraph4": {
+          "title": "Affidabilità creditizia",
+          "bullet1": {
+            "title": "Contorollo situazione creditizia: ",
+            "content": "Le banche consultano dei database per verificare se hai altri prestiti in corso ed eventuali ritardi nei pagamenti."
+          },
+          "bullet2": {
+            "title": "Storia creditizia: ",
+            "content": "Avere una cronologia pregressa di pagamenti regolari o mutui/prestiti completamente ripagati senza intoppi, aumenta la tua credibilità e affidabilità agli occhi della banca."
+          }
+        }
+      }
+    },
+    "vat": {
+      "title": {
+        "pay": "Paghi ",
+        "vat": "l'IVA ",
+        "if": "se..."
+      },
+      "paragraph1": {
+        "title": "Requisiti sull'immobile acquistato",
+        "bullet1": "Compri l'immobile da una impresa costruttrice o di ristrutturazioni entro 5 anni dalla fine dei lavori (costruzione o ristrutturazione).",
+        "bullet2": "Anche dopo i 5 anni, ma solo se l'impresa sceglie di assoggettare la vendita a IVA (è facoltativo, ma deve essere indicato nell’atto).",
+        "bullet3": "Il pagamento dell'IVA, a patto di rispttare le condizione appena citate, è comunque dovuto anche in caso di utilizzo di un intemediario come per esempio una agenzia immobiliare."
+      }
+    }
+  },
+  "error": {
+    "api": {
+      "rateLimit": "Hey quante richieste, rallenta e riprova tra qualche secondo.",
+      "genericError": "Qualcosa è andato storto. Riprova tra qualche secondo."
+    },
+    "userDelete": {
+      "generalError": "Errore durante la cancellazione. Riprova.",
+      "typeError": "La parola scritta non coincide con: Delete"
+    },
+    "houseSaving": {
+      "sameNameError": "Esiste già una casa salvata con questo nome.",
+      "overwriteError": "Errore durante la sovrascrittura. Riprova."
+    },
+    "checkout": {
+      "paymentIntentError": "Creazione payment intent fallita.",
+      "paymentError": "Si è verificato un errore durante il pagamento. Riprova.",
+      "serverConfirmError": "Conferma con server fallita.",
+      "proActivationError": "Attivazione PRO fallita.",
+      "paymentNotCompleted": "Pagamento non completato. Status: {status}",
+      "nullEmailError": "Email richiesta",
+      "missingEmailError": "Inserisci un indirizzo email valido",
+      "nullNameError": "Nome completo richiesto",
+      "nameLengthError": "Il nome deve contenere solo lettere (2-50 caratteri)",
+      "missingNameError": "Inserisci nome e cognome",
+      "nullAddressError": "Indirizzo richiesto",
+      "wrongAddressError": "Indirizzo non valido (3-100 caratteri, solo lettere, numeri e punteggiatura comune)",
+      "nullCityError": "Città richiesta",
+      "wrongCiryError": "La città deve contenere solo lettere (2-50 caratteri)",
+      "nullCapError": "CAP richiesto",
+      "capError": "Il CAP deve essere di esattamente 5 cifre"
+    },
+    "signin": {
+      "duplicateEmailError": "Questo indirizzo email è già registrato",
+      "invalidEmailError": "Indirizzo email non valido",
+      "notAllowedError": "Operazione non consentita",
+      "weakPswError": "La password è troppo debole",
+      "disableAccountError": "Account disabilitato",
+      "userNotFoundError": "Utente non trovato",
+      "wrongPswError": "Password errata",
+      "invadiCredentialsError": "Credenziali non valide",
+      "tooManyAttempsError": "Troppi tentativi. Riprova più tardi",
+      "emailNotCheckedError": "Email non verificata. Controlla la tua casella di posta",
+      "closedError": "Popup chiuso dall'utente",
+      "popUpBlockedError": "Popup bloccato dal browser. Abilita i popup per questo sito",
+      "popUpError": "Richiesta popup cancellata",
+      "duplicateAccount": "Esiste già un account con questo indirizzo email ma con un metodo di accesso diverso",
+      "generalError": "Errore di autenticazione.",
+      "termNotAcceptedError": "Devi accettare i termini e condizioni",
+      "pswResetError": "Errore reset password: ",
+      "resendEmailFailedError": "Errore reinvio mail di verifica: ",
+      "checkError": "Errore durante la verifica. Riprova.",
+      "networkError": "Errore di connessione. Controlla la tua connessione internet",
+      "internalError": "Errore interno. Riprova più tardi"
+    }
+  },
+  "houseSaving": {
+    "saveHome": "Salva la tua casa",
+    "insert": "Inserisci un nome per identificare questa configurazione",
+    "hoseName": "Nome della casa",
+    "placeHolder": "Es. Casa al mare, Villa in montagna...",
+    "wantOverwrite": "Vuoi sovrascrivere la casa esistente con questi nuovi valori?",
+    "overwrite": "Sovrascrivi",
+    "abort": "Annulla",
+    "saving": "Salvando...",
+    "save": "Salva"
+  },
+  "userDelete": {
+    "delete": "Stai per ELIMINARE il tuo account",
+    "deleteInfo": "Cancellando il tuo account perderai tutte le personalizzazioni e acquisti legati al tuo account!",
+    "type": "Digita \"Delete\" per cancellare il tuo account",
+    "abort": "Annulla",
+    "deleteButton": "Elimina"
+  },
+  "getPro": {
+    "title": {
+      "house": "La casa si compra ",
+      "few": "poche volte nella vita!",
+      "subTitle": "Prendi le decisioni finanziarie corrette per il tuo futuro, la tua casa e sopratutto, per il tuo portafoglio."
+    },
+    "std": "Standard",
+    "free": "GRATIS",
+    "freeDesc": "Utilizza i nostri strumenti essenziali per il calcolo della tua casa. Perfetto per sapere quanto costa realmente la tua casa e il costo di un mutuo.",
+    "freeBenefit": {
+      "row1": "Presentazione costi totali",
+      "row2": "Dettaglio singole voci di costo",
+      "row3": "Dettaglio mutuo"
+    },
+    "alwaysFree": "Sempre gratuito",
+    "useFreeVersion": "Usa Versione Gratuita",
+    "pro": "Pro",
+    "proCaps": "PRO",
+    "proDesc": "Sblocca strumenti avanzati di analisi per decisioni finanziarie più approfondite. Capisci come evolverebbe il tuo patrimonio in diversi scenari e risparmia migliaia di euro sull'acquisto della tua casa con le scelte finanziarie più corrette per te, ottenendo risposta a:",
+    "proBenefit": {
+      "row1": "Conviene fare un muto o pagare cash?",
+      "row2": "Che durata del mutuo mi conviene?",
+      "row3": "Quanto costano le case nella mia zona?",
+      "row4": "Quali sono i volumi di compravendita nella mia zona?",
+      "row5": "Nel passato come erano i prezzi e volumi di compravendita?"
+    },
+    "vat": "IVA inclusa",
+    "access": "Accesso per quattro mesi • Nessun abbonamento",
+    "getProNow": "🚀 Ottieni Pro Ora"
+  },
+  "checkout": {
+    "plan": "Piano ",
+    "vat": "IVA ",
+    "total": "Totale",
+    "info": "Informazioni di pagamento",
+    "email": "Email",
+    "fullName": "Nome Completo",
+    "ccInfo": "Informazioni Carta di Credito",
+    "providerLoading": "Caricamento Dati Provider...",
+    "billingAddress": "Indirizzo di Fatturazione",
+    "address": "Indirizzo",
+    "city": "Città",
+    "cap": "CAP",
+    "country": "Paese",
+    "selectCountry": "Seleziona un paese",
+    "procesing": "Elaborazione...",
+    "loading": "Caricamento...",
+    "payment": "Procedi al pagamento",
+    "proActivated": "🎉 Pro Attivato!",
+    "paymentOk": "Il pagamento è stato completato con successo!",
+    "access": "Ora hai accesso a tutte le funzionalità Pro.",
+    "redirect": "Verrai reindirizzato alla dashboard...",
+    "mailPlaceholder": "tua@mail.com",
+    "namePlaceholder": "Mario Rossi",
+    "addressPlaceholder": "Via Roma, 12",
+    "cityPlaceholder": "Cuneo"
+  },
+  "signin": {
+    "checkEmail": "Registrazione completata! Controlla la tua email per verificare l'account.",
+    "logInSucces": "Accesso effettuato con successo!",
+    "resetEmail": "Email di reset password inviata! Controlla la tua casella di posta.",
+    "resentEmail": "Email di verifica inviata nuovamente!",
+    "checkedEmail": "Email verificata! Benvenuto!",
+    "logInSuccesRedirect": "Accesso effettuato con successo! Reindirizzamento...",
+    "resetPsw": "Reset Password 🔑",
+    "welcome": "Benvenuto! 🎉",
+    "welcomeBack": "Bentornato! 👋",
+    "resetPswText": "Inserisci la tua email per resettare la password",
+    "welcomeText": "Crea il tuo account per iniziare",
+    "welcomeBackText": "Accedi al tuo account",
+    "checkEmailText": "📧 Controlla la tua email per verificare l'account",
+    "resendEmailText": "🔄 Invia nuovamente email",
+    "checkDoneText": "✅ Ho verificato l'email",
+    "notValidEmail": "Inserisci un'email valida",
+    "loading": "Caricamento...",
+    "resetText": "Invia email di reset",
+    "form": {
+      "name": "Nome:",
+      "lastName": "Cognome:",
+      "email": "Email:",
+      "psw": "Password:",
+      "pswConfirm": "Conferma Password:"
+    },
+    "pswCheck": "La password deve contenere almeno 8 caratteri",
+    "pswConformNoMatch": "Le password non coincidono",
+    "accept": "Acceto ",
+    "term": "Termini e condizioini",
+    "and": "e ",
+    "privacy": "Privacy policy",
+    "register": "Registrati",
+    "access": "Accedi",
+    "rememberPsw": "Ricordi la password?",
+    "backTo": "Torna al login",
+    "haveAccount": "Hai già un account?",
+    "noHaveAccount": "Non hai un account?",
+    "forgotPsw": "Password dimenticata?",
+    "or": "oppure",
+    "googleLogIn": "Continua con Google"
+  }
+}

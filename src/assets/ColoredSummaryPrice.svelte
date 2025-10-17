@@ -8,7 +8,8 @@
     export let isValid: boolean = true;
     export let secondaryNumber: number | null = null;
     export let secondaryLabel: string = "";
-    export let years: number | null = null;
+    export let thirdLabel: string = "";
+    export let installmentTooHigh: string = "";
 </script>
 
 <div class="flex-1 min-w-[160px]">
@@ -103,9 +104,7 @@
                             clip-rule="evenodd"
                         />
                     </svg>
-                    <span class="text-xs text-green-500"
-                        >Patrimonio fra {years} anni</span
-                    >
+                    <span class="text-xs text-green-500">{thirdLabel}</span>
                 </div>
             {/if}
             {#if !isValid}
@@ -124,7 +123,7 @@
                         />
                     </svg>
                     <span class="text-xs text-red-400"
-                        >Rata del mutuo troppo alta!</span
+                        >{installmentTooHigh}</span
                     >
                 </div>
             {/if}

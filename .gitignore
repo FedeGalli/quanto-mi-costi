@@ -44,7 +44,7 @@ go.work
 go.work.sum
 
 # env file
-.env
+*.env
 
 # Credentials
 src/lib/auth/credentials.ts
@@ -56,3 +56,6 @@ backend/data/volumes
 
 # CSV data
 *.csv
+
+# Json secrets
+quanto-mi-costi.json

@@ -1,0 +1,450 @@
+{
+  "hero": {
+    "discover": "Find out how much it costs,",
+    "really": "for real,",
+    "dreamHouse": "the house of your dreams. 🏡"
+  },
+  "disclaimer": "The final price shown indicates the total cost on the day of the deed. *For variable expenses such as notary/bank, a truthful estimate has been made on all cost items.",
+  "house": {
+    "cost": "House cost:",
+    "name": "House:",
+    "saved": "Saved houses",
+    "save": "SAVE",
+    "delete": "Delete house"
+  },
+  "settings": {
+    "title": "Settings",
+    "delete": "Delete Account"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "user": "User",
+    "getPro": "Get pro!"
+  },
+  "form": {
+    "firstHouse": "First-home buyer benefits?",
+    "soldByBuilder": "Sale subject to VAT?",
+    "soldByAgency": "Purchase via a real estate agency?",
+    "usingMortgage": "Are you using a mortgage?",
+    "commission": "Fee:",
+    "mortgageAmount": "Mortgage amount:",
+    "duration": "Duration:",
+    "taeg": "APR:",
+    "howMuchCost": "How much does it cost me?"
+  },
+  "costs": {
+    "totalCost": "💰 Total expense",
+    "deed": "upon deed signing",
+    "vsHousePrice": "vs house price",
+    "taxes": "🇮🇹 Taxes",
+    "notary": "📜 Notary",
+    "agency": "🏘️ Agency",
+    "bank": "🏦 Bank",
+    "extra": "extra",
+    "monthlyInstallment": "💸 Monthly mortgage payment",
+    "interestsIn": "📈 Interest in",
+    "vsMortgage": "on mortgage",
+    "whatToReturn": {
+      "what": "What am I going to ",
+      "payBack": "pay back ",
+      "year": "each year?"
+    },
+    "insertMortgageData": "Enter Mortgage Amount, Duration and APR to view the chart.",
+    "insertMortgageBasic": "Enter Mortgage Amount and APR to view the chart.",
+    "insertDurationTaeg": "Enter mortgage duration and APR to view the chart."
+  },
+  "chart": {
+    "check": "Check ",
+    "usingMortgage": "\"Are you using a mortgage?\" ",
+    "and": "and",
+    "insert": "Enter ",
+    "mortgageDurationTAEG": "Mortgage Amount, Duration and APR ",
+    "mortgageTAEG": "Mortgage Amount and APR ",
+    "DurationTAEG": "mortgage duration and APR ",
+    "toVisualize": "to view the chart.",
+    "interestBarChart": {
+      "interests": "Interests",
+      "capital": "Capital"
+    },
+    "lineChart": {
+      "label": "{years} Years mortgage",
+      "capital": "Capital",
+      "text": "Owned Whealth (€)"
+    },
+    "cashVsMortgageChart": {
+      "cash": "Cash",
+      "label": "{mortgage_percentage}% Mortgage",
+      "text": "Owned Whealth (€)"
+    }
+  },
+  "mortgage": {
+    "question": {
+      "how": "How does my/our ",
+      "wealth": "wealth grow ",
+      "with": "with the ",
+      "mortgage": "selected mortgage",
+      "end": ", but with different durations?"
+    },
+    "mortgage10": "10-Year Mortgage",
+    "mortgage20": "20-Year Mortgage",
+    "mortgage30": "30-Year Mortgage",
+    "installment": "installment",
+    "futureWealth": "Whealth in {years} years",
+    "installmentTooHigh": "Monthly installment unaffordable!"
+  },
+  "cashVsMortgage": {
+    "question": {
+      "how": "Should I pay everything in ",
+      "cash": "cash ",
+      "otherwise": "or take out a ",
+      "mortgage": "mortgage?"
+    },
+    "cash": "Cash",
+    "mortgage25": "{duration}-Year Mortgage (25%)",
+    "mortgage50": "{duration}-Year Mortgage (50%)",
+    "mortgage80": "{duration}-Year Mortgage (80%)"
+  },
+  "income": {
+    "yearlyIncome": "How much do I/we earn each year?",
+    "savingRate": "Of which I/we manage to save...",
+    "investmentReturn": "How much do savings yield each year?"
+  },
+  "prices": {
+    "question": {
+      "how": "How much do houses",
+      "costs": "cost ",
+      "houses": "in my ",
+      "zone": "area?"
+    },
+    "select": "Select",
+    "findMunicipality": "Find municipality...",
+    "municipality": "Municipality",
+    "municipalityFirst": "Select a municipality first",
+    "area": "Area",
+    "areaFirst": "Select an area first",
+    "type": "Type",
+    "typeFirst": "Select a type first",
+    "conservation": "Conservation",
+    "conservationFirst": "Select a conservation first",
+    "m2": "m²",
+    "calculate": "Calculate",
+    "results": "Search results",
+    "newSearch": "New Search",
+    "houseAvgPrice": "House Average Price",
+    "priceRange": "Price range",
+    "marketSize": "Market Size",
+    "trend": "Trend",
+    "volume": "Volume",
+    "price": "Price",
+    "minPrice": "Max Price m² (€)",
+    "maxPrice": "Min Price m² (€)",
+    "volumeBuySell": "Trading Volume"
+  },
+  "navBar": {
+    "recap": "Recap",
+    "costsDetail": "Costs Detail",
+    "mortgage": "Mortgage",
+    "durationCompare": "Duration compare",
+    "cashCompare": "Cash vs Mortgage",
+    "prices": "Prices"
+  },
+  "categories": {
+    "tax": "Tax",
+    "agency": "Agency",
+    "notary": "Notary",
+    "bank": "Bank"
+  },
+  "general": {
+    "language": "Language:",
+    "contacts": "Contacts:"
+  },
+  "tooltip": {
+    "agency": {
+      "title": {
+        "how": "How to understand if the sale is handled by an ",
+        "agency": "agency?"
+      },
+      "paragraph1": {
+        "title": "Check the property listing thoroughly",
+        "bullet1": "If the listing shows the agency name (e.g. Tecnocasa, Gabetti, Remax, etc.) or contacts with emails like \"@realestateagency.it\", it's almost certainly through an agency.",
+        "bullet2": "Often it also says \"commission required\" or \"transaction through agency\"."
+      },
+      "paragraph2": {
+        "title": "Best practice",
+        "bullet1": "It's always good practice, when contacting the listing advertiser, to explicitly ask if the sale is between \"private parties\" or \"through an agency\".",
+        "bullet2": "Always ask what the agency commission percentage is and verify when payment of this amount is due."
+      },
+      "paragraph3": {
+        "title": "Payment of the amount",
+        "bullet1": "Be careful that some agencies require commission payment during the preliminary sales agreement and not at the time of the deed. Therefore, if the deed does not go through successfully (for example the seller/buyer withdraws from the sale, or the mortgage is not granted) payment to the agency is still due!"
+      }
+    },
+    "firstHouse": {
+      "title": {
+        "do": "You have the ",
+        "first": "first home ",
+        "if": "benefit if..."
+      },
+      "paragraph1": {
+        "title": "Requirements for the purchased property",
+        "bullet1": "Must not belong to luxury cadastral categories: so NO to A1 (luxury homes), A8 (villas), A9 (castles).",
+        "bullet2": "Must be located in the municipality where you have or will have residency (within 18 months of purchase).",
+        "bullet3": "If you sell the house purchased with benefits within 5 years, to not lose the benefit you must repurchase another first home within 1 year."
+      },
+      "paragraph2": {
+        "title": "Requirements for the buyer",
+        "bullet1": "Must not be the owner, exclusively or jointly with spouse, of another dwelling in the territory of the municipality where the property is located.",
+        "bullet2": "Must not own other properties purchased with first home benefits, throughout the national territory, unless they sell them within 12 months of purchasing the new home."
+      }
+    },
+    "mortgage": {
+      "title": {
+        "info": "Main information for a ",
+        "mortgage": "mortgage ",
+        "dots": "..."
+      },
+      "paragraph1": {
+        "title": "Mortgage amount:",
+        "bullet1": "The total capital requested from the bank."
+      },
+      "paragraph2": {
+        "title": "Duration (Years)",
+        "bullet1": "The time required to repay the requested capital."
+      },
+      "paragraph3": {
+        "title": "APR:",
+        "bullet1": "The annual interest rate applied to the remaining capital to be repaid. APR, unlike the nominal rate, includes all actual costs that are applied, including insurance costs for mandatory fire insurance policies/life insurance policies."
+      },
+      "paragraph4": {
+        "title": "To increase the chances of obtaining a mortgage:",
+        "subParagraph1": {
+          "title": "Income and repayment capacity",
+          "bullet1": {
+            "title": "Job stability: ",
+            "content": "Permanent employment for at least 6–12 months. In case of self-employment or VAT number, at least 2 years of activity with stable declared income is required."
+          },
+          "bullet2": {
+            "title": "Installment/income ratio: ",
+            "content": "The monthly mortgage payment must not exceed 30–35% of the monthly net family income."
+          },
+          "bullet3": {
+            "title": "Aggregate family income: ",
+            "content": "If there are multiple mortgage holders, the total income is considered."
+          }
+        },
+        "subParagraph2": {
+          "title": "Applicant's age",
+          "bullet1": "Generally, the mortgage must end before the applicant reaches 75–80 years of age."
+        },
+        "subParagraph3": {
+          "title": "Requested amount and property value",
+          "bullet1": {
+            "title": "LTV (Loan-to-Value) ratio: ",
+            "content": "The mortgage amount is calculated against the property value. Usually banks finance up to 80% of the appraisal value."
+          },
+          "bullet2": {
+            "title": "Land registry and mortgages: ",
+            "content": "The property must be properly registered in the land registry, free from previous mortgages and in good condition."
+          }
+        },
+        "subParagraph4": {
+          "title": "Credit reliability",
+          "bullet1": {
+            "title": "Credit situation check: ",
+            "content": "Banks consult databases to verify if you have other ongoing loans and any payment delays."
+          },
+          "bullet2": {
+            "title": "Credit history: ",
+            "content": "Having a previous history of regular payments or mortgages/loans completely repaid without issues increases your credibility and reliability in the bank's eyes."
+          }
+        }
+      }
+    },
+    "vat": {
+      "title": {
+        "pay": "You pay ",
+        "vat": "VAT ",
+        "if": "if..."
+      },
+      "paragraph1": {
+        "title": "Requirements for the purchased property",
+        "bullet1": "You buy the property from a construction or renovation company within 5 years from the completion of the work (construction or renovation).",
+        "bullet2": "Even after 5 years, but only if the company chooses to subject the sale to VAT (it's optional, but must be indicated in the deed).",
+        "bullet3": "The payment of VAT, provided the conditions just mentioned are respected, is still due even when using an intermediary such as a real estate agency."
+      }
+    }
+  },
+  "error": {
+    "api": {
+      "rateLimit": "Hey, too many requests, slow down and try again in a few seconds.",
+      "genericError": "Something went wrong. Try again in a few seconds."
+    },
+    "userDelete": {
+      "generalError": "Error during deletion. Please try again.",
+      "typeError": "The typed word does not match: Delete"
+    },
+    "houseSaving": {
+      "sameNameError": "A saved house with this name already exists.",
+      "overwriteError": "Error during overwrite. Please try again."
+    },
+    "checkout": {
+      "paymentIntentError": "Payment intent creation failed.",
+      "paymentError": "An error occurred during payment. Please try again.",
+      "serverConfirmError": "Server confirmation failed.",
+      "proActivationError": "PRO activation failed.",
+      "paymentNotCompleted": "Payment not completed. Status: {status}",
+      "nullEmailError": "Email required",
+      "missingEmailError": "Enter a valid email address",
+      "nullNameError": "Full name required",
+      "nameLengthError": "Name must contain only letters (2-50 characters)",
+      "missingNameError": "Enter first and last name",
+      "nullAddressError": "Address required",
+      "wrongAddressError": "Invalid address (3-100 characters, only letters, numbers and common punctuation)",
+      "nullCityError": "City required",
+      "wrongCityError": "City must contain only letters (2-50 characters)",
+      "nullCapError": "ZIP code required",
+      "capError": "ZIP code must be exactly 5 digits"
+    },
+    "signin": {
+      "duplicateEmailError": "This email address is already registered",
+      "invalidEmailError": "Invalid email address",
+      "notAllowedError": "Operation not allowed",
+      "weakPswError": "Password is too weak",
+      "disableAccountError": "Account disabled",
+      "userNotFoundError": "User not found",
+      "wrongPswError": "Incorrect password",
+      "invadiCredentialsError": "Invalid credentials",
+      "tooManyAttempsError": "Too many attempts. Please try again later",
+      "emailNotCheckedError": "Email not verified. Check your inbox",
+      "closedError": "Popup closed by user",
+      "popUpBlockedError": "Popup blocked by browser. Please enable popups for this site",
+      "popUpError": "Popup request cancelled",
+      "duplicateAccount": "An account with this email address already exists but with a different sign-in method",
+      "generalError": "Authentication error.",
+      "termNotAcceptedError": "You must accept the terms and conditions",
+      "pswResetError": "Password reset error: ",
+      "resendEmailFailedError": "Error resending verification email: ",
+      "checkError": "Error during verification. Please try again.",
+      "networkError": "Connection error. Please check your internet connection",
+      "internalError": "Internal error. Please try again later"
+    }
+  },
+  "houseSaving": {
+    "saveHome": "Save your home",
+    "insert": "Enter a name to identify this configuration",
+    "hoseName": "House name",
+    "placeHolder": "E.g. Beach house, Mountain villa...",
+    "wantOverwrite": "Do you want to overwrite the existing house with these new values?",
+    "overwrite": "Overwrite",
+    "abort": "Cancel",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+  "userDelete": {
+    "delete": "You are about to DELETE your account",
+    "deleteInfo": "By deleting your account, you will lose all customizations and purchases linked to your account!",
+    "type": "Type \"Delete\" to confirm account deletion",
+    "abort": "Cancel",
+    "deleteButton": "Delete"
+  },
+  "getPro": {
+    "title": {
+      "house": "You buy a house ",
+      "few": "few times in life!",
+      "subTitle": "Make the right financial decisions for your future, your home and above all, for your wallet."
+    },
+    "std": "Standard",
+    "free": "FREE",
+    "freeDesc": "Use our essential tools to calculate your home costs. Perfect for knowing what your house really costs and the cost of a mortgage.",
+    "freeBenefit": {
+      "row1": "Total cost breakdown",
+      "row2": "Individual cost item details",
+      "row3": "Mortgage details"
+    },
+    "alwaysFree": "Always free",
+    "useFreeVersion": "Use Free Version",
+    "pro": "Pro",
+    "proCaps": "PRO",
+    "proDesc": "Unlock advanced analysis tools for deeper financial decisions. Understand how your wealth would evolve in different scenarios and save thousands of euros on buying your home with the right financial choices for you, getting answers to:",
+    "proBenefit": {
+      "row1": "Is it better to get a mortgage or pay cash?",
+      "row2": "What mortgage duration suits me best?",
+      "row3": "How much do houses cost in my area?",
+      "row4": "What are the sales volumes in my area?",
+      "row5": "What were the prices and sales volumes in the past?"
+    },
+    "vat": "VAT included",
+    "access": "Four-month access • No subscription",
+    "getProNow": "🚀 Get Pro Now"
+  },
+  "checkout": {
+    "plan": "Plan ",
+    "vat": "VAT ",
+    "total": "Total",
+    "info": "Payment Information",
+    "email": "Email",
+    "fullName": "Full Name",
+    "ccInfo": "Credit Card Information",
+    "providerLoading": "Loading Provider Data...",
+    "billingAddress": "Billing Address",
+    "address": "Address",
+    "city": "City",
+    "cap": "ZIP Code",
+    "country": "Country",
+    "selectCountry": "Select a country",
+    "procesing": "Processing...",
+    "loading": "Loading...",
+    "payment": "Proceed to payment",
+    "proActivated": "🎉 Pro Activated!",
+    "paymentOk": "Payment has been completed successfully!",
+    "access": "You now have access to all Pro features.",
+    "redirect": "You will be redirected to the dashboard...",
+    "mailPlaceholder": "your@mail.com",
+    "namePlaceholder": "Kenneth Castelli",
+    "addressPlaceholder": "London Street, 12",
+    "cityPlaceholder": "Paris"
+  },
+  "signin": {
+    "checkEmail": "Registration completed! Check your email to verify your account.",
+    "logInSucces": "Login successful!",
+    "resetEmail": "Password reset email sent! Check your inbox.",
+    "resentEmail": "Verification email sent again!",
+    "checkedEmail": "Email verified! Welcome!",
+    "logInSuccesRedirect": "Login successful! Redirecting...",
+    "resetPsw": "Reset Password 🔑",
+    "welcome": "Welcome! 🎉",
+    "welcomeBack": "Welcome back! 👋",
+    "resetPswText": "Enter your email to reset your password",
+    "welcomeText": "Create your account to get started",
+    "welcomeBackText": "Sign in to your account",
+    "checkEmailText": "📧 Check your email to verify your account",
+    "resendEmailText": "🔄 Resend email",
+    "checkDoneText": "✅ I have verified my email",
+    "notValidEmail": "Enter a valid email",
+    "loading": "Loading...",
+    "resetText": "Send reset email",
+    "form": {
+      "name": "First Name:",
+      "lastName": "Last Name:",
+      "email": "Email:",
+      "psw": "Password:",
+      "pswConfirm": "Confirm Password:"
+    },
+    "pswCheck": "Password must contain at least 8 characters",
+    "pswConformNoMatch": "Passwords do not match",
+    "accept": "I accept ",
+    "term": "Terms and Conditions",
+    "and": "and ",
+    "privacy": "Privacy Policy",
+    "register": "Sign Up",
+    "access": "Sign In",
+    "rememberPsw": "Remember your password?",
+    "backTo": "Back to login",
+    "haveAccount": "Already have an account?",
+    "noHaveAccount": "Don't have an account?",
+    "forgotPsw": "Forgot password?",
+    "or": "or",
+    "googleLogIn": "Continue with Google"
+  }
+}

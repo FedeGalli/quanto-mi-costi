@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from "svelte-i18n";
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
 </script>
@@ -21,118 +22,151 @@
     </button>
     <div class="space-y-4">
         <h2 class="text-4xl font-bold leading-tight">
-            Informazioni principali per un <span class="text-purple-400"
-                >mutuo</span
-            >...
+            {$_("tooltip.mortgage.title.info")}<span class="text-purple-400"
+                >{$_("tooltip.mortgage.title.mortgage")}</span
+            >{$_("tooltip.mortgage.title.dots")}
         </h2>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">1.</span> Importo mutuo:
+            <span class="text-purple-400">1. </span>
+            {$_("tooltip.mortgage.paragraph1.title")}
             <span class="text-base font-medium leading-tight"
-                >La totalità del capitale richiesto alla banca.</span
+                >{$_("tooltip.mortgage.paragraph1.bullet1")}</span
             >
         </p>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">2.</span> Durata (Anni):
+            <span class="text-purple-400">2. </span>
+            {$_("tooltip.mortgage.paragraph2.title")}
             <span class="text-base font-medium leading-tight">
-                Il tempo necessario con il quale si desidera ripagare il
-                capitale richiesto.</span
+                {$_("tooltip.mortgage.paragraph2.bullet1")}</span
             >
         </p>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">3.</span> TAEG:
+            <span class="text-purple-400">3. </span>
+            {$_("tooltip.mortgage.paragraph3.title")}
             <span class="text-base font-medium leading-tight">
-                Il tasso di interesse annuale applicato al capitale residuo da
-                restituire. Il TAEG a differenza del TAN è comprensivo di tutti
-                i costi reali che vengono applicati, anche quelli assicurativi
-                per polizza scoppio inecendio obbligatoria / polize vita.</span
+                {$_("tooltip.mortgage.paragraph3.bullet1")}</span
             >
         </p>
 
         <p class="text-xl font-bold leading-tight">
-            <span class="text-purple-400">4.</span> Per aumentare le chache di ottenere
-            un mutuo:
+            <span class="text-purple-400">4. </span>
+            {$_("tooltip.mortgage.paragraph4.title")}
         </p>
 
         <ul class="list-disc pl-6 text-base leading-tight space-y-3">
             <li>
                 <span class="font-bold leading-tight"
-                    >Reddito e capacità di rimborso</span
-                >
-                <ul
-                    class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
-                >
-                    <li>
-                        <span class="font-bold">Stabilità lavorativa:</span> Lavoro
-                        a tempo indeterminato, da almeno 6–12 mesi. In caso di lavoro
-                        autonomo o partita IVA, servono almeno 2 anni di attività
-                        con redditi dichiarati stabili.
-                    </li>
-                    <li>
-                        <span class="font-bold">Rapporto rata/reddito:</span> La
-                        rata mensile del mutuo non deve superare il 30–35% del reddito
-                        netto mensile familiare.
-                    </li>
-                    <li>
-                        <span class="font-bold"
-                            >Reddito familiare aggregato:</span
-                        > Se ci sono più intestatari del mutuo, si considera il reddito
-                        complessivo.
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <span class="font-bold leading-tight">Età del richiedente</span>
-                <ul
-                    class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
-                >
-                    <li>
-                        In genere, il mutuo deve terminare prima dei 75–80 anni
-                        di età del richiedente.
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <span class="font-bold leading-tight"
-                    >Importo richiesto e valore dell’immobile</span
+                    >{$_(
+                        "tooltip.mortgage.paragraph4.subParagraph1.title",
+                    )}</span
                 >
                 <ul
                     class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
                 >
                     <li>
                         <span class="font-bold"
-                            >Rapporto LTV (Loan-to-Value):</span
-                        > L’importo del mutuo viene calcolato rispetto al valore
-                        dell’immobile. Di solito le banche finanziano fino all’80%
-                        del valore di perizia.
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph1.bullet1.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph1.bullet1.content",
+                        )}
                     </li>
                     <li>
-                        <span class="font-bold">Cataso e ipoteche:</span> L'immobile
-                        deve essere regolarmente accatastato, libero da ipoteche
-                        pregresse e in buono stato.
+                        <span class="font-bold"
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph1.bullet2.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph1.bullet2.content",
+                        )}
+                    </li>
+                    <li>
+                        <span class="font-bold"
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph1.bullet3.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph1.bullet3.content",
+                        )}
                     </li>
                 </ul>
             </li>
             <li>
                 <span class="font-bold leading-tight"
-                    >Affidabilità creditizia</span
+                    >{$_(
+                        "tooltip.mortgage.paragraph4.subParagraph2.title",
+                    )}</span
+                >
+                <ul
+                    class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
+                >
+                    <li>
+                        {$_(
+                            "tooltip.mortgage.paragraph4.subParagraph2.bullet1",
+                        )}
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <span class="font-bold leading-tight"
+                    >{$_(
+                        "tooltip.mortgage.paragraph4.subParagraph3.title",
+                    )}</span
                 >
                 <ul
                     class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
                 >
                     <li>
                         <span class="font-bold"
-                            >Contorollo situazione creditizia:</span
-                        > Le banche consultano dei database per verificare se hai
-                        altri prestiti in corso ed eventuali ritardi nei pagamenti.
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph3.bullet1.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph3.bullet1.content",
+                        )}
                     </li>
                     <li>
-                        <span class="font-bold">Credit history:</span>
-                        Avere una cronologia pregressa di pagamenti regolari o mutui/prestiti
-                        completamente ripagati senza intoppi, aumenta la tua credibilità
-                        e affidabilità agli occhi della banca.
+                        <span class="font-bold"
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph3.bullet2.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph3.bullet2.content",
+                        )}
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <span class="font-bold leading-tight"
+                    >{$_(
+                        "tooltip.mortgage.paragraph4.subParagraph4.title",
+                    )}</span
+                >
+                <ul
+                    class="list-disc pl-6 mt-2 text-base leading-tight space-y-1"
+                >
+                    <li>
+                        <span class="font-bold"
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph4.bullet1.title",
+                            )}</span
+                        >{$_(
+                            "tooltip.mortgage.paragraph4.subParagraph4.bullet1.content",
+                        )}
+                    </li>
+                    <li>
+                        <span class="font-bold"
+                            >{$_(
+                                "tooltip.mortgage.paragraph4.subParagraph4.bullet2.title",
+                            )}</span
+                        >
+                        {$_(
+                            "tooltip.mortgage.paragraph4.subParagraph4.bullet2.content",
+                        )}
                     </li>
                 </ul>
             </li>

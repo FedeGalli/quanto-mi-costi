@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-
+	"net/url"
 	"slices"
 
 	"github.com/gin-contrib/cors"
@@ -30,6 +32,72 @@ type MortgageCompareItem struct {
 	Values      []float64 `json:"values"`
 	Valid       bool      `json:"valid"`
 	Installment float64   `json:"installment"`
+}
+
+type Dataset struct {
+	Label string      `json:"label"`
+	Data  interface{} `json:"data"` // Can be []float64 or []string
+}
+
+type ChartData struct {
+	Labels   []string  `json:"labels"`
+	Datasets []Dataset `json:"datasets"`
+}
+
+type PriceVolumeResponse struct {
+	MarketSize      string    `json:"market_size"`       // Changed to string
+	CurrentVolumeMq string    `json:"current_volume_mq"` // Changed to string
+	MqRange         string    `json:"mq_range"`
+	CurrentMaxPrice float64   `json:"current_max_price"`
+	CurrentMinPrice float64   `json:"current_min_price"`
+	VolumeTrend     ChartData `json:"volume_trend"`
+	PriceTrend      ChartData `json:"price_trend"`
+}
+
+type MunicipalitiesInfoResponse struct {
+	Data [][]interface{} `json:"DATA"`
+}
+
+type MunicipalitiesListResponse struct {
+	Data []string `json:"DATA"`
+}
+
+const pythonAPIBaseURL = "http://localhost:8000"
+
+func callPythonAPI(endpoint string, params map[string]string) ([]byte, error) {
+	// Build URL with query parameters
+	baseURL := pythonAPIBaseURL + endpoint
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	q := u.Query()
+	for key, value := range params {
+		q.Set(key, value)
+	}
+	u.RawQuery = q.Encode()
+
+	// Make HTTP request
+	resp, err := http.Get(u.String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		// Read the error response body for debugging
+		errorBody, _ := io.ReadAll(resp.Body)
+		fmt.Printf("Python API error (status %d): %s\n", resp.StatusCode, string(errorBody))
+		return nil, fmt.Errorf("python API returned status %d: %s", resp.StatusCode, string(errorBody))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func calculateAllCosts(housePrice float64,
@@ -357,6 +425,7 @@ func calculateMortgageCompare(
 
 func main() {
 	router := gin.Default()
+	utils.Init()
 
 	utils.InizializeRateLimiter()
 
@@ -420,6 +489,141 @@ func main() {
 		}
 
 	})
+
+	router.GET("/get-price-volume-data", func(c *gin.Context) {
+		if !utils.IsAllowed(c.ClientIP()) {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
+			return
+		}
+
+		// Get query parameters
+		com := c.Query("com")
+		zone := c.Query("zone")
+		typeParam := c.Query("type")
+		state := c.Query("state")
+		mq := c.Query("mq")
+
+		// Validate required parameters
+		if com == "" || zone == "" || typeParam == "" || state == "" || mq == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing required parameters: com, zone, type, state, mq"})
+			return
+		}
+
+		// Prepare parameters for Python API
+		params := map[string]string{
+			"com":   com,
+			"zone":  zone,
+			"type":  typeParam,
+			"state": state,
+			"mq":    mq,
+		}
+
+		// Call Python API
+		responseBody, err := callPythonAPI("/get-price-volume-data", params)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to call python API: %v", err)})
+			return
+		}
+
+		// Log the raw response for debugging
+		fmt.Printf("Python API raw response: %s\n", string(responseBody))
+
+		// Parse and return the response
+		var priceVolumeData PriceVolumeResponse
+		if err := json.Unmarshal(responseBody, &priceVolumeData); err != nil {
+			fmt.Printf("JSON parsing error: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to parse python API response: %v", err)})
+			return
+		}
+
+		c.JSON(http.StatusOK, priceVolumeData)
+	})
+
+	// Get municipalities info
+	router.GET("/get-municipalities-info", func(c *gin.Context) {
+		if !utils.IsAllowed(c.ClientIP()) {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
+			return
+		}
+
+		com := c.Query("com")
+		if com == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing required parameter: com"})
+			return
+		}
+
+		params := map[string]string{
+			"com": com,
+		}
+
+		responseBody, err := callPythonAPI("/get-municipalities-info", params)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to call python API: %v", err)})
+			return
+		}
+
+		var municipalitiesInfo MunicipalitiesInfoResponse
+		if err := json.Unmarshal(responseBody, &municipalitiesInfo); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse python API response"})
+			return
+		}
+
+		c.JSON(http.StatusOK, municipalitiesInfo)
+	})
+
+	// Get municipalities list
+	router.GET("/get-municipalities-list", func(c *gin.Context) {
+		if !utils.IsAllowed(c.ClientIP()) {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
+			return
+		}
+
+		responseBody, err := callPythonAPI("/get-municipalities-list", nil)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to call python API: %v", err)})
+			return
+		}
+
+		var municipalitiesList MunicipalitiesListResponse
+		if err := json.Unmarshal(responseBody, &municipalitiesList); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse python API response"})
+			return
+		}
+
+		c.JSON(http.StatusOK, municipalitiesList)
+	})
+
+	// Update PRO
+	router.POST("/is-pro", func(c *gin.Context) {
+
+		type UID struct {
+			Uid string `json:"uid" binding:"required"`
+		}
+		type ErrorResponse struct {
+			Error   string `json:"error"`
+			Message string `json:"message,omitempty"`
+		}
+
+		var req UID
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   "invalid_request",
+				Message: err.Error(),
+			})
+			return
+		}
+
+		utils.IsUserStillPro(utils.FirebaseClient, req.Uid)
+
+		c.JSON(http.StatusOK, nil)
+	})
+
+	api := router.Group("/api")
+	{
+		api.POST("/create-payment-intent", utils.CreatePaymentIntent)
+		router.POST("/api/confirm-payment", utils.ConfirmPayment)
+	}
+
 	router.Run(":8080")
 
 }

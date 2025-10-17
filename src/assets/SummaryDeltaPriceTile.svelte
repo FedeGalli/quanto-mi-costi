@@ -5,6 +5,7 @@
     export let number: number;
     export let delta: any;
     export let name: string;
+    export let sub_name: string;
 </script>
 
 <div class="flex-1 min-w-[160px]">
@@ -38,7 +39,7 @@
                         signDisplay: "always",
                     }}
                     class="text-lg text-red-500 font-semibold"
-                /> <span class="text-xs"> extra</span>
+                /> <span class="text-xs"> {sub_name}</span>
             {/if}
         </NumberFlowGroup>
     </div>

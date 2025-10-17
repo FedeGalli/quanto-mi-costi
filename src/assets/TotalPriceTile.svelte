@@ -3,13 +3,15 @@
     export let number: number;
     export let dif: number;
     export let name: string;
+    export let sub_text: string;
+    export let vs: string;
 </script>
 
 <div
     class="bg-neutral-900 border border-purple-400 p-6 rounded-xl text-center w-full max-w-sm flex-grow"
 >
     <h1 class="text-3xl font-extrabold mb-2 leading-tight">{name}</h1>
-    <h1 class="text font-extrabold mb-8 leading-tight">al rogito</h1>
+    <h1 class="text font-extrabold mb-8 leading-tight">{sub_text}</h1>
     <NumberFlowGroup class="flex gap-4 font-extrabold">
         <NumberFlow
             value={number}
@@ -33,7 +35,7 @@
                 }}
                 class="text-lg transition-colors duration-300 text-red-500 font-bold"
             />
-            <span class="text-xs">vs costo casa</span>
+            <span class="text-xs">{vs}</span>
         {/if}
     </NumberFlowGroup>
 </div>

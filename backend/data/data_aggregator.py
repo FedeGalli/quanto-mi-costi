@@ -5,11 +5,11 @@ import polars as pl
 prices_path = "./prices"
 volumes_path = "./volumes"
 volumes_aliases = {
-    0 : "Fascia <50 m²",
-    50 : "Fascia 50 - 85 m²",
-    85 : "Fascia 85 - 115 m²",
-    115 : "Fascia 115 - 145 m²",
-    145 : "Fascia >145 m²",
+    0 : "Range <50 m²",
+    50 : "Range 50 - 85 m²",
+    85 : "Range 85 - 115 m²",
+    115 : "Range 115 - 145 m²",
+    145 : "Range >145 m²",
 }
 
 def _get_file_list(path: str):
@@ -52,8 +52,6 @@ def get_price_df():
     # Prices section
     files = _get_file_list(prices_path)
     prices_files = [f for f in files if "VALORI" in f]
-
-
 
     prices = pl.DataFrame()
     for file in prices_files:
@@ -185,11 +183,11 @@ def get_volume_df():
     return volumes.select(
         "ANNO",
         "DES_COMUNE",
-        "Fascia <50 m²",
-        "Fascia 50 - 85 m²",
-        "Fascia 85 - 115 m²",
-        "Fascia 115 - 145 m²",
-        "Fascia >145 m²",
+        "Range <50 m²",
+        "Range 50 - 85 m²",
+        "Range 85 - 115 m²",
+        "Range 115 - 145 m²",
+        "Range >145 m²",
         "SOMMA_NTN"
     )
 
