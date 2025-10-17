@@ -5,7 +5,6 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "predeploy": ["npm install, npm run build"]
+    ], "predeploy": ["npm install", "npm run build"]
   }
 }
