@@ -1,24 +1,37 @@
-runConfig:
-  runtime: go122
+steps:
+  # Step 1: Build the Go binary
+  - name: "golang:1.22"
+    args: ["go", "build", "-o", "server", "."]
+    env:
+      - "CGO_ENABLED=0"
+      - "GOOS=linux"
+      - "GOARCH=amd64"
 
-# Build configuration
-buildConfig:
-  runtime: go122
+  # Step 2: Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/go-api:$BUILD_ID", "."]
 
-# Environment variables
-env:
-  - variable: ENV
-    value: production
-  - variable: PORT
-    value: "8080"
+  # Step 3: Push the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"]
 
-# CPU and memory
-cpu: 1
-memoryMiB: 512
+  # Step 4: Deploy to Cloud Run (Firebase App Hosting uses Cloud Run)
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "go-api"
+      - "--image"
+      - "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"
+      - "--region"
+      - "us-central1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
 
-# Scaling
-minInstances: 0
-maxInstances: 10
+images:
+  - "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"
 
-# Concurrency
-concurrency: 80
+options:
+  logging: CLOUD_LOGGING_ONLY
