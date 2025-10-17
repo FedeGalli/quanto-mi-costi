@@ -3649,7 +3649,7 @@
                         href="mailto:asd"
                         class="text-purple-300 hover:text-purple-200 transition-colors duration-200"
                     >
-                        asd
+                        aclick96@gmail.com
                     </a>
                 </div>
             </div>
