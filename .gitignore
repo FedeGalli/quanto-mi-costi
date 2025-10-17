@@ -46,10 +46,8 @@ go.work.sum
 # env file
 *.env
 
-# Credentials
-src/lib/auth/credentials.ts
-
 # Backend data
+backend/secrets/*
 backend/data/final_tables
 backend/data/prices
 backend/data/volumes
