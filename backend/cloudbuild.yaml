@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Build the Go binary
+  # Step 1: Build the Go application
   - name: "golang:1.22"
     args: ["go", "build", "-o", "server", "."]
     env:
@@ -7,31 +7,32 @@ steps:
       - "GOOS=linux"
       - "GOARCH=amd64"
 
-  # Step 2: Build the container image
+  # Step 2: Build the Docker image
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/$PROJECT_ID/go-api:$BUILD_ID", "."]
-
-  # Step 3: Push the container image
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"]
-
-  # Step 4: Deploy to Cloud Run (Firebase App Hosting uses Cloud Run)
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: gcloud
     args:
-      - "run"
-      - "deploy"
-      - "go-api"
-      - "--image"
-      - "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"
-      - "--region"
-      - "us-central1"
-      - "--platform"
-      - "managed"
-      - "--allow-unauthenticated"
+      - "build"
+      - "-t"
+      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
+      - "-t"
+      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
+      - "."
 
+  # Step 3: Push the Docker image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
+
+# Specify the images to be stored
 images:
-  - "gcr.io/$PROJECT_ID/go-api:$BUILD_ID"
+  - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:$BUILD_ID"
+  - "europe-west4-docker.pkg.dev/$PROJECT_ID/firebaseapphosting-images/backend-go:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: "E2_HIGHCPU_8"
