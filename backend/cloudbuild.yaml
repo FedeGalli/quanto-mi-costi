@@ -1,0 +1,24 @@
+runConfig:
+  runtime: go122
+
+# Build configuration
+buildConfig:
+  runtime: go122
+
+# Environment variables
+env:
+  - variable: ENV
+    value: production
+  - variable: PORT
+    value: "8080"
+
+# CPU and memory
+cpu: 1
+memoryMiB: 512
+
+# Scaling
+minInstances: 0
+maxInstances: 10
+
+# Concurrency
+concurrency: 80
