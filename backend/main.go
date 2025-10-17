@@ -593,6 +593,31 @@ func main() {
 		c.JSON(http.StatusOK, municipalitiesList)
 	})
 
+	// Update PRO
+	router.POST("/is-pro", func(c *gin.Context) {
+
+		type UID struct {
+			Uid string `json:"uid" binding:"required"`
+		}
+		type ErrorResponse struct {
+			Error   string `json:"error"`
+			Message string `json:"message,omitempty"`
+		}
+
+		var req UID
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   "invalid_request",
+				Message: err.Error(),
+			})
+			return
+		}
+
+		utils.IsUserStillPro(utils.FirebaseClient, req.Uid)
+
+		c.JSON(http.StatusOK, nil)
+	})
+
 	api := router.Group("/api")
 	{
 		api.POST("/create-payment-intent", utils.CreatePaymentIntent)

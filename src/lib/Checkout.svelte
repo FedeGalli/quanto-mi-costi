@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from "svelte-i18n";
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
@@ -42,17 +43,17 @@
         price: 3.27,
         currency: "€",
         features: [
-            "Conviene fare un muto o pagare cash?",
-            "Che durata del mutuo mi conviene?",
-            "Quanto costano le case nella mia zona?",
-            "Quali sono i volumi di compravendita nella mia zona?",
-            "Nel passato come erano i prezzi e volumi di compravendita?",
+            $_("getPro.proBenefit.row1"),
+            $_("getPro.proBenefit.row2"),
+            $_("getPro.proBenefit.row3"),
+            $_("getPro.proBenefit.row4"),
+            $_("getPro.proBenefit.row5"),
         ],
     };
 
     // Get countries using Intl.DisplayNames
     const getCountries = () => {
-        const countryNames = new Intl.DisplayNames(["it"], { type: "region" });
+        const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
         const countries: any = [];
 
         // ISO 3166-1 alpha-2 country codes
@@ -395,8 +396,6 @@
             const totalAmount = selectedPlan.price * 1.22; // Include VAT
             const amountInCents = Math.round(totalAmount * 100);
 
-            console.log("Creating payment intent with amount:", amountInCents);
-
             const paymentIntentResponse = await fetch(
                 "http://localhost:8080/api/create-payment-intent",
                 {
@@ -423,7 +422,8 @@
             if (!paymentIntentResponse.ok) {
                 const errorData = await paymentIntentResponse.json();
                 throw new Error(
-                    errorData.message || "Failed to create payment intent",
+                    errorData.message ||
+                        $_("error.checkout.paymentIntentError"),
                 );
             }
 
@@ -452,9 +452,7 @@
 
             if (error) {
                 console.error("Payment failed:", error);
-                cardErrors =
-                    error.message ||
-                    "Si è verificato un errore durante il pagamento. Riprova.";
+                cardErrors = error.message || $_("error.checkout.paymentError");
                 return;
             }
             // Step 3: Notify backend of successful payment
@@ -476,31 +474,30 @@
                     const errorData = await confirmResponse.json();
                     throw new Error(
                         errorData.message ||
-                            "Failed to confirm payment with server",
+                            $_("error.checkout.serverConfirmError"),
                     );
                 }
 
                 const confirmData = await confirmResponse.json();
-                console.log("Payment confirmed with server:", confirmData);
 
                 if (confirmData.success) {
                     console.log("PRO ACCESS ACTIVATED!");
                     await showProActivatedPopup();
                 } else {
                     throw new Error(
-                        confirmData.message || "Failed to activate pro access",
+                        confirmData.message ||
+                            $_("error.checkout.proActivationError"),
                     );
                 }
             } else {
                 throw new Error(
-                    `Payment not completed. Status: ${paymentIntent.status}`,
+                    $_("error.checkout.paymentNotCompleted", {
+                        values: { status: paymentIntent.status },
+                    }),
                 );
             }
         } catch (error) {
-            console.error("Payment failed:", error.message);
-            cardErrors =
-                error.message ||
-                "Si è verificato un errore durante il pagamento. Riprova.";
+            cardErrors = error.message || $_("error.checkout.paymentError");
         } finally {
             isProcessing = false;
         }
@@ -567,7 +564,7 @@
         formData.email = target.value.trim().toLowerCase();
 
         if (formData.email && !isValidEmail(formData.email)) {
-            errors.email = "Inserisci un indirizzo email valido";
+            errors.email = $_("error.checkout.missingEmailError");
         } else {
             errors.email = "";
         }
@@ -587,13 +584,12 @@
         target.value = value;
 
         if (formData.fullName && !isValidName(formData.fullName)) {
-            errors.fullName =
-                "Il nome deve contenere solo lettere (2-50 caratteri)";
+            errors.fullName = $_("error.checkout.nameLengthError");
         } else if (
             formData.fullName &&
             formData.fullName.trim().split(" ").length < 2
         ) {
-            errors.fullName = "Inserisci nome e cognome";
+            errors.fullName = $_("error.checkout.missingNameError");
         } else {
             errors.fullName = "";
         }
@@ -607,8 +603,7 @@
             formData.billingAddress.street &&
             !isValidAddress(formData.billingAddress.street)
         ) {
-            errors.street =
-                "Indirizzo non valido (3-100 caratteri, solo lettere, numeri e punteggiatura comune)";
+            errors.street = $_("error.checkout.wrongAddressError");
         } else {
             errors.street = "";
         }
@@ -631,8 +626,7 @@
             formData.billingAddress.city &&
             !isValidCity(formData.billingAddress.city)
         ) {
-            errors.city =
-                "La città deve contenere solo lettere (2-50 caratteri)";
+            errors.city = $_("error.checkout.wrongCiryError");
         } else {
             errors.city = "";
         }
@@ -655,7 +649,7 @@
             formData.billingAddress.postalCode &&
             !isValidPostalCode(formData.billingAddress.postalCode)
         ) {
-            errors.postalCode = "Il CAP deve essere di esattamente 5 cifre";
+            errors.postalCode = $_("error.checkout.capError");
         } else {
             errors.postalCode = "";
         }
@@ -681,50 +675,49 @@
 
         // Email validation
         if (!formData.email) {
-            errors.email = "Email richiesta";
+            errors.email = $_("error.checkout.nullEmailError");
             isValid = false;
         } else if (!isValidEmail(formData.email)) {
-            errors.email = "Inserisci un indirizzo email valido";
+            errors.email = $_("error.checkout.missingEmailError");
             isValid = false;
         }
 
         // Full name validation
         if (!formData.fullName) {
-            errors.fullName = "Nome completo richiesto";
+            errors.fullName = $_("error.checkout.nullNameError");
             isValid = false;
         } else if (!isValidName(formData.fullName)) {
-            errors.fullName =
-                "Il nome deve contenere solo lettere (2-50 caratteri)";
+            errors.fullName = $_("error.checkout.nameLengthError");
             isValid = false;
         } else if (formData.fullName.trim().split(" ").length < 2) {
-            errors.fullName = "Inserisci nome e cognome";
+            errors.fullName = $_("error.checkout.missingNameError");
             isValid = false;
         }
 
         // Street address validation
         if (!formData.billingAddress.street) {
-            errors.street = "Indirizzo richiesto";
+            errors.street = $_("error.checkout.nullAddressError");
             isValid = false;
         } else if (!isValidAddress(formData.billingAddress.street)) {
-            errors.street = "Indirizzo non valido";
+            errors.street = $_("error.checkout.wrongAddressError");
             isValid = false;
         }
 
         // City validation
         if (!formData.billingAddress.city) {
-            errors.city = "Città richiesta";
+            errors.city = $_("error.checkout.nullCityError");
             isValid = false;
         } else if (!isValidCity(formData.billingAddress.city)) {
-            errors.city = "Nome città non valido";
+            errors.city = $_("error.checkout.wrongCiryError");
             isValid = false;
         }
 
         // Postal code validation
         if (!formData.billingAddress.postalCode) {
-            errors.postalCode = "CAP richiesto";
+            errors.postalCode = $_("error.checkout.nullCapError");
             isValid = false;
         } else if (!isValidPostalCode(formData.billingAddress.postalCode)) {
-            errors.postalCode = "Il CAP deve essere di esattamente 5 cifre";
+            errors.postalCode = $_("error.checkout.capError");
             isValid = false;
         }
 
@@ -736,51 +729,49 @@
         switch (field) {
             case "email":
                 if (!formData.email) {
-                    errors.email = "Email richiesta";
+                    errors.email = $_("error.checkout.nullEmailError");
                 } else if (!isValidEmail(formData.email)) {
-                    errors.email = "Inserisci un indirizzo email valido";
+                    errors.email = $_("error.checkout.missingEmailError");
                 } else {
                     errors.email = "";
                 }
                 break;
             case "fullName":
                 if (!formData.fullName) {
-                    errors.fullName = "Nome completo richiesto";
+                    errors.fullName = $_("error.checkout.nullNameError");
                 } else if (!isValidName(formData.fullName)) {
-                    errors.fullName =
-                        "Il nome deve contenere solo lettere (2-50 caratteri)";
+                    errors.fullName = $_("error.checkout.nameLengthError");
                 } else if (formData.fullName.trim().split(" ").length < 2) {
-                    errors.fullName = "Inserisci nome e cognome";
+                    errors.fullName = $_("error.checkout.missingNameError");
                 } else {
                     errors.fullName = "";
                 }
                 break;
             case "street":
                 if (!formData.billingAddress.street) {
-                    errors.street = "Indirizzo richiesto";
+                    errors.street = $_("error.checkout.nullAddressError");
                 } else if (!isValidAddress(formData.billingAddress.street)) {
-                    errors.street = "Indirizzo non valido (3-100 caratteri)";
+                    errors.street = $_("error.checkout.wrongAddressError");
                 } else {
                     errors.street = "";
                 }
                 break;
             case "city":
                 if (!formData.billingAddress.city) {
-                    errors.city = "Città richiesta";
+                    errors.city = $_("error.checkout.nullCityError");
                 } else if (!isValidCity(formData.billingAddress.city)) {
-                    errors.city = "Nome città non valido (solo lettere)";
+                    errors.city = $_("error.checkout.wrongCiryError");
                 } else {
                     errors.city = "";
                 }
                 break;
             case "postalCode":
                 if (!formData.billingAddress.postalCode) {
-                    errors.postalCode = "CAP richiesto";
+                    errors.postalCode = $_("error.checkout.nullCapError");
                 } else if (
                     !isValidPostalCode(formData.billingAddress.postalCode)
                 ) {
-                    errors.postalCode =
-                        "Il CAP deve essere di esattamente 5 cifre";
+                    errors.postalCode = $_("error.checkout.capError");
                 } else {
                     errors.postalCode = "";
                 }
@@ -867,14 +858,16 @@
                     <div class="border-t border-gray-600 pt-6 mt-auto">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-gray-300"
-                                >Piano {selectedPlan.name}</span
+                                >{$_("checkout.plan")} {selectedPlan.name}</span
                             >
                             <span class="text-white font-semibold"
                                 >{selectedPlan.currency}{selectedPlan.price}</span
                             >
                         </div>
                         <div class="flex justify-between items-center mb-4">
-                            <span class="text-gray-300">IVA (22%)</span>
+                            <span class="text-gray-300"
+                                >{$_("checkout.vat")} (22%)</span
+                            >
                             <span class="text-white font-semibold"
                                 >{selectedPlan.currency}{(
                                     selectedPlan.price * 0.22
@@ -884,7 +877,7 @@
                         <div class="border-t border-gray-600 pt-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-xl font-bold text-white"
-                                    >Totale</span
+                                    >{$_("checkout.total")}</span
                                 >
                                 <span class="text-2xl font-bold text-yellow-400"
                                     >{selectedPlan.currency}{(
@@ -902,7 +895,7 @@
                     in:fly={{ y: 50, duration: 600, delay: 400 }}
                 >
                     <h2 class="text-2xl font-bold text-white mb-6">
-                        Informazioni di pagamento
+                        {$_("checkout.info")}
                     </h2>
 
                     <form
@@ -914,7 +907,7 @@
                             <div>
                                 <label
                                     class="block text-sm font-semibold text-gray-300 mb-2"
-                                    >Email</label
+                                    >{$_("checkout.email")}</label
                                 >
                                 <input
                                     type="email"
@@ -924,7 +917,7 @@
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                                     class:border-red-500={errors.email}
                                     class:focus:border-red-500={errors.email}
-                                    placeholder="tua@email.com"
+                                    placeholder={$_("checkout.mailPlaceholder")}
                                     autocomplete="email"
                                     required
                                 />
@@ -937,7 +930,7 @@
                             <div>
                                 <label
                                     class="block text-sm font-semibold text-gray-300 mb-2"
-                                    >Nome Completo</label
+                                    >{$_("checkout.fullName")}</label
                                 >
                                 <input
                                     type="text"
@@ -947,7 +940,7 @@
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                                     class:border-red-500={errors.fullName}
                                     class:focus:border-red-500={errors.fullName}
-                                    placeholder="Mario Rossi"
+                                    placeholder={$_("checkout.namePlaceholder")}
                                     autocomplete="name"
                                     maxlength="50"
                                     required
@@ -965,7 +958,7 @@
                             <label
                                 class="block text-sm font-semibold text-gray-300 mb-2"
                             >
-                                Informazioni Carta di Credito
+                                {$_("checkout.ccInfo")}
                             </label>
                             <div
                                 id="card-element"
@@ -979,7 +972,9 @@
                                             class="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"
                                         ></div>
                                         <span class="ml-2 text-gray-400"
-                                            >Caricamento Stripe...</span
+                                            >{$_(
+                                                "checkout.providerLoading",
+                                            )}</span
                                         >
                                     </div>
                                 {/if}
@@ -994,13 +989,13 @@
                         <!-- Billing Address -->
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-white">
-                                Indirizzo di Fatturazione
+                                {$_("checkout.billingAddress")}
                             </h3>
 
                             <div>
                                 <label
                                     class="block text-sm font-semibold text-gray-300 mb-2"
-                                    >Indirizzo</label
+                                    >{$_("checkout.address")}</label
                                 >
                                 <input
                                     type="text"
@@ -1010,7 +1005,9 @@
                                     class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                                     class:border-red-500={errors.street}
                                     class:focus:border-red-500={errors.street}
-                                    placeholder="Via Roma, 123"
+                                    placeholder={$_(
+                                        "checkout.addressPlaceholder",
+                                    )}
                                     autocomplete="street-address"
                                     maxlength="100"
                                     required
@@ -1026,7 +1023,7 @@
                                 <div>
                                     <label
                                         class="block text-sm font-semibold text-gray-300 mb-2"
-                                        >Città</label
+                                        >{$_("checkout.city")}</label
                                     >
                                     <input
                                         type="text"
@@ -1038,7 +1035,9 @@
                                         class="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                                         class:border-red-500={errors.city}
                                         class:focus:border-red-500={errors.city}
-                                        placeholder="Milano"
+                                        placeholder={$_(
+                                            "checkout.cityPlaceholder",
+                                        )}
                                         autocomplete="address-level2"
                                         maxlength="50"
                                         required
@@ -1053,7 +1052,7 @@
                                 <div>
                                     <label
                                         class="block text-sm font-semibold text-gray-300 mb-2"
-                                        >CAP</label
+                                        >{$_("checkout.cap")}</label
                                     >
                                     <input
                                         type="text"
@@ -1083,7 +1082,7 @@
                                 <div>
                                     <label
                                         class="block text-sm font-semibold text-gray-300 mb-2"
-                                        >Paese</label
+                                        >{$_("checkout.country")}</label
                                     >
                                     <select
                                         bind:value={
@@ -1094,7 +1093,9 @@
                                         required
                                     >
                                         <option value=""
-                                            >Seleziona un paese</option
+                                            >{$_(
+                                                "checkout.selectCountry",
+                                            )}</option
                                         >
                                         {#each countries as country}
                                             <option value={country.code}
@@ -1137,7 +1138,7 @@
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Elaborazione...
+                                        {$_("checkout.procesing")}
                                     </div>
                                 {:else if !stripeLoaded}
                                     <div
@@ -1146,10 +1147,10 @@
                                         <div
                                             class="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"
                                         ></div>
-                                        Caricamento...
+                                        {$_("checkout.loading")}
                                     </div>
                                 {:else}
-                                    Procedi al pagamento
+                                    {$_("checkout.payment")}
                                 {/if}
                             </button>
                         </div>
@@ -1207,67 +1208,32 @@
             <!-- Success Text -->
             <div class="relative z-10">
                 <h2 class="text-3xl font-bold text-white mb-4">
-                    🎉 Pro Attivato!
+                    {$_("checkout.proActivated")}
                 </h2>
                 <p class="text-gray-300 mb-6 text-lg">
-                    Il pagamento è stato completato con successo!<br />
-                    Ora hai accesso a tutte le funzionalità Pro.
+                    {$_("checkout.paymentOk")}<br />
+                    {$_("checkout.access")}
                 </p>
 
-                <!-- Features List -->
                 <div class="space-y-2 mb-6">
-                    <div
-                        class="flex items-center justify-center text-green-400"
-                    >
-                        <svg
-                            class="w-5 h-5 mr-2"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                    {#each selectedPlan.features as feature}
+                        <div
+                            class="flex items-center justify-center text-green-400"
                         >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span class="text-sm"
-                            >Accesso illimitato a tutte le funzionalità</span
-                        >
-                    </div>
-                    <div
-                        class="flex items-center justify-center text-green-400"
-                    >
-                        <svg
-                            class="w-5 h-5 mr-2"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span class="text-sm"
-                            >Analisi avanzate del mercato immobiliare</span
-                        >
-                    </div>
-                    <div
-                        class="flex items-center justify-center text-green-400"
-                    >
-                        <svg
-                            class="w-5 h-5 mr-2"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clip-rule="evenodd"
-                            ></path>
-                        </svg>
-                        <span class="text-sm">Supporto prioritario</span>
-                    </div>
+                            <svg
+                                class="w-5 h-5 mr-2"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"
+                                ></path>
+                            </svg>
+                            <span class="text-sm">{feature}</span>
+                        </div>
+                    {/each}
                 </div>
 
                 <!-- Loading bar -->
@@ -1279,7 +1245,7 @@
                 </div>
 
                 <p class="text-gray-400 text-sm">
-                    Verrai reindirizzato alla dashboard...
+                    {$_("checkout.redirect")}
                 </p>
             </div>
         </div>

@@ -12,6 +12,10 @@
     "save": "SAVE",
     "delete": "Delete house"
   },
+  "settings": {
+    "title": "Settings",
+    "delete": "Delete Account"
+  },
   "auth": {
     "login": "Login",
     "logout": "Logout",
@@ -152,7 +156,8 @@
     "bank": "Bank"
   },
   "general": {
-    "language": "Language:"
+    "language": "Language:",
+    "contacts": "Contacts:"
   },
   "tooltip": {
     "agency": {
@@ -274,6 +279,172 @@
     "api": {
       "rateLimit": "Hey, too many requests, slow down and try again in a few seconds.",
       "genericError": "Something went wrong. Try again in a few seconds."
+    },
+    "userDelete": {
+      "generalError": "Error during deletion. Please try again.",
+      "typeError": "The typed word does not match: Delete"
+    },
+    "houseSaving": {
+      "sameNameError": "A saved house with this name already exists.",
+      "overwriteError": "Error during overwrite. Please try again."
+    },
+    "checkout": {
+      "paymentIntentError": "Payment intent creation failed.",
+      "paymentError": "An error occurred during payment. Please try again.",
+      "serverConfirmError": "Server confirmation failed.",
+      "proActivationError": "PRO activation failed.",
+      "paymentNotCompleted": "Payment not completed. Status: {status}",
+      "nullEmailError": "Email required",
+      "missingEmailError": "Enter a valid email address",
+      "nullNameError": "Full name required",
+      "nameLengthError": "Name must contain only letters (2-50 characters)",
+      "missingNameError": "Enter first and last name",
+      "nullAddressError": "Address required",
+      "wrongAddressError": "Invalid address (3-100 characters, only letters, numbers and common punctuation)",
+      "nullCityError": "City required",
+      "wrongCityError": "City must contain only letters (2-50 characters)",
+      "nullCapError": "ZIP code required",
+      "capError": "ZIP code must be exactly 5 digits"
+    },
+    "signin": {
+      "duplicateEmailError": "This email address is already registered",
+      "invalidEmailError": "Invalid email address",
+      "notAllowedError": "Operation not allowed",
+      "weakPswError": "Password is too weak",
+      "disableAccountError": "Account disabled",
+      "userNotFoundError": "User not found",
+      "wrongPswError": "Incorrect password",
+      "invadiCredentialsError": "Invalid credentials",
+      "tooManyAttempsError": "Too many attempts. Please try again later",
+      "emailNotCheckedError": "Email not verified. Check your inbox",
+      "closedError": "Popup closed by user",
+      "popUpBlockedError": "Popup blocked by browser. Please enable popups for this site",
+      "popUpError": "Popup request cancelled",
+      "duplicateAccount": "An account with this email address already exists but with a different sign-in method",
+      "generalError": "Authentication error.",
+      "termNotAcceptedError": "You must accept the terms and conditions",
+      "pswResetError": "Password reset error: ",
+      "resendEmailFailedError": "Error resending verification email: ",
+      "checkError": "Error during verification. Please try again.",
+      "networkError": "Connection error. Please check your internet connection",
+      "internalError": "Internal error. Please try again later"
     }
+  },
+  "houseSaving": {
+    "saveHome": "Save your home",
+    "insert": "Enter a name to identify this configuration",
+    "hoseName": "House name",
+    "placeHolder": "E.g. Beach house, Mountain villa...",
+    "wantOverwrite": "Do you want to overwrite the existing house with these new values?",
+    "overwrite": "Overwrite",
+    "abort": "Cancel",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+  "userDelete": {
+    "delete": "You are about to DELETE your account",
+    "deleteInfo": "By deleting your account, you will lose all customizations and purchases linked to your account!",
+    "type": "Type \"Delete\" to confirm account deletion",
+    "abort": "Cancel",
+    "deleteButton": "Delete"
+  },
+  "getPro": {
+    "title": {
+      "house": "You buy a house ",
+      "few": "few times in life!",
+      "subTitle": "Make the right financial decisions for your future, your home and above all, for your wallet."
+    },
+    "std": "Standard",
+    "free": "FREE",
+    "freeDesc": "Use our essential tools to calculate your home costs. Perfect for knowing what your house really costs and the cost of a mortgage.",
+    "freeBenefit": {
+      "row1": "Total cost breakdown",
+      "row2": "Individual cost item details",
+      "row3": "Mortgage details"
+    },
+    "alwaysFree": "Always free",
+    "useFreeVersion": "Use Free Version",
+    "pro": "Pro",
+    "proCaps": "PRO",
+    "proDesc": "Unlock advanced analysis tools for deeper financial decisions. Understand how your wealth would evolve in different scenarios and save thousands of euros on buying your home with the right financial choices for you, getting answers to:",
+    "proBenefit": {
+      "row1": "Is it better to get a mortgage or pay cash?",
+      "row2": "What mortgage duration suits me best?",
+      "row3": "How much do houses cost in my area?",
+      "row4": "What are the sales volumes in my area?",
+      "row5": "What were the prices and sales volumes in the past?"
+    },
+    "vat": "VAT included",
+    "access": "Four-month access • No subscription",
+    "getProNow": "🚀 Get Pro Now"
+  },
+  "checkout": {
+    "plan": "Plan ",
+    "vat": "VAT ",
+    "total": "Total",
+    "info": "Payment Information",
+    "email": "Email",
+    "fullName": "Full Name",
+    "ccInfo": "Credit Card Information",
+    "providerLoading": "Loading Provider Data...",
+    "billingAddress": "Billing Address",
+    "address": "Address",
+    "city": "City",
+    "cap": "ZIP Code",
+    "country": "Country",
+    "selectCountry": "Select a country",
+    "procesing": "Processing...",
+    "loading": "Loading...",
+    "payment": "Proceed to payment",
+    "proActivated": "🎉 Pro Activated!",
+    "paymentOk": "Payment has been completed successfully!",
+    "access": "You now have access to all Pro features.",
+    "redirect": "You will be redirected to the dashboard...",
+    "mailPlaceholder": "your@mail.com",
+    "namePlaceholder": "Kenneth Castelli",
+    "addressPlaceholder": "London Street, 12",
+    "cityPlaceholder": "Paris"
+  },
+  "signin": {
+    "checkEmail": "Registration completed! Check your email to verify your account.",
+    "logInSucces": "Login successful!",
+    "resetEmail": "Password reset email sent! Check your inbox.",
+    "resentEmail": "Verification email sent again!",
+    "checkedEmail": "Email verified! Welcome!",
+    "logInSuccesRedirect": "Login successful! Redirecting...",
+    "resetPsw": "Reset Password 🔑",
+    "welcome": "Welcome! 🎉",
+    "welcomeBack": "Welcome back! 👋",
+    "resetPswText": "Enter your email to reset your password",
+    "welcomeText": "Create your account to get started",
+    "welcomeBackText": "Sign in to your account",
+    "checkEmailText": "📧 Check your email to verify your account",
+    "resendEmailText": "🔄 Resend email",
+    "checkDoneText": "✅ I have verified my email",
+    "notValidEmail": "Enter a valid email",
+    "loading": "Loading...",
+    "resetText": "Send reset email",
+    "form": {
+      "name": "First Name:",
+      "lastName": "Last Name:",
+      "email": "Email:",
+      "psw": "Password:",
+      "pswConfirm": "Confirm Password:"
+    },
+    "pswCheck": "Password must contain at least 8 characters",
+    "pswConformNoMatch": "Passwords do not match",
+    "accept": "I accept ",
+    "term": "Terms and Conditions",
+    "and": "and ",
+    "privacy": "Privacy Policy",
+    "register": "Sign Up",
+    "access": "Sign In",
+    "rememberPsw": "Remember your password?",
+    "backTo": "Back to login",
+    "haveAccount": "Already have an account?",
+    "noHaveAccount": "Don't have an account?",
+    "forgotPsw": "Forgot password?",
+    "or": "or",
+    "googleLogIn": "Continue with Google"
   }
 }

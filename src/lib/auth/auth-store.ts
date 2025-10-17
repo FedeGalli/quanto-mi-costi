@@ -14,7 +14,7 @@ let unsubscribe: any;
 export function initAuthStore() {
   if (unsubscribe) return; // Prevent multiple listeners
 
-  unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+  unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser && firebaseUser.emailVerified) {
       // User is signed in and email is verified
       const userData: any = {
@@ -26,6 +26,16 @@ export function initAuthStore() {
         firstName: firebaseUser.displayName?.split(" ")[0] || "",
         lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
       };
+
+      const pro = await fetch("http://localhost:8080/is-pro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: userData.uid,
+        }),
+      });
 
       user.set(userData);
       isAuthenticated.set(true);

@@ -53,7 +53,7 @@ var (
 	stripeSecretKey string
 )
 
-var firebaseClient *firestore.Client
+var FirebaseClient *firestore.Client
 
 func Init() {
 	// Load environment variables
@@ -67,7 +67,7 @@ func Init() {
 	// Set Stripe API key
 	stripe.Key = stripeSecretKey
 
-	firebaseClient, err = InitFirebase()
+	FirebaseClient, err = InitFirebase()
 	if err != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
@@ -172,7 +172,7 @@ func ConfirmPayment(c *gin.Context) {
 	switch pi.Status {
 	case stripe.PaymentIntentStatusSucceeded:
 		// Payment succeeded, update user's pro status
-		err := HandleSuccessfulPayment(firebaseClient, req.Uid)
+		err := HandleSuccessfulPayment(FirebaseClient, req.Uid)
 		if err != nil {
 			log.Printf("Error updating user pro status: %v", err)
 			c.JSON(http.StatusInternalServerError, ErrorResponse{

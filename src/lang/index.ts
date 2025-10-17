@@ -5,6 +5,7 @@ const defaultLocale = "it";
 // Register locales
 register("en", () => import("../lang/en.json"));
 register("it", () => import("../lang/it.json"));
+register("fr", () => import("../lang/fr.json"));
 
 export function switchLanguage(newLocale: string) {
   locale.set(newLocale);
@@ -13,6 +14,7 @@ export function switchLanguage(newLocale: string) {
 export const languages = [
   { code: "en", name: "🇬🇧 English" },
   { code: "it", name: "🇮🇹 Italiano" },
+  { code: "fr", name: "🇫🇷 Français" },
 ];
 
 // Get initial locale from localStorage or browser
@@ -20,13 +22,15 @@ function getInitialLocale(): string {
   if (typeof window !== "undefined") {
     // Try to get from localStorage first
     const saved = localStorage.getItem("locale");
-    if (saved && ["en", "it"].includes(saved)) {
+    if (saved && ["en", "it", "fr"].includes(saved)) {
       return saved;
     }
 
     // Fallback to browser language
     const browserLang = navigator.language.split("-")[0];
-    return ["en", "it"].includes(browserLang) ? browserLang : defaultLocale;
+    return ["en", "it", "fr"].includes(browserLang)
+      ? browserLang
+      : defaultLocale;
   }
   return defaultLocale;
 }

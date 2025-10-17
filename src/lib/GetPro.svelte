@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from "svelte-i18n";
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
@@ -63,16 +64,15 @@
                 <h1
                     class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight"
                 >
-                    La casa si compra <span
+                    {$_("getPro.title.house")}<span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500"
-                        >poche volte nella vita!</span
+                        >{$_("getPro.title.few")}</span
                     >
                 </h1>
                 <p
                     class="text-xl sm:text-2xl text-purple-100 mb-8 max-w-3xl mx-auto"
                 >
-                    Prendi le decisioni finanziarie corrette per il tuo futuro,
-                    la tua casa e sopratutto, per il tuo portafoglio.
+                    {$_("getPro.title.subTitle")}
                 </p>
             </div>
 
@@ -106,7 +106,7 @@
                             <h3
                                 class="text-2xl sm:text-3xl font-bold text-white ml-4"
                             >
-                                Standard
+                                {$_("getPro.std")}
                             </h3>
                         </div>
 
@@ -114,18 +114,16 @@
                         <div
                             class="absolute top-6 right-6 bg-gradient-to-r from-gray-400 to-gray-600 text-white px-3 py-1 rounded-full text-xs font-bold"
                         >
-                            GRATIS
+                            {$_("getPro.free")}
                         </div>
 
                         <p class="text-gray-300 text-lg mb-6 leading-relaxed">
-                            Utilizza i nostri strumenti essenziali per il
-                            calcolo della tua casa. Perfetto per sapere quanto
-                            costa realmente la tua casa e il costo di un mutuo.
+                            {$_("getPro.freeDesc")}
                         </p>
 
                         <!-- Vantaggi delle Funzionalità -->
                         <div class="space-y-3 mb-8">
-                            {#each ["Presentazione costi totali", "Dettaglio singole voci di costo", "Dettaglio mutuo"] as benefit, i}
+                            {#each [$_("getPro.freeBenefit.row1"), $_("getPro.freeBenefit.row2"), $_("getPro.freeBenefit.row3")] as benefit, i}
                                 <div
                                     class="flex items-center text-gray-400"
                                     in:fly={{
@@ -155,10 +153,10 @@
                     <div class="mt-auto">
                         <div class="text-center mb-6">
                             <div class="text-3xl font-bold text-white mb-2">
-                                GRATIS
+                                {$_("getPro.free")}
                             </div>
                             <div class="text-gray-300 text-sm">
-                                Sempre gratuito
+                                {$_("getPro.alwaysFree")}
                             </div>
                         </div>
 
@@ -166,7 +164,7 @@
                             on:click={tryFree}
                             class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-300 hover:scale-105"
                         >
-                            Usa Versione Gratuita
+                            {$_("getPro.useFreeVersion")}
                         </button>
                     </div>
                 </div>
@@ -199,7 +197,7 @@
                             <h3
                                 class="text-2xl sm:text-3xl font-bold text-white ml-4"
                             >
-                                Pro
+                                {$_("getPro.pro")}
                             </h3>
                         </div>
 
@@ -207,21 +205,16 @@
                         <div
                             class="absolute top-6 right-6 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1 rounded-full text-xs font-bold animate-pulse"
                         >
-                            PRO
+                            {$_("getPro.proCaps")}
                         </div>
 
                         <p class="text-purple-100 text-lg mb-6 leading-relaxed">
-                            Sblocca strumenti avanzati di analisi per decisioni
-                            finanziarie più approfondite. Capisci come
-                            evolverebbe il tuo patrimonio in diversi scenari e
-                            risparmia migliaia di euro sull'acquisto della tua
-                            casa con le scelte finanziarie più corrette per te,
-                            ottenendo risposta a:
+                            {$_("getPro.proDesc")}
                         </p>
 
                         <!-- Vantaggi delle Funzionalità -->
                         <div class="space-y-3 mb-8">
-                            {#each ["Conviene fare un muto o pagare cash?", "Che durata del mutuo mi conviene?", "Quanto costano le case nella mia zona?", "Quali sono i volumi di compravendita nella mia zona?", "Nel passato come erano i prezzi e volumi di compravendita?"] as benefit, i}
+                            {#each [$_("getPro.proBenefit.row1"), $_("getPro.proBenefit.row2"), $_("getPro.proBenefit.row3"), $_("getPro.proBenefit.row4"), $_("getPro.proBenefit.row5")] as benefit, i}
                                 <div
                                     class="flex items-center text-green-400"
                                     in:fly={{
@@ -254,10 +247,10 @@
                                 €3,99
                             </div>
                             <div class="text-purple-100 text-sm mb-1">
-                                IVA inclusa
+                                {$_("getPro.vat")}
                             </div>
                             <div class="text-xs text-purple-300">
-                                Accesso per sei mesi • Nessun abbonamento
+                                {$_("getPro.access")}
                             </div>
                         </div>
 
@@ -265,7 +258,7 @@
                             on:click={purchasePro}
                             class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black font-bold py-4 px-6 rounded-2xl text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-yellow-400/25 animate-pulse"
                         >
-                            🚀 Ottieni Pro Ora
+                            {$_("getPro.getProNow")}
                         </button>
                     </div>
                 </div>

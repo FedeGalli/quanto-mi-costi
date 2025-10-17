@@ -15,9 +15,9 @@
     import TooltipMortgage from "../tooltip/TooltipMortgage.svelte";
     import CustomButton from "../assets/CustomButton.svelte";
     import ColoredSummaryPrice from "../assets/ColoredSummaryPrice.svelte";
-    import { onAuthStateChanged } from "firebase/auth";
+    import { onAuthStateChanged, deleteUser } from "firebase/auth";
     import { auth, db } from "./auth/credentials";
-    import { doc, getDoc, updateDoc } from "firebase/firestore";
+    import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
     import { _, locale, isLoading as isLoadingTranslation } from "svelte-i18n";
     import { switchLanguage, languages } from "../lang/index";
     import {
@@ -29,6 +29,7 @@
     } from "./auth/auth-store";
     import Prices from "./Prices.svelte";
     import SaveNamePopUp from "./SaveNamePopUp.svelte";
+    import DeleteAccountPopUp from "./DeleteAccountPopUp.svelte";
 
     let selectedTab = "summary";
     let apiURL = "http://localhost:8080";
@@ -38,9 +39,25 @@
     let forceChartUpdate = false;
     let showUserMenu = false;
     let showSavedHouses = false;
+    let showSettings = false;
     let house_name = "";
     let showNamePopup = false;
+    let showDeletePopup = false;
     let isLoadingSaving = false;
+
+    async function handleDeleteUser(): Promise<boolean> {
+        try {
+            const uid = $user.uid;
+            const userDocRef = doc(db, "users", uid);
+            await deleteDoc(userDocRef);
+            await deleteUser(auth.currentUser);
+
+            return true;
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            return false;
+        }
+    }
 
     async function handleSaveHouse(houseName: string) {
         if (!houseName.trim()) return;
@@ -89,6 +106,10 @@
 
     function toggleSavedHouses() {
         showSavedHouses = !showSavedHouses;
+    }
+
+    function toggleSettings() {
+        showSettings = !showSettings;
     }
 
     function selectHouse(house: any) {
@@ -688,7 +709,7 @@
         let categories = Object.keys(chartData);
 
         for (let i = 0; i < categories.length; i++) {
-            if (categories[i] == "Tasse") {
+            if (categories[i] == "Tax") {
                 categories[i] = $_("categories.taxes");
             } else if (categories[i] == "Agency") {
                 categories[i] = $_("categories.agency");
@@ -1836,6 +1857,108 @@
                                                     </div>
                                                 {/each}
                                             </div>
+                                        {/if}
+
+                                        <button
+                                            on:click={toggleSettings}
+                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                                        >
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <svg
+                                                    class="w-4 h-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path
+                                                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+                                                    />
+                                                    <circle
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="3"
+                                                    />
+                                                </svg>
+                                                {$_("settings.title")}
+                                            </div>
+                                            <svg
+                                                class="w-4 h-4 transition-transform duration-200 {showSettings
+                                                    ? 'rotate-180'
+                                                    : ''}"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <polyline
+                                                    points="6,9 12,15 18,9"
+                                                />
+                                            </svg>
+                                        </button>
+
+                                        {#if showSettings}
+                                            <div
+                                                transition:slide={{
+                                                    duration: 300,
+                                                }}
+                                                class="bg-gray-50 ml-5"
+                                            >
+                                                <button
+                                                    on:click={() => {
+                                                        showDeletePopup = true;
+                                                    }}
+                                                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center justify-between"
+                                                >
+                                                    <div
+                                                        class="flex items-center gap-2"
+                                                    >
+                                                        <svg
+                                                            class="w-4 h-4"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            stroke-width="2"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        >
+                                                            <path d="M3 6h18" />
+                                                            <path
+                                                                d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+                                                            />
+                                                            <path
+                                                                d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+                                                            />
+                                                            <line
+                                                                x1="10"
+                                                                y1="11"
+                                                                x2="10"
+                                                                y2="17"
+                                                            />
+                                                            <line
+                                                                x1="14"
+                                                                y1="11"
+                                                                x2="14"
+                                                                y2="17"
+                                                            />
+                                                        </svg>
+                                                        {$_("settings.delete")}
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        {/if}
+
+                                        {#if showDeletePopup}
+                                            <DeleteAccountPopUp
+                                                bind:showDeletePopup
+                                                {handleDeleteUser}
+                                            />
                                         {/if}
 
                                         <hr class="my-1 border-gray-100" />
@@ -3521,7 +3644,7 @@
                             d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                         />
                     </svg>
-                    <span>support:</span>
+                    <span>{$_("general.contacts")}</span>
                     <a
                         href="mailto:asd"
                         class="text-purple-300 hover:text-purple-200 transition-colors duration-200"

@@ -12,6 +12,10 @@
     "save": "SALVA",
     "delete": "Elimina casa"
   },
+  "settings": {
+    "title": "Impostazioni",
+    "delete": "Elimina Account"
+  },
   "auth": {
     "login": "Accedi",
     "logout": "Esci",
@@ -150,7 +154,8 @@
     "bank": "Banca"
   },
   "general": {
-    "language": "Lingua:"
+    "language": "Lingua:",
+    "contacts": "Contatti: "
   },
   "tooltip": {
     "agency": {
@@ -272,6 +277,172 @@
     "api": {
       "rateLimit": "Hey quante richieste, rallenta e riprova tra qualche secondo.",
       "genericError": "Qualcosa è andato storto. Riprova tra qualche secondo."
+    },
+    "userDelete": {
+      "generalError": "Errore durante la cancellazione. Riprova.",
+      "typeError": "La parola scritta non coincide con: Delete"
+    },
+    "houseSaving": {
+      "sameNameError": "Esiste già una casa salvata con questo nome.",
+      "overwriteError": "Errore durante la sovrascrittura. Riprova."
+    },
+    "checkout": {
+      "paymentIntentError": "Creazione payment intent fallita.",
+      "paymentError": "Si è verificato un errore durante il pagamento. Riprova.",
+      "serverConfirmError": "Conferma con server fallita.",
+      "proActivationError": "Attivazione PRO fallita.",
+      "paymentNotCompleted": "Pagamento non completato. Status: {status}",
+      "nullEmailError": "Email richiesta",
+      "missingEmailError": "Inserisci un indirizzo email valido",
+      "nullNameError": "Nome completo richiesto",
+      "nameLengthError": "Il nome deve contenere solo lettere (2-50 caratteri)",
+      "missingNameError": "Inserisci nome e cognome",
+      "nullAddressError": "Indirizzo richiesto",
+      "wrongAddressError": "Indirizzo non valido (3-100 caratteri, solo lettere, numeri e punteggiatura comune)",
+      "nullCityError": "Città richiesta",
+      "wrongCiryError": "La città deve contenere solo lettere (2-50 caratteri)",
+      "nullCapError": "CAP richiesto",
+      "capError": "Il CAP deve essere di esattamente 5 cifre"
+    },
+    "signin": {
+      "duplicateEmailError": "Questo indirizzo email è già registrato",
+      "invalidEmailError": "Indirizzo email non valido",
+      "notAllowedError": "Operazione non consentita",
+      "weakPswError": "La password è troppo debole",
+      "disableAccountError": "Account disabilitato",
+      "userNotFoundError": "Utente non trovato",
+      "wrongPswError": "Password errata",
+      "invadiCredentialsError": "Credenziali non valide",
+      "tooManyAttempsError": "Troppi tentativi. Riprova più tardi",
+      "emailNotCheckedError": "Email non verificata. Controlla la tua casella di posta",
+      "closedError": "Popup chiuso dall'utente",
+      "popUpBlockedError": "Popup bloccato dal browser. Abilita i popup per questo sito",
+      "popUpError": "Richiesta popup cancellata",
+      "duplicateAccount": "Esiste già un account con questo indirizzo email ma con un metodo di accesso diverso",
+      "generalError": "Errore di autenticazione.",
+      "termNotAcceptedError": "Devi accettare i termini e condizioni",
+      "pswResetError": "Errore reset password: ",
+      "resendEmailFailedError": "Errore reinvio mail di verifica: ",
+      "checkError": "Errore durante la verifica. Riprova.",
+      "networkError": "Errore di connessione. Controlla la tua connessione internet",
+      "internalError": "Errore interno. Riprova più tardi"
     }
+  },
+  "houseSaving": {
+    "saveHome": "Salva la tua casa",
+    "insert": "Inserisci un nome per identificare questa configurazione",
+    "hoseName": "Nome della casa",
+    "placeHolder": "Es. Casa al mare, Villa in montagna...",
+    "wantOverwrite": "Vuoi sovrascrivere la casa esistente con questi nuovi valori?",
+    "overwrite": "Sovrascrivi",
+    "abort": "Annulla",
+    "saving": "Salvando...",
+    "save": "Salva"
+  },
+  "userDelete": {
+    "delete": "Stai per ELIMINARE il tuo account",
+    "deleteInfo": "Cancellando il tuo account perderai tutte le personalizzazioni e acquisti legati al tuo account!",
+    "type": "Digita \"Delete\" per cancellare il tuo account",
+    "abort": "Annulla",
+    "deleteButton": "Elimina"
+  },
+  "getPro": {
+    "title": {
+      "house": "La casa si compra ",
+      "few": "poche volte nella vita!",
+      "subTitle": "Prendi le decisioni finanziarie corrette per il tuo futuro, la tua casa e sopratutto, per il tuo portafoglio."
+    },
+    "std": "Standard",
+    "free": "GRATIS",
+    "freeDesc": "Utilizza i nostri strumenti essenziali per il calcolo della tua casa. Perfetto per sapere quanto costa realmente la tua casa e il costo di un mutuo.",
+    "freeBenefit": {
+      "row1": "Presentazione costi totali",
+      "row2": "Dettaglio singole voci di costo",
+      "row3": "Dettaglio mutuo"
+    },
+    "alwaysFree": "Sempre gratuito",
+    "useFreeVersion": "Usa Versione Gratuita",
+    "pro": "Pro",
+    "proCaps": "PRO",
+    "proDesc": "Sblocca strumenti avanzati di analisi per decisioni finanziarie più approfondite. Capisci come evolverebbe il tuo patrimonio in diversi scenari e risparmia migliaia di euro sull'acquisto della tua casa con le scelte finanziarie più corrette per te, ottenendo risposta a:",
+    "proBenefit": {
+      "row1": "Conviene fare un muto o pagare cash?",
+      "row2": "Che durata del mutuo mi conviene?",
+      "row3": "Quanto costano le case nella mia zona?",
+      "row4": "Quali sono i volumi di compravendita nella mia zona?",
+      "row5": "Nel passato come erano i prezzi e volumi di compravendita?"
+    },
+    "vat": "IVA inclusa",
+    "access": "Accesso per quattro mesi • Nessun abbonamento",
+    "getProNow": "🚀 Ottieni Pro Ora"
+  },
+  "checkout": {
+    "plan": "Piano ",
+    "vat": "IVA ",
+    "total": "Totale",
+    "info": "Informazioni di pagamento",
+    "email": "Email",
+    "fullName": "Nome Completo",
+    "ccInfo": "Informazioni Carta di Credito",
+    "providerLoading": "Caricamento Dati Provider...",
+    "billingAddress": "Indirizzo di Fatturazione",
+    "address": "Indirizzo",
+    "city": "Città",
+    "cap": "CAP",
+    "country": "Paese",
+    "selectCountry": "Seleziona un paese",
+    "procesing": "Elaborazione...",
+    "loading": "Caricamento...",
+    "payment": "Procedi al pagamento",
+    "proActivated": "🎉 Pro Attivato!",
+    "paymentOk": "Il pagamento è stato completato con successo!",
+    "access": "Ora hai accesso a tutte le funzionalità Pro.",
+    "redirect": "Verrai reindirizzato alla dashboard...",
+    "mailPlaceholder": "tua@mail.com",
+    "namePlaceholder": "Mario Rossi",
+    "addressPlaceholder": "Via Roma, 12",
+    "cityPlaceholder": "Cuneo"
+  },
+  "signin": {
+    "checkEmail": "Registrazione completata! Controlla la tua email per verificare l'account.",
+    "logInSucces": "Accesso effettuato con successo!",
+    "resetEmail": "Email di reset password inviata! Controlla la tua casella di posta.",
+    "resentEmail": "Email di verifica inviata nuovamente!",
+    "checkedEmail": "Email verificata! Benvenuto!",
+    "logInSuccesRedirect": "Accesso effettuato con successo! Reindirizzamento...",
+    "resetPsw": "Reset Password 🔑",
+    "welcome": "Benvenuto! 🎉",
+    "welcomeBack": "Bentornato! 👋",
+    "resetPswText": "Inserisci la tua email per resettare la password",
+    "welcomeText": "Crea il tuo account per iniziare",
+    "welcomeBackText": "Accedi al tuo account",
+    "checkEmailText": "📧 Controlla la tua email per verificare l'account",
+    "resendEmailText": "🔄 Invia nuovamente email",
+    "checkDoneText": "✅ Ho verificato l'email",
+    "notValidEmail": "Inserisci un'email valida",
+    "loading": "Caricamento...",
+    "resetText": "Invia email di reset",
+    "form": {
+      "name": "Nome:",
+      "lastName": "Cognome:",
+      "email": "Email:",
+      "psw": "Password:",
+      "pswConfirm": "Conferma Password:"
+    },
+    "pswCheck": "La password deve contenere almeno 8 caratteri",
+    "pswConformNoMatch": "Le password non coincidono",
+    "accept": "Acceto ",
+    "term": "Termini e condizioini",
+    "and": "e ",
+    "privacy": "Privacy policy",
+    "register": "Registrati",
+    "access": "Accedi",
+    "rememberPsw": "Ricordi la password?",
+    "backTo": "Torna al login",
+    "haveAccount": "Hai già un account?",
+    "noHaveAccount": "Non hai un account?",
+    "forgotPsw": "Password dimenticata?",
+    "or": "oppure",
+    "googleLogIn": "Continua con Google"
   }
 }
