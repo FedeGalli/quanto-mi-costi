@@ -629,6 +629,6 @@ func main() {
 	if port == "" {
 		port = "8080" // Default for local dev
 	}
-	router.Run(":8080")
+	router.Run(":" + port)
 
 }
