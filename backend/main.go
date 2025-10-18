@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 
 	"github.com/gin-contrib/cors"
@@ -624,6 +625,10 @@ func main() {
 		router.POST("/api/confirm-payment", utils.ConfirmPayment)
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default for local dev
+	}
 	router.Run(":8080")
 
 }
