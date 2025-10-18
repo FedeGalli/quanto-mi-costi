@@ -61,6 +61,8 @@ func Init() {
 		log.Println("Warning: .env file not found")
 	}
 
+	log.Println(stripeSecretKey)
+
 	var err error
 	// Set Stripe API key
 	stripe.Key = stripeSecretKey
