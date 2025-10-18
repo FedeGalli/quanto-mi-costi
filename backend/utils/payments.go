@@ -8,7 +8,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/paymentintent"
 )
@@ -57,13 +56,12 @@ var FirebaseClient *firestore.Client
 
 func Init() {
 	// Load environment variables
-	err := godotenv.Load("secrets/payments_keys.env")
-	if err != nil {
+	stripeSecretKey := os.Getenv("STRIPE_SECRET_KEY")
+	if stripeSecretKey == "" {
 		log.Println("Warning: .env file not found")
 	}
 
-	stripeSecretKey = getEnvVar("STRIPE_SECRET_KEY", "sk_test_...")
-
+	var err error
 	// Set Stripe API key
 	stripe.Key = stripeSecretKey
 
