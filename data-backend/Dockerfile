@@ -11,25 +11,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user for security
-RUN adduser --disabled-password --gecos '' appuser
+# Create a non-root user
+RUN useradd -m appuser
 USER appuser
 
 # Set working directory
 WORKDIR /app
 
-# Copy only requirements first (for better caching)
-COPY requirements.txt .
-
-# Install dependencies
+# Copy and install Python dependencies
+COPY --chown=appuser:appuser requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir --user -r requirements.txt
 
-# Copy the rest of the app
-COPY . .
+# Copy application code
+COPY --chown=appuser:appuser . .
 
 # Expose the port Cloud Run will use
-EXPOSE 8080
+EXPOSE 8000
 
 # Run the app using Uvicorn, with host 0.0.0.0 and Cloud Run's $PORT variable
 # (Cloud Run automatically provides the PORT env var)
