@@ -1,34 +1,36 @@
-# Use a small, secure Python base image
-FROM python:3.11-slim AS base
+# ---- Base image ----
+FROM python:3.11-slim
 
-# Disable .pyc files and enable unbuffered logs (important for Cloud Run logs)
+# Environment setup
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PATH="/usr/local/bin:/home/appuser/.local/bin:$PATH"
 
-# Install system dependencies your app might need
+# Install build tools (needed for polars)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
+# Create non-root user
 RUN useradd -m appuser
-USER appuser
-
-# Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
-COPY --chown=appuser:appuser requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir --user -r requirements.txt
+# Copy requirements first (for better Docker layer caching)
+COPY requirements.txt .
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Install dependencies as root into /usr/local (so PATH already includes them)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Expose the port Cloud Run will use
-EXPOSE 8000
+# Copy the rest of the app
+COPY . .
 
-# Run the app using Uvicorn, with host 0.0.0.0 and Cloud Run's $PORT variable
-# (Cloud Run automatically provides the PORT env var)
-CMD exec uvicorn api_endpoint:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers
+# Switch to non-root user
+USER appuser
+
+# Expose Cloud Run's port
+EXPOSE 8080
+
+# Start the FastAPI app with uvicorn
+CMD ["uvicorn", "api_endpoint:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
