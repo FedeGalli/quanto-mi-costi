@@ -27,6 +27,8 @@ def _get_file_list_from_bucket(prefix:str) -> list[str]:
     files = [blob.name for blob in blobs if not blob.name.endswith("/")]
     files.sort()
 
+    print(files)
+
     return files
 
 
@@ -36,19 +38,18 @@ def _get_file_list(path: str):
 
     return files
 
-prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
-volumes_file_list = _get_file_list_from_bucket(volumes_path) if is_prod else _get_file_list(volumes_path)
-
-print(prices_file_list)
-print(volumes_file_list)
+prices_file_list = _get_file_list_from_bucket("prices/") if is_prod else _get_file_list(prices_path)
+volumes_file_list = _get_file_list_from_bucket("volumes/") if is_prod else _get_file_list(volumes_path)
 
 def get_price_starting_year():
+    prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
     oldest_file = prices_file_list[0]
     year = oldest_file[:4]
     semester = oldest_file[5:7]
     return semester + "/" + year
 
 def get_price_current_year():
+    prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
     last_file = prices_file_list[-1]
     year = last_file[:4]
     semester = last_file[5:7]
