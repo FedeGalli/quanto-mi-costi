@@ -1,3 +1,4 @@
 uvicorn
 polars
 fastapi
+google-cloud-storage

@@ -1,9 +1,15 @@
 from os import listdir
 from os.path import isfile, join
 import polars as pl
+from google.cloud import storage
+import io
 
 prices_path = "./prices"
 volumes_path = "./volumes"
+client = storage.Client()
+bucket = client.bucket("house-prices-volume-dataset")
+is_prod = True
+
 volumes_aliases = {
     0 : "Range <50 m²",
     50 : "Range 50 - 85 m²",
@@ -12,29 +18,44 @@ volumes_aliases = {
     145 : "Range >145 m²",
 }
 
+def _get_file_list_from_bucket(prefix:str) -> list[str]:
+
+    # Use prefix to simulate directories, e.g., "data/"
+    blobs = bucket.list_blobs(prefix=prefix)
+
+    # Filter out directories (blobs ending with "/") and sort by name
+    files = [blob.name for blob in blobs if not blob.name.endswith("/")]
+    files.sort()
+
+    return files
+
+
 def _get_file_list(path: str):
     files = [f for f in listdir(path) if isfile(join(path, f))]
     files.sort()
 
     return files
 
+prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
+volumes_file_list = _get_file_list_from_bucket(volumes_path) if is_prod else _get_file_list(volumes_path)
+
 def get_price_starting_year():
-    oldest_file = _get_file_list(prices_path)[0]
+    oldest_file = prices_file_list[0]
     year = oldest_file[:4]
     semester = oldest_file[5:7]
     return semester + "/" + year
 
 def get_price_current_year():
-    last_file = _get_file_list(prices_path)[-1]
+    last_file = prices_file_list[-1]
     year = last_file[:4]
     semester = last_file[5:7]
     return semester + "/" + year
 
 def get_volume_starting_year():
-    return int(_get_file_list(volumes_path)[0][:4])
+    return int(volumes_file_list[0][:4])
 
 def get_volume_current_year():
-    return int(_get_file_list(volumes_path)[-1][:4])
+    return int(volumes_file_list[-1][:4])
 
 def _get_year(s: str) -> str:
     return s[:4]
@@ -46,29 +67,36 @@ def _semester_converter(s: str) -> str:
     return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
 
 def get_number_of_price_files() -> int:
-    return len([f for f in _get_file_list(prices_path) if "VALORI" in f])
+    return len([f for f in prices_file_list if "VALORI" in f])
 
 def get_price_df():
     # Prices section
-    files = _get_file_list(prices_path)
+    files = prices_file_list
     prices_files = [f for f in files if "VALORI" in f]
 
     prices = pl.DataFrame()
+    cols = [
+        "Comune_amm",
+        "Comune_descrizione",
+        "Zona",
+        "Descr_Tipologia",
+        "Cod_Tip",
+        "Stato",
+        "Compr_min",
+        "Compr_max"
+    ]
+
     for file in prices_files:
-        prices_vals = pl.read_csv(join(prices_path, file),
-            separator=";",
-            columns=[
-                "Comune_amm",
-                "Comune_descrizione",
-                "Zona",
-                "Descr_Tipologia",
-                "Cod_Tip",
-                "Stato",
-                "Compr_min",
-                "Compr_max"
-            ],
-            skip_rows=1
-        ).filter(
+        if is_prod:
+            blob = bucket.blob(file)
+            data = blob.download_as_bytes()
+            prices_vals = pl.read_csv(io.BytesIO(data), columns=cols, skip_rows=1)
+        else:
+            prices_vals = pl.read_csv(join(prices_path, file),
+                separator=";", columns=cols, skip_rows=1
+            )
+
+        prices_vals =prices_vals.filter(
             pl.col("Cod_Tip").is_in([1, 13, 14, 15, 19, 20, 21, 22])
         )
 
@@ -129,14 +157,20 @@ def get_price_df():
 
 def get_volume_df():
     # Volume section
-    files = _get_file_list(volumes_path)
+    files = volumes_file_list
     volumes_files = [f for f in files if "RES" in f]
 
     volumes = pl.DataFrame()
     for file in volumes_files:
-        volumes_vals = pl.read_csv(join(volumes_path, file),
-            separator=";"
-        )
+        if is_prod:
+            blob = bucket.blob(file)
+            data = blob.download_as_bytes()
+            volumes_vals = pl.read_csv(io.BytesIO(data))
+        else:
+            volumes_vals = pl.read_csv(join(volumes_path, file),
+                separator=";"
+            )
+
         volumes_vals = volumes_vals.rename(
             {col: col.upper() for col in volumes_vals.columns}
         )
@@ -195,7 +229,7 @@ def get_volume_market_size_df():
     # Getting the informations about the size of the market
     # Currently this information is only in the 2024 file (volumes/2024_VALORI_RES.csv)
     # So i took the last one
-    market_size_file = [f for f in _get_file_list(volumes_path) if "COM" in f][-1]
+    market_size_file = [f for f in volumes_file_list if "COM" in f][-1]
 
     volumes_market_size = pl.read_csv(join(volumes_path, market_size_file),
         separator=";"
