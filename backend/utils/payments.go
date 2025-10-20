@@ -61,8 +61,6 @@ func Init() {
 		log.Println("Warning: .env file not found")
 	}
 
-	log.Println(stripeSecretKey)
-
 	var err error
 	// Set Stripe API key
 	stripe.Key = stripeSecretKey
@@ -71,13 +69,6 @@ func Init() {
 	if err != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
-}
-
-func getEnvVar(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }
 
 func CreatePaymentIntent(c *gin.Context) {

@@ -7,7 +7,6 @@ require (
 	firebase.google.com/go/v4 v4.18.0
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
-	github.com/joho/godotenv v1.4.0
 	github.com/stripe/stripe-go/v74 v74.30.0
 	google.golang.org/api v0.249.0
 )

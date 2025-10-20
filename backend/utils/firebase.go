@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -15,9 +16,22 @@ import (
 func InitFirebase() (*firestore.Client, error) {
 	ctx := context.Background()
 
-	// Option 1: Using service account key file
-	opt := option.WithCredentialsFile("secrets/quanto-mi-costi.json")
-	app, err := firebase.NewApp(ctx, nil, opt)
+	var app *firebase.App
+	var err error
+
+	// Try loading credentials from environment variable first
+	credsJSON := os.Getenv("PROJECT_CREDENTIALS")
+	if credsJSON != "" {
+		log.Println("Initializing Firebase using credentials from environment variable...")
+		opt := option.WithCredentialsJSON([]byte(credsJSON))
+		app, err = firebase.NewApp(ctx, nil, opt)
+	} else {
+		// Fall back to local key file for local development
+		log.Println("Initializing Firebase using local credentials file...")
+		opt := option.WithCredentialsFile("secrets/quanto-mi-costi.json")
+		app, err = firebase.NewApp(ctx, nil, opt)
+	}
+
 	if err != nil {
 		return nil, err
 	}
