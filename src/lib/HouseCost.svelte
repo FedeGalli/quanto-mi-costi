@@ -32,7 +32,8 @@
     import DeleteAccountPopUp from "./DeleteAccountPopUp.svelte";
 
     let selectedTab = "summary";
-    let apiURL = "http://localhost:8080";
+    //let apiURL = "http://localhost:8080";
+    let apiURL = "https://quanto-mi-costi-934184719806.europe-west8.run.app";
 
     let showRateLimitPopup = false;
     let showErrorPopup = false;
