@@ -39,6 +39,9 @@ def _get_file_list(path: str):
 prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
 volumes_file_list = _get_file_list_from_bucket(volumes_path) if is_prod else _get_file_list(volumes_path)
 
+print(prices_file_list)
+print(volumes_file_list)
+
 def get_price_starting_year():
     oldest_file = prices_file_list[0]
     year = oldest_file[:4]
