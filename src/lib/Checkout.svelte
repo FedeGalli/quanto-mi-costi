@@ -409,7 +409,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        amount: 10,
+                        amount: 50,
                         currency: "eur",
                         email: formData.email,
                         name: formData.fullName,
