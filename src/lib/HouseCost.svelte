@@ -3581,7 +3581,7 @@
                                         <Prices
                                             bind:showErrorPopup
                                             bind:showRateLimitPopup
-                                            bind:apiURL
+                                            apiURL={apiURL}
                                         />
                                     {/if}
                                 </div>
