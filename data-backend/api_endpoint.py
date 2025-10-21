@@ -7,7 +7,7 @@ app = FastAPI(title="Houses cost/volumes API")
 
 # Allowed origins GO BACKEND ONLY
 origins = [
-    "http://localhost:5173",
+    "https://quanto-mi-costi-934184719806.europe-west8.run.app",
 ]
 
 app.add_middleware(

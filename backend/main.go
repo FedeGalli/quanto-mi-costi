@@ -63,7 +63,7 @@ type MunicipalitiesListResponse struct {
 	Data []string `json:"DATA"`
 }
 
-const pythonAPIBaseURL = "http://localhost:8000"
+const pythonAPIBaseURL = "https://quanto-mi-costi-934184719806.europe-west8.run.app"
 
 func callPythonAPI(endpoint string, params map[string]string) ([]byte, error) {
 	// Build URL with query parameters
