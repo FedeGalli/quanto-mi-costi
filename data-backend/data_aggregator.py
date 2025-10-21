@@ -145,20 +145,32 @@ def get_price_df():
     current_zone_file = [f for f in files if "ZONE" in f][-1]
 
     path = ""
+    prices_infos = None
     if is_prod:
         path = current_zone_file
+        blob = bucket.blob(path)
+        data = blob.download_as_bytes()
+        prices_infos = pl.read_csv(io.BytesIO(data),
+            separator=";",
+            columns=[
+                "Comune_amm",
+                "Zona",
+                "Zona_Descr",
+            ],
+            skip_rows=1
+        )
     else:
         path = join(prices_path, current_zone_file)
+        prices_infos = pl.read_csv(path,
+            separator=";",
+            columns=[
+                "Comune_amm",
+                "Zona",
+                "Zona_Descr",
+            ],
+            skip_rows=1
+        )
 
-    prices_infos = pl.read_csv(path,
-        separator=";",
-        columns=[
-            "Comune_amm",
-            "Zona",
-            "Zona_Descr",
-        ],
-        skip_rows=1
-    )
 
     # Rename columns
     prices_infos = prices_infos.rename({
@@ -227,15 +239,21 @@ def get_volume_df():
     current_com_file = [f for f in files if "COM" in f][-1]
 
     path = ""
-
+    volumes_detail = None
     if is_prod:
         path = current_com_file
+        blob = bucket.blob(path)
+        data = blob.download_as_bytes()
+        volumes_detail = pl.read_csv(io.BytesIO(data),
+            separator=";",
+        )
     else:
         path = join(volumes_path, current_com_file)
+        volumes_detail = pl.read_csv(path,
+            separator=";"
+        )
 
-    volumes_detail = pl.read_csv(path,
-        separator=";"
-    )
+
     volumes_detail = volumes_detail.rename(
         {col: col.upper() for col in volumes_detail.columns}
     )
@@ -265,14 +283,20 @@ def get_volume_market_size_df():
     market_size_file = [f for f in volumes_file_list if "COM" in f][-1]
 
     path = ""
+    volumes_market_size = None
     if is_prod:
         path = market_size_file
+        blob = bucket.blob(path)
+        data = blob.download_as_bytes()
+        volumes_market_size = pl.read_csv(io.BytesIO(data),
+            separator=";",
+        )
     else:
         path = join(volumes_path, market_size_file)
+        volumes_market_size = pl.read_csv(path,
+            separator=";"
+        )
 
-    volumes_market_size = pl.read_csv(path,
-        separator=";"
-    )
     volumes_market_size = volumes_market_size.rename(
         {col: col.upper() for col in volumes_market_size.columns}
     )
