@@ -11,8 +11,7 @@
     } from "./auth/auth-store";
 
     // Stripe configuration
-    const STRIPE_PUBLISHABLE_KEY =
-        "pk_test_51S54jECPlqlBCAOphwqE8Z9bhP6crRGY6xQWXEgL5m9XWqPiOQhbOgLtM74HpneTrGYhxVqHaobEfYPOYV3K6hJB009OULWyrH";
+    const STRIPE_KEY = process.env.STRIPE_SECRET;
 
     // Stripe variables
     let stripe: any = null;

@@ -11,11 +11,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Create firebase config
         run: mkdir -p backend/secrets && echo '${{ secrets.FIREBASE_CONFIG_JSON }}' > backend/secrets/firebase.json
+
+      # Create .env file for your frontend build
+      - name: Create environment file
+        run: |
+          cat > .env << EOF
+          STRIPE_SECRET=${{ secrets.STRIPE_SECRET }}
+          EOF
+
+      # If using npm/pnpm/yarn, install and build
+      - name: Install dependencies
+        run: npm install # or pnpm install / yarn install
+
+      - name: Build
+        run: npm run build # This will use the .env file
+        env:
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_SECRET }}
+          # Add other env vars your build needs
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QUANTO_MI_COSTI }}
-          channelId: live
           projectId: quanto-mi-costi
