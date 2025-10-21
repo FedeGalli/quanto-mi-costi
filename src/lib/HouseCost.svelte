@@ -26,15 +26,13 @@
         isLoading,
         initAuthStore,
         logout,
+        apiURL,
     } from "./auth/auth-store";
     import Prices from "./Prices.svelte";
     import SaveNamePopUp from "./SaveNamePopUp.svelte";
     import DeleteAccountPopUp from "./DeleteAccountPopUp.svelte";
 
     let selectedTab = "summary";
-    //let apiURL = "http://localhost:8080";
-    let apiURL = "https://quanto-mi-costi-934184719806.europe-west8.run.app";
-    let dataApiURL = "https://backend-python-934184719806.europe-west8.run.app";
 
     let showRateLimitPopup = false;
     let showErrorPopup = false;
@@ -3583,7 +3581,7 @@
                                         <Prices
                                             bind:showErrorPopup
                                             bind:showRateLimitPopup
-                                            bind:dataApiURL
+                                            bind:apiURL
                                         />
                                     {/if}
                                 </div>

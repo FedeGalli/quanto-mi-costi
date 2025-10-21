@@ -7,6 +7,8 @@ import { auth } from "./credentials";
 export const user = writable(null);
 export const isAuthenticated = writable(false);
 export const isLoading = writable(true);
+export const apiURL =
+  "https://quanto-mi-costi-934184719806.europe-west8.run.app";
 
 // Initialize auth state listener
 let unsubscribe: any;
@@ -27,7 +29,7 @@ export function initAuthStore() {
         lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
       };
 
-      const pro = await fetch("http://localhost:8080/is-pro", {
+      const pro = await fetch(apiURL + "/is-pro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
