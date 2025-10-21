@@ -11,7 +11,9 @@
     } from "./auth/auth-store";
 
     // Stripe configuration
-    const STRIPE_KEY = process.env.STRIPE_SECRET;
+    const STRIPE_KEY: string | undefined = process.env.STRIPE_SECRET;
+
+    console.log(STRIPE_KEY);
 
     // Stripe variables
     let stripe: any = null;
