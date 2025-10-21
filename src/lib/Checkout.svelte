@@ -3,7 +3,12 @@
     import { fly } from "svelte/transition";
     import { onMount } from "svelte";
     import { push } from "svelte-spa-router";
-    import { user, isAuthenticated, initAuthStore } from "./auth/auth-store";
+    import {
+        user,
+        isAuthenticated,
+        initAuthStore,
+        apiURL,
+    } from "./auth/auth-store";
 
     // Stripe configuration
     const STRIPE_PUBLISHABLE_KEY =
@@ -397,7 +402,7 @@
             const amountInCents = Math.round(totalAmount * 100);
 
             const paymentIntentResponse = await fetch(
-                "http://localhost:8080/api/create-payment-intent",
+                apiURL + "/api/create-payment-intent",
                 {
                     method: "POST",
                     headers: {
@@ -458,7 +463,7 @@
             // Step 3: Notify backend of successful payment
             if (paymentIntent.status === "succeeded") {
                 const confirmResponse = await fetch(
-                    "http://localhost:8080/api/confirm-payment",
+                    apiURL + "/api/confirm-payment",
                     {
                         method: "POST",
                         headers: {
