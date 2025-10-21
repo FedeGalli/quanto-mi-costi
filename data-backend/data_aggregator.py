@@ -54,19 +54,38 @@ def get_price_current_year():
     return semester + "/" + year
 
 def get_volume_starting_year():
-    return int(volumes_file_list[0][:4])
+    if is_prod:
+        return int(volumes_file_list[0].split("/")[1][:4])
+    else:
+        return int(volumes_file_list[0][:4])
 
 def get_volume_current_year():
-    return int(volumes_file_list[-1][:4])
+    if is_prod:
+        return int(volumes_file_list[-1].split("/")[1][:4])
+    else:
+        return int(volumes_file_list[-1][:4])
+
 
 def _get_year(s: str) -> str:
-    return s[:4]
+    if is_prod:
+        return s.split("/")[1][:4]
+    else:
+        return s[:4]
 
 def _get_year_semester(s: str) -> str:
-    return s[:7]
+    if is_prod:
+        return s.split("/")[1][:7]
+    else:
+        return s[:7]
+
 
 def _semester_converter(s: str) -> str:
-    return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
+    if is_prod:
+        semester = s.split("/")[1]
+        return (semester[5:7] if semester[5:7] == "01" else "06") + "/" + semester[:4]
+    else:
+        return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
+
 
 def get_number_of_price_files() -> int:
     return len([f for f in prices_file_list if "VALORI" in f])
