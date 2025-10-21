@@ -186,7 +186,7 @@ def get_volume_df():
         if is_prod:
             blob = bucket.blob(file)
             data = blob.download_as_bytes()
-            volumes_vals = pl.read_csv(io.BytesIO(data))
+            volumes_vals = pl.read_csv(io.BytesIO(data), separator=";")
         else:
             volumes_vals = pl.read_csv(join(volumes_path, file),
                 separator=";"
