@@ -37,3 +37,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QUANTO_MI_COSTI }}
           projectId: quanto-mi-costi
+          channelId: live # Add this for production deployments
