@@ -82,7 +82,7 @@ func CreatePaymentIntent(c *gin.Context) {
 		return
 	}
 
-	if req.Amount != 399 {
+	if req.Amount != 100 {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_amount",
 			Message: fmt.Sprintf("Invalid amount: %d", req.Amount),
