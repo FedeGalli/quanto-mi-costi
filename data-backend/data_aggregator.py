@@ -144,7 +144,13 @@ def get_price_df():
 
     current_zone_file = [f for f in files if "ZONE" in f][-1]
 
-    prices_infos = pl.read_csv(join(prices_path, current_zone_file),
+    path = ""
+    if is_prod:
+        path = current_zone_file
+    else:
+        path = join(prices_path, current_zone_file)
+
+    prices_infos = pl.read_csv(path,
         separator=";",
         columns=[
             "Comune_amm",
@@ -220,8 +226,14 @@ def get_volume_df():
 
     current_com_file = [f for f in files if "COM" in f][-1]
 
+    path = ""
 
-    volumes_detail = pl.read_csv(join(volumes_path, current_com_file),
+    if is_prod:
+        path = current_com_file
+    else:
+        path = join(volumes_path, current_com_file)
+
+    volumes_detail = pl.read_csv(path,
         separator=";"
     )
     volumes_detail = volumes_detail.rename(
@@ -252,7 +264,13 @@ def get_volume_market_size_df():
     # So i took the last one
     market_size_file = [f for f in volumes_file_list if "COM" in f][-1]
 
-    volumes_market_size = pl.read_csv(join(volumes_path, market_size_file),
+    path = ""
+    if is_prod:
+        path = market_size_file
+    else:
+        path = join(volumes_path, market_size_file)
+
+    volumes_market_size = pl.read_csv(path,
         separator=";"
     )
     volumes_market_size = volumes_market_size.rename(
