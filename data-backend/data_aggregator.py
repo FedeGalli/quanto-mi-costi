@@ -111,7 +111,7 @@ def get_price_df():
         if is_prod:
             blob = bucket.blob(file)
             data = blob.download_as_bytes()
-            prices_vals = pl.read_csv(io.BytesIO(data), columns=cols, skip_rows=1)
+            prices_vals = pl.read_csv(io.BytesIO(data), separator=";", columns=cols, skip_rows=1)
         else:
             prices_vals = pl.read_csv(join(prices_path, file),
                 separator=";", columns=cols, skip_rows=1
