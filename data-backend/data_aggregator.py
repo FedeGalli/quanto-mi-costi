@@ -42,14 +42,12 @@ prices_file_list = _get_file_list_from_bucket("prices/") if is_prod else _get_fi
 volumes_file_list = _get_file_list_from_bucket("volumes/") if is_prod else _get_file_list(volumes_path)
 
 def get_price_starting_year():
-    prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
     oldest_file = prices_file_list[0]
     year = oldest_file[:4]
     semester = oldest_file[5:7]
     return semester + "/" + year
 
 def get_price_current_year():
-    prices_file_list = _get_file_list_from_bucket(prices_path) if is_prod else _get_file_list(prices_path)
     last_file = prices_file_list[-1]
     year = last_file[:4]
     semester = last_file[5:7]
