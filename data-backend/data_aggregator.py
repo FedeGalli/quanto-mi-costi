@@ -80,11 +80,7 @@ def _get_year_semester(s: str) -> str:
 
 
 def _semester_converter(s: str) -> str:
-    if is_prod:
-        semester = s.split("/")[1]
-        return (semester[5:7] if semester[5:7] == "01" else "06") + "/" + semester[:4]
-    else:
-        return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
+    return (s[5:7] if s[5:7] == "01" else "06") + "/" + s[:4]
 
 
 def get_number_of_price_files() -> int:
