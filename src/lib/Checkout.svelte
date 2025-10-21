@@ -332,7 +332,7 @@
             const script = document.createElement("script");
             script.src = "https://js.stripe.com/v3/";
             script.onload = () => {
-                stripe = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
+                stripe = (window as any).Stripe(STRIPE_KEY);
 
                 // Create Elements instance
                 elements = stripe.elements({
