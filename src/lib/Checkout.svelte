@@ -11,9 +11,8 @@
     } from "./auth/auth-store";
 
     // Stripe configuration
-    const STRIPE_KEY: string | undefined = process.env.STRIPE_SECRET;
-
-    console.log(STRIPE_KEY);
+    const STRIPE_KEY: string | undefined =
+        "pk_live_51S54j5FrUKPEk8OT1832YaPq5d6ypd5Umc0nLKGUgO3MEiyxRDfUSHnXce9yQU670Ts2D0uAHG8OEDSnGQG2Lt0100cyaybbPF";
 
     // Stripe variables
     let stripe: any = null;
