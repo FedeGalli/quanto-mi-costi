@@ -9,6 +9,7 @@ import (
 	"os"
 	"slices"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"quanto.mi.costi.com/utils"
 )
@@ -428,6 +429,7 @@ func main() {
 	utils.Init()
 
 	utils.InizializeRateLimiter()
+	router.Use(cors.Default())
 
 	router.GET("/get_house_costs", func(c *gin.Context) {
 		housePrice := utils.ToFloat64(c.DefaultQuery("house_price", "300000"))
