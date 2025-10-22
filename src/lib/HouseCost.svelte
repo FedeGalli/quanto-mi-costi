@@ -27,6 +27,7 @@
         initAuthStore,
         logout,
         apiURL,
+        dataApiURL,
     } from "./auth/auth-store";
     import Prices from "./Prices.svelte";
     import SaveNamePopUp from "./SaveNamePopUp.svelte";
@@ -3581,7 +3582,7 @@
                                         <Prices
                                             bind:showErrorPopup
                                             bind:showRateLimitPopup
-                                            apiURL={apiURL}
+                                            apiURL={dataApiURL}
                                         />
                                     {/if}
                                 </div>

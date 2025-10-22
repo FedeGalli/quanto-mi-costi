@@ -433,7 +433,6 @@
             }
 
             const paymentIntentData = await paymentIntentResponse.json();
-            console.log("Payment intent created:", paymentIntentData);
 
             // Step 2: Confirm payment with the card element
             const { error, paymentIntent } = await stripe.confirmCardPayment(

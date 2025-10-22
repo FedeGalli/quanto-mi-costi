@@ -27,8 +27,6 @@ def _get_file_list_from_bucket(prefix:str) -> list[str]:
     files = [blob.name for blob in blobs if not blob.name.endswith("/")]
     files.sort()
 
-    print(files)
-
     return files
 
 

@@ -10,6 +10,8 @@ export const isLoading = writable(true);
 export const apiURL =
   "https://quanto-mi-costi-934184719806.europe-west8.run.app";
 
+export const dataApiURL =
+  "https://backend-python-934184719806.europe-west8.run.app";
 // Initialize auth state listener
 let unsubscribe: any;
 
