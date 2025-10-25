@@ -136,6 +136,7 @@
     "marketSize": "Market Size",
     "trend": "Trend",
     "volume": "Volume",
+    "nTransaction": "Number of transactions",
     "price": "Price",
     "minPrice": "Max Price m² (€)",
     "maxPrice": "Min Price m² (€)",

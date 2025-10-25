@@ -133,6 +133,7 @@
     "marketSize": "Taille du marché",
     "trend": "Évolution historique",
     "volume": "Volume",
+    "nTransaction": "Nombre de transactions",
     "price": "Prix",
     "minPrice": "Prix minimum m² (€)",
     "maxPrice": "Prix maximum m² (€)",
