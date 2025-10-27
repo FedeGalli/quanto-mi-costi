@@ -9,7 +9,8 @@
     "cost": "Coût maison:",
     "name": "Maison:",
     "saved": "Maisons sauvegardées",
-    "save": "SAUVEGARDER",
+    "save": "ENREGISTRER",
+    "saveFollow": "votre maison",
     "delete": "Supprimer la maison"
   },
   "settings": {

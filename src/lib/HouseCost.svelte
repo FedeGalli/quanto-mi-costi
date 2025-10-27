@@ -1578,9 +1578,10 @@
                         >
                             <button
                                 on:click={() => (showNamePopup = true)}
-                                class="bg-white/95 backdrop-blur-sm px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg border border-purple-200 text-purple-800"
+                                class="bg-white/95 backdrop-blur-sm px-2 py-2 sm:px-6 sm:py-1 rounded-2xl shadow-lg border border-purple-200 text-purple-800 text-xs"
                             >
-                                {$_("house.save")}
+                                <b class="text-base">{$_("house.save")}</b>
+                                <br />{$_("house.saveFollow")}
                             </button>
                         </div>
                         <!-- Stylish Name Input Popup -->
