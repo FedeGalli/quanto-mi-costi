@@ -685,7 +685,9 @@
             "&mortgage_duration=" +
             (mortgage_duration != null ? mortgage_duration : 0) +
             "&mortgage_TAEG=" +
-            (taeg != null ? taeg / 100 : 0);
+            (taeg != null ? taeg / 100 : 0) +
+            "&UID=" +
+            ($user != null ? $user.uid : "");
         return apiStringUrl;
     }
     function buildMortgageCompareApiString(): string {
@@ -705,7 +707,10 @@
             "&mortgage_TAEG=" +
             (taeg != null ? taeg / 100 : 0) +
             "&durations=" +
-            (mortgage_durations != null ? mortgage_durations.join(",") : "");
+            (mortgage_durations != null ? mortgage_durations.join(",") : "") +
+            "&UID=" +
+            ($user != null ? $user.uid : "");
+
         return apiStringUrl;
     }
     function itTranslation(chartData: Record<string, number>) {
@@ -2078,17 +2083,43 @@
                                     on:mouseup={showCosts &&
                                     selectedTab != "mortgage"
                                         ? () => {
-                                              updateData();
-                                              updateCashVsMortgage();
-                                              updateMortgageCompare();
+                                              if (
+                                                  selectedTab == "summary" ||
+                                                  selectedTab == "prices"
+                                              ) {
+                                                  updateData();
+                                              } else if (
+                                                  selectedTab ==
+                                                  "cash_vs_mortgage"
+                                              ) {
+                                                  updateCashVsMortgage();
+                                              } else if (
+                                                  selectedTab ==
+                                                  "mortgage_compare"
+                                              ) {
+                                                  updateMortgageCompare();
+                                              }
                                           }
                                         : () => {}}
                                     on:change={showCosts &&
                                     selectedTab != "mortgage"
                                         ? () => {
-                                              updateData();
-                                              updateCashVsMortgage();
-                                              updateMortgageCompare();
+                                              if (
+                                                  selectedTab == "summary" ||
+                                                  selectedTab == "prices"
+                                              ) {
+                                                  updateData();
+                                              } else if (
+                                                  selectedTab ==
+                                                  "cash_vs_mortgage"
+                                              ) {
+                                                  updateCashVsMortgage();
+                                              } else if (
+                                                  selectedTab ==
+                                                  "mortgage_compare"
+                                              ) {
+                                                  updateMortgageCompare();
+                                              }
                                           }
                                         : () => {}}
                                 />
@@ -2115,9 +2146,20 @@
                                 on:change={showCosts &&
                                 selectedTab != "mortgage"
                                     ? () => {
-                                          updateData();
-                                          updateCashVsMortgage();
-                                          updateMortgageCompare();
+                                          if (
+                                              selectedTab == "summary" ||
+                                              selectedTab == "prices"
+                                          ) {
+                                              updateData();
+                                          } else if (
+                                              selectedTab == "cash_vs_mortgage"
+                                          ) {
+                                              updateCashVsMortgage();
+                                          } else if (
+                                              selectedTab == "mortgage_compare"
+                                          ) {
+                                              updateMortgageCompare();
+                                          }
                                       }
                                     : () => {}}
                             />
@@ -2132,9 +2174,20 @@
                                 on:change={showCosts &&
                                 selectedTab != "mortgage"
                                     ? () => {
-                                          updateData();
-                                          updateCashVsMortgage();
-                                          updateMortgageCompare();
+                                          if (
+                                              selectedTab == "summary" ||
+                                              selectedTab == "prices"
+                                          ) {
+                                              updateData();
+                                          } else if (
+                                              selectedTab == "cash_vs_mortgage"
+                                          ) {
+                                              updateCashVsMortgage();
+                                          } else if (
+                                              selectedTab == "mortgage_compare"
+                                          ) {
+                                              updateMortgageCompare();
+                                          }
                                       }
                                     : () => {}}
                             />
@@ -2149,9 +2202,20 @@
                                 on:change={showCosts &&
                                 selectedTab != "mortgage"
                                     ? () => {
-                                          updateData();
-                                          updateCashVsMortgage();
-                                          updateMortgageCompare();
+                                          if (
+                                              selectedTab == "summary" ||
+                                              selectedTab == "prices"
+                                          ) {
+                                              updateData();
+                                          } else if (
+                                              selectedTab == "cash_vs_mortgage"
+                                          ) {
+                                              updateCashVsMortgage();
+                                          } else if (
+                                              selectedTab == "mortgage_compare"
+                                          ) {
+                                              updateMortgageCompare();
+                                          }
                                       }
                                     : () => {}}
                             />
@@ -2175,16 +2239,46 @@
                                             bind:value={agencyFee}
                                             on:change={showCosts
                                                 ? () => {
-                                                      updateData();
-                                                      updateCashVsMortgage();
-                                                      updateMortgageCompare();
+                                                      if (
+                                                          selectedTab ==
+                                                              "summary" ||
+                                                          selectedTab ==
+                                                              "prices"
+                                                      ) {
+                                                          updateData();
+                                                      } else if (
+                                                          selectedTab ==
+                                                          "cash_vs_mortgage"
+                                                      ) {
+                                                          updateCashVsMortgage();
+                                                      } else if (
+                                                          selectedTab ==
+                                                          "mortgage_compare"
+                                                      ) {
+                                                          updateMortgageCompare();
+                                                      }
                                                   }
                                                 : () => {}}
                                             on:mouseup={showCosts
                                                 ? () => {
-                                                      updateData();
-                                                      updateCashVsMortgage();
-                                                      updateMortgageCompare();
+                                                      if (
+                                                          selectedTab ==
+                                                              "summary" ||
+                                                          selectedTab ==
+                                                              "prices"
+                                                      ) {
+                                                          updateData();
+                                                      } else if (
+                                                          selectedTab ==
+                                                          "cash_vs_mortgage"
+                                                      ) {
+                                                          updateCashVsMortgage();
+                                                      } else if (
+                                                          selectedTab ==
+                                                          "mortgage_compare"
+                                                      ) {
+                                                          updateMortgageCompare();
+                                                      }
                                                   }
                                                 : () => {}}
                                         />
@@ -2235,8 +2329,19 @@
                                                 bind:value={mortgage_amount}
                                                 on:change={showCosts
                                                     ? () => {
-                                                          updateData();
-                                                          updateMortgageCompare();
+                                                          if (
+                                                              selectedTab ==
+                                                                  "summary" ||
+                                                              selectedTab ==
+                                                                  "prices"
+                                                          ) {
+                                                              updateData();
+                                                          } else if (
+                                                              selectedTab ==
+                                                              "mortgage_compare"
+                                                          ) {
+                                                              updateMortgageCompare();
+                                                          }
                                                       }
                                                     : () => {}}
                                             />
@@ -2274,8 +2379,19 @@
                                                     }
                                                     on:change={showCosts
                                                         ? () => {
-                                                              updateData();
-                                                              updateCashVsMortgage();
+                                                              if (
+                                                                  selectedTab ==
+                                                                      "summary" ||
+                                                                  selectedTab ==
+                                                                      "prices"
+                                                              ) {
+                                                                  updateData();
+                                                              } else if (
+                                                                  selectedTab ==
+                                                                  "cash_vs_mortgage"
+                                                              ) {
+                                                                  updateCashVsMortgage();
+                                                              }
                                                           }
                                                         : () => {}}
                                                 />
@@ -2308,9 +2424,24 @@
                                                     bind:value={taeg}
                                                     on:change={showCosts
                                                         ? () => {
-                                                              updateData();
-                                                              updateCashVsMortgage();
-                                                              updateMortgageCompare();
+                                                              if (
+                                                                  selectedTab ==
+                                                                      "summary" ||
+                                                                  selectedTab ==
+                                                                      "prices"
+                                                              ) {
+                                                                  updateData();
+                                                              } else if (
+                                                                  selectedTab ==
+                                                                  "cash_vs_mortgage"
+                                                              ) {
+                                                                  updateCashVsMortgage();
+                                                              } else if (
+                                                                  selectedTab ==
+                                                                  "mortgage_compare"
+                                                              ) {
+                                                                  updateMortgageCompare();
+                                                              }
                                                           }
                                                         : () => {}}
                                                 />

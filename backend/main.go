@@ -460,6 +460,13 @@ func main() {
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
 		mortgagePercentages := utils.ToFloatArray(c.DefaultQuery("mortgage_percentage", "25,50,75,80"), []float64{25, 50, 75, 80})
 
+		UID := c.DefaultQuery("UID", "null")
+		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
 				"data": calculateCashVsMortgage(yearlySaving, mortgageDuration, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, mortgagePercentages, housePrice),
@@ -478,13 +485,14 @@ func main() {
 		mortgageAmount := utils.ToFloat64(c.DefaultQuery("mortgage_amount", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
 		durations := utils.ToIntArray(c.DefaultQuery("durations", "10,20,30"), []int{10, 20, 30})
-		UID := c.DefaultQuery("UID", "null")
 
+		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
 				"data": calculateMortgageCompare(yearlySaving, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, durations, mortgageAmount, housePrice),
@@ -496,6 +504,14 @@ func main() {
 	})
 
 	router.GET("/get-price-volume-data", func(c *gin.Context) {
+
+		UID := c.DefaultQuery("UID", "null")
+		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
 		if !utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
 			return
@@ -546,6 +562,14 @@ func main() {
 
 	// Get municipalities info
 	router.GET("/get-municipalities-info", func(c *gin.Context) {
+
+		UID := c.DefaultQuery("UID", "null")
+		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
 		if !utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
 			return
@@ -578,6 +602,14 @@ func main() {
 
 	// Get municipalities list
 	router.GET("/get-municipalities-list", func(c *gin.Context) {
+
+		UID := c.DefaultQuery("UID", "null")
+		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
 		if !utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
 			return
