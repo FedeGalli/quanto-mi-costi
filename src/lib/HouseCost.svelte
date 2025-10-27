@@ -2385,7 +2385,9 @@
                                                                   selectedTab ==
                                                                       "summary" ||
                                                                   selectedTab ==
-                                                                      "prices"
+                                                                      "prices" ||
+                                                                  selectedTab ==
+                                                                      "mortgage"
                                                               ) {
                                                                   updateData();
                                                               } else if (
@@ -2430,7 +2432,9 @@
                                                                   selectedTab ==
                                                                       "summary" ||
                                                                   selectedTab ==
-                                                                      "prices"
+                                                                      "prices" ||
+                                                                  selectedTab ==
+                                                                      "mortgage"
                                                               ) {
                                                                   updateData();
                                                               } else if (
