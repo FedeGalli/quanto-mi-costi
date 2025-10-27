@@ -520,7 +520,7 @@
             if (userData) {
                 return userData.is_pro;
             } else {
-                return false;
+                return true;
             }
         } catch (error) {
             console.error("Error getting pro info:", error);
