@@ -464,7 +464,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || !proOnlyAccess {
+		if err != nil && proOnlyAccess {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
