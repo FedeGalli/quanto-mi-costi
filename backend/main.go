@@ -431,6 +431,8 @@ func main() {
 	utils.InizializeRateLimiter()
 	router.Use(cors.Default())
 
+	anyoneCanJoin := true
+
 	router.GET("/get_house_costs", func(c *gin.Context) {
 		housePrice := utils.ToFloat64(c.DefaultQuery("house_price", "300000"))
 		agencyFee := utils.ToFloat64(c.DefaultQuery("agency_fee", "0"))
@@ -462,7 +464,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil {
+		if err != nil || anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -488,7 +490,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil {
+		if err != nil || anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -507,7 +509,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil {
+		if err != nil || anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -565,7 +567,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil {
+		if err != nil || anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -605,7 +607,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil {
+		if err != nil || anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
