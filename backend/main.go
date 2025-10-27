@@ -464,7 +464,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || anyoneCanJoin {
+		if err != nil || !anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -490,7 +490,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || anyoneCanJoin {
+		if err != nil || !anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -509,7 +509,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || anyoneCanJoin {
+		if err != nil || !anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -567,7 +567,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || anyoneCanJoin {
+		if err != nil || !anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -607,7 +607,7 @@ func main() {
 
 		UID := c.DefaultQuery("UID", "null")
 		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
-		if err != nil || anyoneCanJoin {
+		if err != nil || !anyoneCanJoin {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
