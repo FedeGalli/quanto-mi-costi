@@ -687,7 +687,7 @@
             "&mortgage_TAEG=" +
             (taeg != null ? taeg / 100 : 0) +
             "&UID=" +
-            ($user != null ? $user.uid : "");
+            ($user != null ? $user.uid : "null");
         return apiStringUrl;
     }
     function buildMortgageCompareApiString(): string {
@@ -709,7 +709,7 @@
             "&durations=" +
             (mortgage_durations != null ? mortgage_durations.join(",") : "") +
             "&UID=" +
-            ($user != null ? $user.uid : "");
+            ($user != null ? $user.uid : "null");
 
         return apiStringUrl;
     }
