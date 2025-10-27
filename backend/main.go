@@ -478,7 +478,13 @@ func main() {
 		mortgageAmount := utils.ToFloat64(c.DefaultQuery("mortgage_amount", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
 		durations := utils.ToIntArray(c.DefaultQuery("durations", "10,20,30"), []int{10, 20, 30})
+		UID := c.DefaultQuery("UID", "null")
 
+		err := utils.IsUserStillPro(utils.FirebaseClient, UID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
 				"data": calculateMortgageCompare(yearlySaving, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, durations, mortgageAmount, housePrice),

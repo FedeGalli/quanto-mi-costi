@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { writable } from "svelte/store";
     import { onMount, tick, onDestroy } from "svelte";
     import { push } from "svelte-spa-router";
     import Chart from "chart.js/auto";
@@ -45,6 +46,8 @@
     let showNamePopup = false;
     let showDeletePopup = false;
     let isLoadingSaving = false;
+
+    let anyoneCanJoin = true;
 
     async function handleDeleteUser(): Promise<boolean> {
         try {
@@ -516,11 +519,10 @@
             // Check if document already exists
             const userDoc = await getDoc(userDocRef);
             const userData = userDoc.data();
-
             if (userData) {
                 return userData.is_pro;
             } else {
-                return true;
+                return false;
             }
         } catch (error) {
             console.error("Error getting pro info:", error);
@@ -2373,7 +2375,7 @@
                                 <div transition:fade={{ duration: 500 }}>
                                     <NavBar
                                         bind:selectedTab
-                                        pro={$user?.pro || false}
+                                        pro={$user?.pro || anyoneCanJoin}
                                         getProFunction={goToPro}
                                     />
 
