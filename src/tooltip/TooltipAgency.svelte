@@ -2,11 +2,32 @@
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
     import { _ } from "svelte-i18n";
+    let tooltipElement: any;
+
+    $: if (showTooltip[index] && tooltipElement) {
+        setTimeout(() => {
+            // Get the parent container position
+            const parent = tooltipElement.parentElement;
+            if (parent) {
+                const rect = parent.getBoundingClientRect();
+                const scrollTop =
+                    window.pageYOffset || document.documentElement.scrollTop;
+
+                // Scroll to the parent container
+                window.scrollTo({
+                    top: scrollTop + rect.top - 100, // 20px padding from top
+                    behavior: "smooth",
+                });
+            }
+        }, 100);
+    }
 </script>
 
 <!-- Tooltip (Overlay) -->
 <div
-    class="absolute top-0 left-0 w-full h-full bg-[#1e1f25] rounded-2xl shadow-xl p-8 overflow-auto z-20 transition-all transform duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)]"
+    bind:this={tooltipElement}
+    tabindex="-1"
+    class="absolute top-0 left-0 w-full h-full bg-[#1e1f25] rounded-2xl shadow-xl p-8 overflow-auto z-20 transition-all transform duration-600 ease-out-[cubic-bezier(0.22, 1, 0.36, 1)] outline-none"
     class:opacity-100={showTooltip[index]}
     class:opacity-0={!showTooltip[index]}
     class:-translate-y-500={!showTooltip[index]}
