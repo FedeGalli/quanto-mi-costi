@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { writable } from "svelte/store";
     import { onMount, tick, onDestroy } from "svelte";
     import { push } from "svelte-spa-router";
     import Chart from "chart.js/auto";
@@ -2085,13 +2084,19 @@
                             </h2>
                             <div class="relative">
                                 <input
-                                    type="number"
+                                    type="text"
                                     inputmode="decimal"
                                     class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
-                                    min="0"
-                                    max="1000000"
-                                    step="5000"
-                                    bind:value={house_price}
+                                    value={house_price.toLocaleString("it-IT")}
+                                    on:input={(e) => {
+                                        const value = e.target.value.replace(
+                                            /\./g,
+                                            "",
+                                        );
+                                        house_price = parseFloat(value) || 0;
+                                        e.target.value =
+                                            house_price.toLocaleString("it-IT");
+                                    }}
                                     on:mouseup={showCosts &&
                                     selectedTab != "mortgage"
                                         ? () => {
@@ -2338,14 +2343,33 @@
                                         </h3>
                                         <div class="relative">
                                             <input
-                                                type="number"
+                                                type="text"
+                                                inputmode="decimal"
                                                 class="w-full border border-white rounded px-4 pr-12 py-3 sm:py-2 text-left font-medium text-white bg-transparent text-base sm:text-sm"
-                                                min="0"
-                                                max={house_price == null
-                                                    ? 0
-                                                    : house_price}
-                                                step="5000"
-                                                bind:value={mortgage_amount}
+                                                value={mortgage_amount.toLocaleString(
+                                                    "it-IT",
+                                                )}
+                                                on:input={(e) => {
+                                                    const value =
+                                                        e.target.value.replace(
+                                                            /\./g,
+                                                            "",
+                                                        );
+                                                    const numValue =
+                                                        parseFloat(value) || 0;
+                                                    const maxValue =
+                                                        house_price == null
+                                                            ? 0
+                                                            : house_price;
+                                                    mortgage_amount = Math.min(
+                                                        numValue,
+                                                        maxValue,
+                                                    );
+                                                    e.target.value =
+                                                        mortgage_amount.toLocaleString(
+                                                            "it-IT",
+                                                        );
+                                                }}
                                                 on:change={showCosts
                                                     ? () => {
                                                           if (
@@ -2985,13 +3009,30 @@
                                                                 class="relative"
                                                             >
                                                                 <input
-                                                                    type="number"
+                                                                    type="text"
+                                                                    inputmode="decimal"
                                                                     class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                    min="0"
-                                                                    step="2500"
-                                                                    bind:value={
-                                                                        yearlySaving
-                                                                    }
+                                                                    value={yearlySaving.toLocaleString(
+                                                                        "it-IT",
+                                                                    )}
+                                                                    on:input={(
+                                                                        e,
+                                                                    ) => {
+                                                                        const value =
+                                                                            e.target.value.replace(
+                                                                                /\./g,
+                                                                                "",
+                                                                            );
+                                                                        yearlySaving =
+                                                                            parseFloat(
+                                                                                value,
+                                                                            ) ||
+                                                                            0;
+                                                                        e.target.value =
+                                                                            yearlySaving.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
                                                                     on:change={showCosts
                                                                         ? updateMortgageCompare
                                                                         : () => {}}
@@ -3365,13 +3406,29 @@
                                                         </h3>
                                                         <div class="relative">
                                                             <input
-                                                                type="number"
+                                                                type="text"
+                                                                inputmode="decimal"
                                                                 class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                min="0"
-                                                                step="2500"
-                                                                bind:value={
-                                                                    yearlySaving
-                                                                }
+                                                                value={yearlySaving.toLocaleString(
+                                                                    "it-IT",
+                                                                )}
+                                                                on:input={(
+                                                                    e,
+                                                                ) => {
+                                                                    const value =
+                                                                        e.target.value.replace(
+                                                                            /\./g,
+                                                                            "",
+                                                                        );
+                                                                    yearlySaving =
+                                                                        parseFloat(
+                                                                            value,
+                                                                        ) || 0;
+                                                                    e.target.value =
+                                                                        yearlySaving.toLocaleString(
+                                                                            "it-IT",
+                                                                        );
+                                                                }}
                                                                 on:change={showCosts
                                                                     ? updateCashVsMortgage
                                                                     : () => {}}
