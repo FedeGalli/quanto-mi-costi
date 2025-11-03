@@ -793,14 +793,14 @@
                             >
                                 {$_("signin.accept")}
                                 <a
-                                    href="src/documents/terms-and-conditions.pdf"
+                                    href="static/terms-and-conditions.pdf"
                                     target="_blank"
                                     class="text-purple-400 hover:text-purple-300 underline"
                                     >{$_("signin.term")}</a
                                 >
                                 {$_("signin.and")}
                                 <a
-                                    href="src/documents/privacy-policy.pdf"
+                                    href="static/privacy-policy.pdf"
                                     target="_blank"
                                     class="text-purple-400 hover:text-purple-300 underline"
                                     >{$_("signin.privacy")}</a
