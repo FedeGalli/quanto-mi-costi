@@ -2,6 +2,21 @@
   "hosting": {
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "predeploy": ["npm install", "npm run build"]
+    "headers": [
+      {
+        "source": "/robots.txt",
+        "headers": [{ "key": "Content-Type", "value": "text/plain" }]
+      },
+      {
+        "source": "/sitemap.xml",
+        "headers": [{ "key": "Content-Type", "value": "application/xml" }]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "!/@(robots.txt|sitemap.xml)",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
