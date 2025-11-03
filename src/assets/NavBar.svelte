@@ -1,6 +1,5 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
-    import { push } from "svelte-spa-router";
     export let selectedTab = "summary";
     export let pro = false;
     export let getProFunction: () => void;

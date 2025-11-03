@@ -1,7 +1,26 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
     export let showTooltip: boolean[] = [];
     export let index: number = 0;
+    import { _ } from "svelte-i18n";
+    let tooltipElement: any;
+
+    $: if (showTooltip[index] && tooltipElement) {
+        setTimeout(() => {
+            // Get the parent container position
+            const parent = tooltipElement.parentElement;
+            if (parent) {
+                const rect = parent.getBoundingClientRect();
+                const scrollTop =
+                    window.pageYOffset || document.documentElement.scrollTop;
+
+                // Scroll to the parent container
+                window.scrollTo({
+                    top: scrollTop + rect.top - 100, // 20px padding from top
+                    behavior: "smooth",
+                });
+            }
+        }, 100);
+    }
 </script>
 
 <!-- Tooltip (Overlay) -->

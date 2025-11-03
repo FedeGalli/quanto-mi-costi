@@ -264,6 +264,16 @@
     }
 
     $: if (
+        (selectedTab == "base" && showCosts) ||
+        (forceChartUpdate && showCosts)
+    ) {
+        forceChartUpdate = false;
+        tick().then(() => {
+            updateData();
+        });
+    }
+
+    $: if (
         (selectedTab == "mortgage" && showCosts) ||
         (forceChartUpdate && showCosts)
     ) {
@@ -1699,7 +1709,8 @@
 
                                     <!-- Menu Items -->
                                     <div class="py-2">
-                                        {#if !$user.pro}
+                                        {#if !$user.pro && false}
+                                            <!-- ADDED FALSE TO DISABLE THE GETPRO PAGE -->
                                             <button
                                                 on:click={() => {
                                                     showUserMenu = false;
@@ -2086,7 +2097,8 @@
                                         ? () => {
                                               if (
                                                   selectedTab == "summary" ||
-                                                  selectedTab == "prices"
+                                                  selectedTab == "prices" ||
+                                                  selectedTab == "base"
                                               ) {
                                                   updateData();
                                               } else if (
@@ -2107,7 +2119,8 @@
                                         ? () => {
                                               if (
                                                   selectedTab == "summary" ||
-                                                  selectedTab == "prices"
+                                                  selectedTab == "prices" ||
+                                                  selectedTab == "base"
                                               ) {
                                                   updateData();
                                               } else if (
@@ -2149,7 +2162,8 @@
                                     ? () => {
                                           if (
                                               selectedTab == "summary" ||
-                                              selectedTab == "prices"
+                                              selectedTab == "prices" ||
+                                              selectedTab == "base"
                                           ) {
                                               updateData();
                                           } else if (
@@ -2177,7 +2191,8 @@
                                     ? () => {
                                           if (
                                               selectedTab == "summary" ||
-                                              selectedTab == "prices"
+                                              selectedTab == "prices" ||
+                                              selectedTab == "base"
                                           ) {
                                               updateData();
                                           } else if (
@@ -2205,7 +2220,8 @@
                                     ? () => {
                                           if (
                                               selectedTab == "summary" ||
-                                              selectedTab == "prices"
+                                              selectedTab == "prices" ||
+                                              selectedTab == "base"
                                           ) {
                                               updateData();
                                           } else if (
@@ -2244,7 +2260,8 @@
                                                           selectedTab ==
                                                               "summary" ||
                                                           selectedTab ==
-                                                              "prices"
+                                                              "prices" ||
+                                                          selectedTab == "base"
                                                       ) {
                                                           updateData();
                                                       } else if (
@@ -2266,7 +2283,8 @@
                                                           selectedTab ==
                                                               "summary" ||
                                                           selectedTab ==
-                                                              "prices"
+                                                              "prices" ||
+                                                          selectedTab == "base"
                                                       ) {
                                                           updateData();
                                                       } else if (
@@ -2336,7 +2354,9 @@
                                                               selectedTab ==
                                                                   "prices" ||
                                                               selectedTab ==
-                                                                  "mortgage"
+                                                                  "mortgage" ||
+                                                              selectedTab ==
+                                                                  "base"
                                                           ) {
                                                               updateData();
                                                           } else if (

@@ -12,6 +12,7 @@ export const apiURL =
 
 export const dataApiURL =
   "https://backend-python-934184719806.europe-west8.run.app";
+
 // Initialize auth state listener
 let unsubscribe: any;
 
