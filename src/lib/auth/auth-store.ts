@@ -8,12 +8,11 @@ export const user = writable(null);
 export const isAuthenticated = writable(false);
 export const isLoading = writable(true);
 export const apiURL =
-  //"https://quanto-mi-costi-934184719806.europe-west8.run.app";
-  "http://localhost:8080";
+  "https://quanto-mi-costi-934184719806.europe-west8.run.app";
 
 export const dataApiURL =
-  //"https://backend-python-934184719806.europe-west8.run.app";
-  "http://localhost:8000";
+  "https://backend-python-934184719806.europe-west8.run.app";
+
 // Initialize auth state listener
 let unsubscribe: any;
 
