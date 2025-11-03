@@ -1709,7 +1709,8 @@
 
                                     <!-- Menu Items -->
                                     <div class="py-2">
-                                        {#if !$user.pro}
+                                        {#if !$user.pro && false}
+                                            <!-- ADDED FALSE TO DISABLE THE GETPRO PAGE -->
                                             <button
                                                 on:click={() => {
                                                     showUserMenu = false;

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -429,7 +430,21 @@ func main() {
 	utils.Init()
 
 	utils.InizializeRateLimiter()
-	router.Use(cors.Default())
+
+	// Custom CORS configuration
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"https://quanto-mi-costi-934184719806.europe-west8.run.app",
+			"https://quanto-mi-costi.web.app",
+			"https://quantocosto.com",
+			"https://www.quantocosto.com",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	proOnlyAccess := false
 
