@@ -108,14 +108,19 @@ func SimulateSavingsCashVsMortgage(
 	yearlyGrowthRate float64,
 	mortgageAmount float64,
 	housePrice float64,
+	totalExpense float64,
+	startingWealth float64,
 
 ) []float64 {
-	savings := mortgageAmount
+	savings := 0.0
+	if startingWealth-totalExpense > 0 {
+		savings = startingWealth - totalExpense - (housePrice - mortgageAmount)
+	}
 	savingsOverTime := make([]float64, 0, duration)
 	houseSaving := housePrice - mortgageAmount
 	totalMortgageAmount := mortgageAmount
 
-	savingsOverTime = append(savingsOverTime, housePrice)
+	savingsOverTime = append(savingsOverTime, houseSaving+savings)
 	for year := range duration {
 		var leftover float64
 
@@ -147,13 +152,18 @@ func SimulateSavings(
 	yearlyGrowthRate float64,
 	mortgageAmount float64,
 	housePrice float64,
+	totalExpense float64,
+	startingWealth float64,
 ) []float64 {
 	savings := 0.0
+	if startingWealth-totalExpense > 0 {
+		savings = startingWealth - totalExpense - (housePrice - mortgageAmount)
+	}
 	savingsOverTime := make([]float64, 0, len(yearlyIncome))
 	houseSaving := housePrice - mortgageAmount
 	totalMortgageAmount := mortgageAmount
 
-	savingsOverTime = append(savingsOverTime, houseSaving)
+	savingsOverTime = append(savingsOverTime, houseSaving+savings)
 
 	// Main simulation loop
 	for year := range len(yearlyIncome) {

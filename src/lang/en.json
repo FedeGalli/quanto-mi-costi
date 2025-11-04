@@ -121,9 +121,10 @@
     "mortgage80": "{duration}-Year Mortgage (80%)"
   },
   "income": {
-    "yearlyIncome": "How much do I/we earn each year?",
-    "savingRate": "Of which I/we manage to save...",
-    "investmentReturn": "How much do savings yield each year?"
+    "startingWealth": "Starting wealth",
+    "yearlyIncome": "How much do I earn/save each year?",
+    "savingRate": "Of which I can/want to save...",
+    "investmentReturn": "What's the annual return on savings?"
   },
   "prices": {
     "question": {

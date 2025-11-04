@@ -119,6 +119,7 @@
     "mortgage80": "Mutuo {duration} Anni (80%)"
   },
   "income": {
+    "startingWealth": "Patrimonio iniziale",
     "yearlyIncome": "Quanto guadagno/amo ogni anno?",
     "savingRate": "Di cui riesco/amo a risparmiare un...",
     "investmentReturn": "Quanto fruttano i risparmi ogni anno?"

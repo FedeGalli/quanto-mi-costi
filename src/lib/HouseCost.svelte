@@ -132,6 +132,7 @@
         showTooltip = house.showTooltip;
         mortgage_percentage = house.mortgage_percentage;
         mortgage_durations = house.mortgage_durations;
+        startingWealth = house.startingWealth;
         yearlySaving = house.yearlySaving;
         yearlyGrowthgRate = house.yearlyGrowthgRate;
         yearlySavingRate = house.yearlySavingRate;
@@ -214,6 +215,7 @@
     let yearlySaving: number = 20000;
     let yearlyGrowthgRate: number = 3;
     let yearlySavingRate: number = 30;
+    let startingWealth: number = 0;
 
     let groupedData: Record<string, number> = {};
 
@@ -353,6 +355,12 @@
     $: if (yearlyGrowthgRate < -10) {
         yearlyGrowthgRate = -10;
     }
+    $: if (
+        startingWealth < totalAmount + house_price - mortgage_amount &&
+        (selectedTab == "mortgage_compare" || selectedTab == "cash_vs_mortgage")
+    ) {
+        startingWealth = totalAmount + house_price - mortgage_amount;
+    }
     function saveStateToLocalStorage() {
         const state = {
             selectedTab,
@@ -383,6 +391,7 @@
             wealth,
             wealth_cash_vs_mortgage,
             wealth_cash_vs_mortgage_installments,
+            startingWealth,
             yearlySaving,
             yearlyGrowthgRate,
             yearlySavingRate,
@@ -439,6 +448,9 @@
                 wealth_cash_vs_mortgage = state.wealth_cash_vs_mortgage ?? [];
                 wealth_cash_vs_mortgage_installments =
                     state.wealth_cash_vs_mortgage_installments ?? [];
+                startingWealth =
+                    state.startingWealth ??
+                    totalAmount + house_price - mortgage_amount;
                 yearlySaving = state.yearlySaving ?? 20000;
                 yearlyGrowthgRate = state.yearlyGrowthgRate ?? 3;
                 yearlySavingRate = state.yearlySavingRate ?? 30;
@@ -588,6 +600,7 @@
                             showTooltip: false,
                             mortgage_percentage,
                             mortgage_durations,
+                            startingWealth,
                             yearlySaving,
                             yearlyGrowthgRate,
                             yearlySavingRate,
@@ -615,6 +628,7 @@
                                     showTooltip: false,
                                     mortgage_percentage,
                                     mortgage_durations,
+                                    startingWealth,
                                     yearlySaving,
                                     yearlyGrowthgRate,
                                     yearlySavingRate,
@@ -694,6 +708,10 @@
             (mortgage_duration != null ? mortgage_duration : 0) +
             "&mortgage_TAEG=" +
             (taeg != null ? taeg / 100 : 0) +
+            "&total_expense=" +
+            (totalAmount != null ? totalAmount : 0) +
+            "&starting_wealth=" +
+            (startingWealth != null ? startingWealth : 0) +
             "&UID=" +
             ($user != null ? $user.uid : "null");
         return apiStringUrl;
@@ -714,6 +732,10 @@
             (mortgage_amount != null ? mortgage_amount : 0) +
             "&mortgage_TAEG=" +
             (taeg != null ? taeg / 100 : 0) +
+            "&total_expense=" +
+            (totalAmount != null ? totalAmount : 0) +
+            "&starting_wealth=" +
+            (startingWealth != null ? startingWealth : 0) +
             "&durations=" +
             (mortgage_durations != null ? mortgage_durations.join(",") : "") +
             "&UID=" +
@@ -2110,11 +2132,13 @@
                                                   selectedTab ==
                                                   "cash_vs_mortgage"
                                               ) {
+                                                  updateData();
                                                   updateCashVsMortgage();
                                               } else if (
                                                   selectedTab ==
                                                   "mortgage_compare"
                                               ) {
+                                                  updateData();
                                                   updateMortgageCompare();
                                               }
                                           }
@@ -2132,11 +2156,13 @@
                                                   selectedTab ==
                                                   "cash_vs_mortgage"
                                               ) {
+                                                  updateData();
                                                   updateCashVsMortgage();
                                               } else if (
                                                   selectedTab ==
                                                   "mortgage_compare"
                                               ) {
+                                                  updateData();
                                                   updateMortgageCompare();
                                               }
                                           }
@@ -2174,10 +2200,12 @@
                                           } else if (
                                               selectedTab == "cash_vs_mortgage"
                                           ) {
+                                              updateData();
                                               updateCashVsMortgage();
                                           } else if (
                                               selectedTab == "mortgage_compare"
                                           ) {
+                                              updateData();
                                               updateMortgageCompare();
                                           }
                                       }
@@ -2203,10 +2231,12 @@
                                           } else if (
                                               selectedTab == "cash_vs_mortgage"
                                           ) {
+                                              updateData();
                                               updateCashVsMortgage();
                                           } else if (
                                               selectedTab == "mortgage_compare"
                                           ) {
+                                              updateData();
                                               updateMortgageCompare();
                                           }
                                       }
@@ -2232,10 +2262,12 @@
                                           } else if (
                                               selectedTab == "cash_vs_mortgage"
                                           ) {
+                                              updateData();
                                               updateCashVsMortgage();
                                           } else if (
                                               selectedTab == "mortgage_compare"
                                           ) {
+                                              updateData();
                                               updateMortgageCompare();
                                           }
                                       }
@@ -2273,11 +2305,13 @@
                                                           selectedTab ==
                                                           "cash_vs_mortgage"
                                                       ) {
+                                                          updateData();
                                                           updateCashVsMortgage();
                                                       } else if (
                                                           selectedTab ==
                                                           "mortgage_compare"
                                                       ) {
+                                                          updateData();
                                                           updateMortgageCompare();
                                                       }
                                                   }
@@ -2296,11 +2330,13 @@
                                                           selectedTab ==
                                                           "cash_vs_mortgage"
                                                       ) {
+                                                          updateData();
                                                           updateCashVsMortgage();
                                                       } else if (
                                                           selectedTab ==
                                                           "mortgage_compare"
                                                       ) {
+                                                          updateData();
                                                           updateMortgageCompare();
                                                       }
                                                   }
@@ -2372,18 +2408,8 @@
                                                 }}
                                                 on:change={showCosts
                                                     ? () => {
+                                                          updateData();
                                                           if (
-                                                              selectedTab ==
-                                                                  "summary" ||
-                                                              selectedTab ==
-                                                                  "prices" ||
-                                                              selectedTab ==
-                                                                  "mortgage" ||
-                                                              selectedTab ==
-                                                                  "base"
-                                                          ) {
-                                                              updateData();
-                                                          } else if (
                                                               selectedTab ==
                                                               "mortgage_compare"
                                                           ) {
@@ -2439,6 +2465,7 @@
                                                                   selectedTab ==
                                                                   "cash_vs_mortgage"
                                                               ) {
+                                                                  updateData();
                                                                   updateCashVsMortgage();
                                                               }
                                                           }
@@ -2491,6 +2518,7 @@
                                                                   selectedTab ==
                                                                   "mortgage_compare"
                                                               ) {
+                                                                  updateData();
                                                                   updateMortgageCompare();
                                                               }
                                                           }
@@ -2972,7 +3000,6 @@
                                     {/if}
 
                                     {#if selectedTab == "mortgage_compare"}
-                                        <!-- Mortgage comparison section -->
                                         <div
                                             transition:fade={{ duration: 500 }}
                                         >
@@ -2983,76 +3010,131 @@
                                                     duration: 500,
                                                 }}
                                             >
-                                                <!-- Input section -->
+                                                <!-- Input section with modern card layout -->
                                                 <div
-                                                    class="flex flex-col items-center gap-4 mb-4"
+                                                    class="max-w-6xl mx-auto mb-8 px-4"
                                                     transition:slide={{
                                                         duration: 500,
                                                     }}
                                                 >
-                                                    <!-- Text labels and inputs aligned -->
+                                                    <!-- Grid layout for responsive cards -->
                                                     <div
-                                                        class="flex justify-center items-center gap-4"
+                                                        class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-2 lg:gap-3 items-center"
                                                     >
-                                                        <!-- First column: Euro input with label -->
+                                                        <!-- Card 1: Starting Wealth -->
                                                         <div
-                                                            class="flex flex-col items-center gap-2"
+                                                            class="relative group"
                                                         >
-                                                            <h3
-                                                                class="font-bold text-white text-sm sm:text-base text-center"
-                                                            >
-                                                                {$_(
-                                                                    "income.yearlyIncome",
-                                                                )}
-                                                            </h3>
                                                             <div
-                                                                class="relative"
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
                                                             >
-                                                                <input
-                                                                    type="text"
-                                                                    inputmode="decimal"
-                                                                    class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                    value={yearlySaving.toLocaleString(
-                                                                        "it-IT",
-                                                                    )}
-                                                                    on:input={(
-                                                                        e,
-                                                                    ) => {
-                                                                        const value =
-                                                                            e.target.value.replace(
-                                                                                /\./g,
-                                                                                "",
-                                                                            );
-                                                                        yearlySaving =
-                                                                            parseFloat(
-                                                                                value,
-                                                                            ) ||
-                                                                            0;
-                                                                        e.target.value =
-                                                                            yearlySaving.toLocaleString(
-                                                                                "it-IT",
-                                                                            );
-                                                                    }}
-                                                                    on:change={showCosts
-                                                                        ? updateMortgageCompare
-                                                                        : () => {}}
-                                                                />
-                                                                <span
-                                                                    class="absolute right-3 top-2 text-white font-semibold"
-                                                                    >€</span
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
                                                                 >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >💰</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.startingWealth",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="text"
+                                                                        inputmode="decimal"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-purple-400 focus:outline-none transition-colors"
+                                                                        value={startingWealth.toLocaleString(
+                                                                            "it-IT",
+                                                                        )}
+                                                                        on:input={(
+                                                                            e,
+                                                                        ) => {
+                                                                            const value =
+                                                                                e.target.value.replace(
+                                                                                    /\./g,
+                                                                                    "",
+                                                                                );
+                                                                            const parsedValue =
+                                                                                parseFloat(
+                                                                                    value,
+                                                                                ) ||
+                                                                                0;
+                                                                            startingWealth =
+                                                                                parsedValue;
+                                                                            e.target.value =
+                                                                                startingWealth.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:keydown={(
+                                                                            e,
+                                                                        ) => {
+                                                                            if (
+                                                                                e.key ===
+                                                                                "Enter"
+                                                                            ) {
+                                                                                startingWealth =
+                                                                                    Math.max(
+                                                                                        startingWealth,
+                                                                                        totalAmount +
+                                                                                            house_price -
+                                                                                            mortgage_amount,
+                                                                                    );
+                                                                                e.target.value =
+                                                                                    startingWealth.toLocaleString(
+                                                                                        "it-IT",
+                                                                                    );
+                                                                                if (
+                                                                                    showCosts
+                                                                                ) {
+                                                                                    updateMortgageCompare();
+                                                                                }
+                                                                                e.target.blur();
+                                                                            }
+                                                                        }}
+                                                                        on:blur={(
+                                                                            e,
+                                                                        ) => {
+                                                                            startingWealth =
+                                                                                Math.max(
+                                                                                    startingWealth,
+                                                                                    totalAmount +
+                                                                                        house_price -
+                                                                                        mortgage_amount,
+                                                                                );
+                                                                            e.target.value =
+                                                                                startingWealth.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:change={showCosts
+                                                                            ? updateMortgageCompare
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-purple-400 font-bold"
+                                                                        >€</span
+                                                                    >
+                                                                </div>
                                                             </div>
                                                         </div>
 
-                                                        <!-- First Arrow with Icon -->
+                                                        <!-- Arrow after Card 1 -->
                                                         <div
-                                                            class="flex flex-col items-center gap-1 mt-8"
+                                                            class="hidden lg:flex items-center justify-center"
                                                         >
-                                                            <!-- Piggy bank icon for savings -->
-                                                            💰
-                                                            <!-- Arrow -->
                                                             <svg
-                                                                class="w-6 h-6 text-white/70"
+                                                                class="w-6 h-6 text-purple-400"
                                                                 fill="none"
                                                                 stroke="currentColor"
                                                                 viewBox="0 0 24 24"
@@ -3061,53 +3143,15 @@
                                                                     stroke-linecap="round"
                                                                     stroke-linejoin="round"
                                                                     stroke-width="2"
-                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
                                                                 />
                                                             </svg>
                                                         </div>
-
-                                                        <!-- Second column: Savings rate input -->
                                                         <div
-                                                            class="flex flex-col items-center gap-2"
+                                                            class="flex lg:hidden items-center justify-center"
                                                         >
-                                                            <h3
-                                                                class="font-bold text-white text-sm sm:text-base text-center"
-                                                            >
-                                                                {$_(
-                                                                    "income.savingRate",
-                                                                )}
-                                                            </h3>
-                                                            <div
-                                                                class="relative"
-                                                            >
-                                                                <input
-                                                                    type="number"
-                                                                    class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                    min="0"
-                                                                    step="1"
-                                                                    bind:value={
-                                                                        yearlySavingRate
-                                                                    }
-                                                                    on:change={showCosts
-                                                                        ? updateMortgageCompare
-                                                                        : () => {}}
-                                                                />
-                                                                <span
-                                                                    class="absolute right-3 top-2 text-white font-semibold"
-                                                                    >%</span
-                                                                >
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Second Arrow with Icon -->
-                                                        <div
-                                                            class="flex flex-col items-center gap-1 mt-8"
-                                                        >
-                                                            <!-- Growth/chart icon for investment returns -->
-                                                            💸
-                                                            <!-- Arrow -->
                                                             <svg
-                                                                class="w-6 h-6 text-white/70"
+                                                                class="w-6 h-6 text-purple-400"
                                                                 fill="none"
                                                                 stroke="currentColor"
                                                                 viewBox="0 0 24 24"
@@ -3116,41 +3160,242 @@
                                                                     stroke-linecap="round"
                                                                     stroke-linejoin="round"
                                                                     stroke-width="2"
-                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
                                                                 />
                                                             </svg>
                                                         </div>
 
-                                                        <!-- Third column: Investment growth rate -->
+                                                        <!-- Card 2: Yearly Income -->
                                                         <div
-                                                            class="flex flex-col items-center gap-2"
+                                                            class="relative group"
                                                         >
-                                                            <h3
-                                                                class="font-bold text-white text-sm sm:text-base text-center"
-                                                            >
-                                                                {$_(
-                                                                    "income.investmentReturn",
-                                                                )}
-                                                            </h3>
                                                             <div
-                                                                class="relative"
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
                                                             >
-                                                                <input
-                                                                    type="number"
-                                                                    class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                    min="0"
-                                                                    step="0.1"
-                                                                    bind:value={
-                                                                        yearlyGrowthgRate
-                                                                    }
-                                                                    on:change={showCosts
-                                                                        ? updateMortgageCompare
-                                                                        : () => {}}
-                                                                />
-                                                                <span
-                                                                    class="absolute right-3 top-2 text-white font-semibold"
-                                                                    >%</span
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
                                                                 >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >💵</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.yearlyIncome",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="text"
+                                                                        inputmode="decimal"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-blue-400 focus:outline-none transition-colors"
+                                                                        value={yearlySaving.toLocaleString(
+                                                                            "it-IT",
+                                                                        )}
+                                                                        on:input={(
+                                                                            e,
+                                                                        ) => {
+                                                                            const value =
+                                                                                e.target.value.replace(
+                                                                                    /\./g,
+                                                                                    "",
+                                                                                );
+                                                                            yearlySaving =
+                                                                                parseFloat(
+                                                                                    value,
+                                                                                ) ||
+                                                                                0;
+                                                                            e.target.value =
+                                                                                yearlySaving.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:change={showCosts
+                                                                            ? updateMortgageCompare
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-blue-400 font-bold"
+                                                                        >€</span
+                                                                    >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Arrow after Card 2 -->
+                                                        <div
+                                                            class="hidden lg:flex items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-blue-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <div
+                                                            class="flex lg:hidden items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-blue-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Card 3: Saving Rate -->
+                                                        <div
+                                                            class="relative group"
+                                                        >
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >🏦</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.savingRate",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-emerald-400 focus:outline-none transition-colors"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        step="1"
+                                                                        bind:value={
+                                                                            yearlySavingRate
+                                                                        }
+                                                                        on:change={showCosts
+                                                                            ? updateMortgageCompare
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-emerald-400 font-bold"
+                                                                        >%</span
+                                                                    >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Arrow after Card 3 -->
+                                                        <div
+                                                            class="hidden lg:flex items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-emerald-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <div
+                                                            class="flex lg:hidden items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-emerald-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Card 4: Investment Return -->
+                                                        <div
+                                                            class="relative group"
+                                                        >
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >📈</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.investmentReturn",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-amber-400 focus:outline-none transition-colors"
+                                                                        min="0"
+                                                                        step="0.1"
+                                                                        bind:value={
+                                                                            yearlyGrowthgRate
+                                                                        }
+                                                                        on:change={showCosts
+                                                                            ? updateMortgageCompare
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-amber-400 font-bold"
+                                                                        >%</span
+                                                                    >
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3180,6 +3425,7 @@
                                                     )}</span
                                                 >{$_("mortgage.question.end")}
                                             </h2>
+
                                             <!-- Chart - responsive sizing with subtle enhancement -->
                                             <div
                                                 class="w-full h-[300px] sm:h-[300px] lg:h-[350px] mb-6 relative"
@@ -3382,167 +3628,426 @@
                                         <div
                                             transition:fade={{ duration: 500 }}
                                         >
-                                            <!-- Input section -->
                                             <div
-                                                class="flex flex-col items-center gap-4 mb-4"
-                                                transition:slide={{
+                                                transition:fade={{
                                                     duration: 500,
                                                 }}
                                             >
-                                                <!-- First row: Main financial inputs -->
+                                                <!-- Input section with modern card layout -->
                                                 <div
-                                                    class="flex justify-center items-center gap-4"
+                                                    class="max-w-6xl mx-auto mb-8 px-4"
+                                                    transition:slide={{
+                                                        duration: 500,
+                                                    }}
                                                 >
-                                                    <!-- Annual income input -->
+                                                    <!-- Grid layout for responsive cards -->
                                                     <div
-                                                        class="flex flex-col items-center gap-2"
+                                                        class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-2 lg:gap-3 items-center"
                                                     >
-                                                        <h3
-                                                            class="font-bold text-white text-sm sm:text-base text-center"
+                                                        <!-- Card 1: Starting Wealth -->
+                                                        <div
+                                                            class="relative group"
                                                         >
-                                                            {$_(
-                                                                "income.yearlyIncome",
-                                                            )}
-                                                        </h3>
-                                                        <div class="relative">
-                                                            <input
-                                                                type="text"
-                                                                inputmode="decimal"
-                                                                class="w-32 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                value={yearlySaving.toLocaleString(
-                                                                    "it-IT",
-                                                                )}
-                                                                on:input={(
-                                                                    e,
-                                                                ) => {
-                                                                    const value =
-                                                                        e.target.value.replace(
-                                                                            /\./g,
-                                                                            "",
-                                                                        );
-                                                                    yearlySaving =
-                                                                        parseFloat(
-                                                                            value,
-                                                                        ) || 0;
-                                                                    e.target.value =
-                                                                        yearlySaving.toLocaleString(
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >💰</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.startingWealth",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="text"
+                                                                        inputmode="decimal"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-purple-400 focus:outline-none transition-colors"
+                                                                        value={startingWealth.toLocaleString(
                                                                             "it-IT",
-                                                                        );
-                                                                }}
-                                                                on:change={showCosts
-                                                                    ? updateCashVsMortgage
-                                                                    : () => {}}
-                                                            />
-                                                            <span
-                                                                class="absolute right-3 top-2 text-white font-semibold"
-                                                                >€</span
-                                                            >
+                                                                        )}
+                                                                        on:input={(
+                                                                            e,
+                                                                        ) => {
+                                                                            const value =
+                                                                                e.target.value.replace(
+                                                                                    /\./g,
+                                                                                    "",
+                                                                                );
+                                                                            const parsedValue =
+                                                                                parseFloat(
+                                                                                    value,
+                                                                                ) ||
+                                                                                0;
+                                                                            startingWealth =
+                                                                                parsedValue;
+                                                                            e.target.value =
+                                                                                startingWealth.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:keydown={(
+                                                                            e,
+                                                                        ) => {
+                                                                            if (
+                                                                                e.key ===
+                                                                                "Enter"
+                                                                            ) {
+                                                                                startingWealth =
+                                                                                    Math.max(
+                                                                                        startingWealth,
+                                                                                        totalAmount +
+                                                                                            house_price -
+                                                                                            mortgage_amount,
+                                                                                    );
+                                                                                e.target.value =
+                                                                                    startingWealth.toLocaleString(
+                                                                                        "it-IT",
+                                                                                    );
+                                                                                if (
+                                                                                    showCosts
+                                                                                ) {
+                                                                                    updateCashVsMortgage();
+                                                                                }
+                                                                                e.target.blur();
+                                                                            }
+                                                                        }}
+                                                                        on:blur={(
+                                                                            e,
+                                                                        ) => {
+                                                                            startingWealth =
+                                                                                Math.max(
+                                                                                    startingWealth,
+                                                                                    totalAmount +
+                                                                                        house_price -
+                                                                                        mortgage_amount,
+                                                                                );
+                                                                            e.target.value =
+                                                                                startingWealth.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:change={showCosts
+                                                                            ? updateCashVsMortgage
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-purple-400 font-bold"
+                                                                        >€</span
+                                                                    >
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
 
-                                                    <!-- Arrow -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-1 mt-8"
-                                                    >
-                                                        💰
-                                                        <svg
-                                                            class="w-6 h-6 text-white/70"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
+                                                        <!-- Arrow after Card 1 -->
+                                                        <div
+                                                            class="hidden lg:flex items-center justify-center"
                                                         >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                                            />
-                                                        </svg>
-                                                    </div>
-
-                                                    <!-- Savings rate input -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-2"
-                                                    >
-                                                        <h3
-                                                            class="font-bold text-white text-sm sm:text-base text-center"
-                                                        >
-                                                            {$_(
-                                                                "income.savingRate",
-                                                            )}
-                                                        </h3>
-                                                        <div class="relative">
-                                                            <input
-                                                                type="number"
-                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                min="0"
-                                                                step="1"
-                                                                bind:value={
-                                                                    yearlySavingRate
-                                                                }
-                                                                on:change={showCosts
-                                                                    ? updateCashVsMortgage
-                                                                    : () => {}}
-                                                            />
-                                                            <span
-                                                                class="absolute right-3 top-2 text-white font-semibold"
-                                                                >%</span
+                                                            <svg
+                                                                class="w-6 h-6 text-purple-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
                                                             >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                />
+                                                            </svg>
                                                         </div>
-                                                    </div>
-
-                                                    <!-- Arrow -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-1 mt-8"
-                                                    >
-                                                        💸
-                                                        <svg
-                                                            class="w-6 h-6 text-white/70"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
+                                                        <div
+                                                            class="flex lg:hidden items-center justify-center"
                                                         >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                                            />
-                                                        </svg>
-                                                    </div>
-
-                                                    <!-- Investment growth rate input -->
-                                                    <div
-                                                        class="flex flex-col items-center gap-2"
-                                                    >
-                                                        <h3
-                                                            class="font-bold text-white text-sm sm:text-base text-center"
-                                                        >
-                                                            {$_(
-                                                                "income.investmentReturn",
-                                                            )}
-                                                        </h3>
-                                                        <div class="relative">
-                                                            <input
-                                                                type="number"
-                                                                class="w-24 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
-                                                                min="0"
-                                                                step="0.1"
-                                                                bind:value={
-                                                                    yearlyGrowthgRate
-                                                                }
-                                                                on:change={showCosts
-                                                                    ? updateCashVsMortgage
-                                                                    : () => {}}
-                                                            />
-                                                            <span
-                                                                class="absolute right-3 top-2 text-white font-semibold"
-                                                                >%</span
+                                                            <svg
+                                                                class="w-6 h-6 text-purple-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
                                                             >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Card 2: Yearly Income -->
+                                                        <div
+                                                            class="relative group"
+                                                        >
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >💵</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.yearlyIncome",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="text"
+                                                                        inputmode="decimal"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-blue-400 focus:outline-none transition-colors"
+                                                                        value={yearlySaving.toLocaleString(
+                                                                            "it-IT",
+                                                                        )}
+                                                                        on:input={(
+                                                                            e,
+                                                                        ) => {
+                                                                            const value =
+                                                                                e.target.value.replace(
+                                                                                    /\./g,
+                                                                                    "",
+                                                                                );
+                                                                            yearlySaving =
+                                                                                parseFloat(
+                                                                                    value,
+                                                                                ) ||
+                                                                                0;
+                                                                            e.target.value =
+                                                                                yearlySaving.toLocaleString(
+                                                                                    "it-IT",
+                                                                                );
+                                                                        }}
+                                                                        on:change={showCosts
+                                                                            ? updateCashVsMortgage
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-blue-400 font-bold"
+                                                                        >€</span
+                                                                    >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Arrow after Card 2 -->
+                                                        <div
+                                                            class="hidden lg:flex items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-blue-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <div
+                                                            class="flex lg:hidden items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-blue-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Card 3: Saving Rate -->
+                                                        <div
+                                                            class="relative group"
+                                                        >
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >🏦</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.savingRate",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-emerald-400 focus:outline-none transition-colors"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        step="1"
+                                                                        bind:value={
+                                                                            yearlySavingRate
+                                                                        }
+                                                                        on:change={showCosts
+                                                                            ? updateCashVsMortgage
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-emerald-400 font-bold"
+                                                                        >%</span
+                                                                    >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Arrow after Card 3 -->
+                                                        <div
+                                                            class="hidden lg:flex items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-emerald-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <div
+                                                            class="flex lg:hidden items-center justify-center"
+                                                        >
+                                                            <svg
+                                                                class="w-6 h-6 text-emerald-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        <!-- Card 4: Investment Return -->
+                                                        <div
+                                                            class="relative group"
+                                                        >
+                                                            <div
+                                                                class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
+                                                            ></div>
+                                                            <div
+                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            >
+                                                                <div
+                                                                    class="flex items-center gap-2 mb-2"
+                                                                >
+                                                                    <span
+                                                                        class="text-xl"
+                                                                        >📈</span
+                                                                    >
+                                                                    <h3
+                                                                        class="text-white font-semibold text-xs leading-tight"
+                                                                    >
+                                                                        {$_(
+                                                                            "income.investmentReturn",
+                                                                        )}
+                                                                    </h3>
+                                                                </div>
+                                                                <div
+                                                                    class="relative"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-amber-400 focus:outline-none transition-colors"
+                                                                        min="0"
+                                                                        step="0.1"
+                                                                        bind:value={
+                                                                            yearlyGrowthgRate
+                                                                        }
+                                                                        on:change={showCosts
+                                                                            ? updateCashVsMortgage
+                                                                            : () => {}}
+                                                                    />
+                                                                    <span
+                                                                        class="absolute right-3 top-2.5 text-amber-400 font-bold"
+                                                                        >%</span
+                                                                    >
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Question with reduced top margin -->
+                                            <h2
+                                                class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
+                                                transition:slide={{
+                                                    duration: 500,
+                                                }}
+                                            >
+                                                {$_(
+                                                    "mortgage.question.how",
+                                                )}<span
+                                                    class="font-bold text-purple-400"
+                                                    >{$_(
+                                                        "mortgage.question.wealth",
+                                                    )}</span
+                                                >
+                                                {$_("mortgage.question.with")}
+                                                <span
+                                                    class="font-bold text-purple-400"
+                                                    >{$_(
+                                                        "mortgage.question.mortgage",
+                                                    )}</span
+                                                >{$_("mortgage.question.end")}
+                                            </h2>
 
                                             <!-- Question -->
                                             <h2
