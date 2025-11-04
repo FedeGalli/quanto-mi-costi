@@ -1,4 +1,18 @@
 {
+  "cookie": {
+    "title": "We use cookies to improve your experience.",
+    "findMore": "Learn more",
+    "edit": "Edit",
+    "accept": "Accept",
+    "preferences": "Cookie Preferences",
+    "necessary": "Necessary Cookies",
+    "necessaryDesc": "Essential",
+    "analytics": "Analytics Cookies",
+    "analyticsDesc": "Improve the site",
+    "marketing": "Marketing Cookies",
+    "marketingDesc": "Personalized content",
+    "save": "Save preferences"
+  },
   "hero": {
     "discover": "Find out how much it costs,",
     "really": "for real,",
