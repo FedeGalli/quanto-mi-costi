@@ -1,4 +1,18 @@
 {
+  "cookie": {
+    "title": "Utilizziamo i cookie per migliorare la tua esperienza.",
+    "findMore": "Scopri di più",
+    "edit": "Modifica",
+    "accept": "Accetta",
+    "preferences": "Preferenze Cookie",
+    "necessary": "Cookie Necessari",
+    "necessaryDesc": "Essenziali",
+    "analytics": "Cookie Analitici",
+    "analyticsDesc": "Migliorano il sito",
+    "marketing": "Cookie Marketing",
+    "marketingDesc": "Contenuto personalizzato",
+    "save": "Salva preferenze"
+  },
   "hero": {
     "discover": "Scopri quanto costa,",
     "really": "per davvero,",

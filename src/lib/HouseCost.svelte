@@ -32,6 +32,7 @@
     import Prices from "./Prices.svelte";
     import SaveNamePopUp from "./SaveNamePopUp.svelte";
     import DeleteAccountPopUp from "./DeleteAccountPopUp.svelte";
+    import CookieConsent from "./CookieConsent.svelte";
 
     let selectedTab = "summary";
 
@@ -1543,6 +1544,7 @@
     <div
         class="min-h-screen bg-gradient-to-b from-purple-400 to-[#1e1f25] flex items-start justify-center p-2 sm:p-6 pt-16 sm:pt-20"
     >
+        <CookieConsent />
         <!-- Top Navigation Area -->
         <div class="fixed top-4 left-0 right-4 z-50 px-4">
             <div class="flex items-start justify-end gap-4">
