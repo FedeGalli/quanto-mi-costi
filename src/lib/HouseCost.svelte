@@ -175,9 +175,7 @@
     let is_fisrt_house: boolean = false;
     let is_sold_by_builder: boolean = false;
     let is_sold_by_agency: boolean = false;
-    let is_sold_by_agency_label: string = "Acquisto tramite agenzia?";
     let is_using_mortgage: boolean = false;
-    let is_using_mortgage_label: string = "Utilizzi un mutuo?";
 
     //mortgage variable section
     let taeg: number = 0;
