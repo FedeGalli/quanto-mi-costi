@@ -46,6 +46,7 @@
     let showNamePopup = false;
     let showDeletePopup = false;
     let isLoadingSaving = false;
+    let isTyping = false;
 
     let anyoneCanJoin = true;
 
@@ -356,6 +357,7 @@
         yearlyGrowthgRate = -10;
     }
     $: if (
+        !isTyping && // Only apply when not typing
         startingWealth < totalAmount + house_price - mortgage_amount &&
         (selectedTab == "mortgage_compare" || selectedTab == "cash_vs_mortgage")
     ) {
@@ -2594,16 +2596,16 @@
                                         <div
                                             transition:fade={{ duration: 500 }}
                                         >
-                                            <!-- Updated layout - horizontal on desktop, vertical on mobile -->
+                                            <!-- Horizontal on desktop, vertical on mobile -->
                                             <div
-                                                class="flex flex-col lg:flex-row gap-6 sm:gap-8 justify-center items-center w-full h-full"
+                                                class="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 justify-center items-center lg:items-stretch w-full"
                                                 transition:slide={{
                                                     duration: 500,
                                                 }}
                                             >
                                                 <!-- Chart - takes up space on the left with subtle enhancement -->
                                                 <div
-                                                    class="flex justify-center w-full lg:w-1/2 max-w-full h-[200px] sm:h-[250px] lg:h-[300px] relative group"
+                                                    class="flex justify-center w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-[300px] relative group"
                                                 >
                                                     <!-- Subtle background enhancement -->
                                                     <div
@@ -2611,16 +2613,16 @@
                                                     ></div>
                                                     <canvas
                                                         id="barChart"
-                                                        class="rounded-lg"
+                                                        class="rounded-lg w-full"
                                                     ></canvas>
                                                 </div>
 
                                                 <!-- Total Price - takes up space on the right with hover effect -->
                                                 <div
-                                                    class="w-full lg:w-1/2 flex justify-center group cursor-pointer transition-transform duration-200 hover:scale-105"
+                                                    class="w-full lg:w-1/2 flex justify-center items-center group cursor-pointer transition-transform duration-200 hover:scale-105"
                                                 >
                                                     <div
-                                                        class="relative overflow-hidden rounded-lg w-full"
+                                                        class="relative overflow-hidden rounded-lg w-full max-w-sm lg:max-w-full"
                                                     >
                                                         <!-- Subtle gradient overlay -->
                                                         <div
@@ -3003,7 +3005,6 @@
                                         <div
                                             transition:fade={{ duration: 500 }}
                                         >
-                                            <!-- Input section - responsive layout -->
                                             <!-- Simple Mortgage comparison section -->
                                             <div
                                                 transition:fade={{
@@ -3012,99 +3013,66 @@
                                             >
                                                 <!-- Input section with modern card layout -->
                                                 <div
-                                                    class="max-w-6xl mx-auto mb-8 px-4"
+                                                    class="flex flex-col items-center gap-4 mb-4"
                                                     transition:slide={{
                                                         duration: 500,
                                                     }}
                                                 >
-                                                    <!-- Grid layout for responsive cards -->
+                                                    <!-- Text labels and inputs aligned - responsive layout -->
                                                     <div
-                                                        class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-2 lg:gap-3 items-center"
+                                                        class="flex flex-col md:flex-row justify-center items-center md:items-end gap-4 md:gap-4 w-full"
                                                     >
-                                                        <!-- Card 1: Starting Wealth -->
+                                                        <!-- First column: Euro input with label on top -->
                                                         <div
-                                                            class="relative group"
+                                                            class="flex flex-col items-center gap-2"
                                                         >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
                                                             >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >💰</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.startingWealth",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="text"
-                                                                        inputmode="decimal"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-purple-400 focus:outline-none transition-colors"
-                                                                        value={startingWealth.toLocaleString(
-                                                                            "it-IT",
-                                                                        )}
-                                                                        on:input={(
-                                                                            e,
-                                                                        ) => {
-                                                                            const value =
-                                                                                e.target.value.replace(
-                                                                                    /\./g,
-                                                                                    "",
-                                                                                );
-                                                                            const parsedValue =
-                                                                                parseFloat(
-                                                                                    value,
-                                                                                ) ||
-                                                                                0;
-                                                                            startingWealth =
-                                                                                parsedValue;
-                                                                            e.target.value =
-                                                                                startingWealth.toLocaleString(
-                                                                                    "it-IT",
-                                                                                );
-                                                                        }}
-                                                                        on:keydown={(
-                                                                            e,
-                                                                        ) => {
-                                                                            if (
-                                                                                e.key ===
-                                                                                "Enter"
-                                                                            ) {
-                                                                                startingWealth =
-                                                                                    Math.max(
-                                                                                        startingWealth,
-                                                                                        totalAmount +
-                                                                                            house_price -
-                                                                                            mortgage_amount,
-                                                                                    );
-                                                                                e.target.value =
-                                                                                    startingWealth.toLocaleString(
-                                                                                        "it-IT",
-                                                                                    );
-                                                                                if (
-                                                                                    showCosts
-                                                                                ) {
-                                                                                    updateMortgageCompare();
-                                                                                }
-                                                                                e.target.blur();
-                                                                            }
-                                                                        }}
-                                                                        on:blur={(
-                                                                            e,
-                                                                        ) => {
+                                                                {$_(
+                                                                    "income.startingWealth",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="text"
+                                                                    inputmode="decimal"
+                                                                    class="w-26 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    value={startingWealth.toLocaleString(
+                                                                        "it-IT",
+                                                                    )}
+                                                                    on:focus={() => {
+                                                                        isTyping = true;
+                                                                    }}
+                                                                    on:input={(
+                                                                        e,
+                                                                    ) => {
+                                                                        const value =
+                                                                            e.target.value.replace(
+                                                                                /\./g,
+                                                                                "",
+                                                                            );
+                                                                        const parsedValue =
+                                                                            parseFloat(
+                                                                                value,
+                                                                            ) ||
+                                                                            0;
+                                                                        startingWealth =
+                                                                            parsedValue;
+                                                                        e.target.value =
+                                                                            startingWealth.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                    on:keydown={(
+                                                                        e,
+                                                                    ) => {
+                                                                        if (
+                                                                            e.key ===
+                                                                            "Enter"
+                                                                        ) {
                                                                             startingWealth =
                                                                                 Math.max(
                                                                                     startingWealth,
@@ -3116,211 +3084,44 @@
                                                                                 startingWealth.toLocaleString(
                                                                                     "it-IT",
                                                                                 );
-                                                                        }}
-                                                                        on:change={showCosts
-                                                                            ? updateMortgageCompare
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-purple-400 font-bold"
-                                                                        >€</span
-                                                                    >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Arrow after Card 1 -->
-                                                        <div
-                                                            class="hidden lg:flex items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-purple-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-                                                        <div
-                                                            class="flex lg:hidden items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-purple-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-
-                                                        <!-- Card 2: Yearly Income -->
-                                                        <div
-                                                            class="relative group"
-                                                        >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
-                                                            >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >💵</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.yearlyIncome",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="text"
-                                                                        inputmode="decimal"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-blue-400 focus:outline-none transition-colors"
-                                                                        value={yearlySaving.toLocaleString(
-                                                                            "it-IT",
-                                                                        )}
-                                                                        on:input={(
-                                                                            e,
-                                                                        ) => {
-                                                                            const value =
-                                                                                e.target.value.replace(
-                                                                                    /\./g,
-                                                                                    "",
-                                                                                );
-                                                                            yearlySaving =
-                                                                                parseFloat(
-                                                                                    value,
-                                                                                ) ||
-                                                                                0;
-                                                                            e.target.value =
-                                                                                yearlySaving.toLocaleString(
-                                                                                    "it-IT",
-                                                                                );
-                                                                        }}
-                                                                        on:change={showCosts
-                                                                            ? updateMortgageCompare
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-blue-400 font-bold"
-                                                                        >€</span
-                                                                    >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Arrow after Card 2 -->
-                                                        <div
-                                                            class="hidden lg:flex items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-blue-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-                                                        <div
-                                                            class="flex lg:hidden items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-blue-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-
-                                                        <!-- Card 3: Saving Rate -->
-                                                        <div
-                                                            class="relative group"
-                                                        >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
-                                                            >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >🏦</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.savingRate",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="number"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-emerald-400 focus:outline-none transition-colors"
-                                                                        min="0"
-                                                                        max="100"
-                                                                        step="1"
-                                                                        bind:value={
-                                                                            yearlySavingRate
+                                                                            if (
+                                                                                showCosts
+                                                                            ) {
+                                                                                updateMortgageCompare();
+                                                                            }
+                                                                            e.target.blur();
                                                                         }
-                                                                        on:change={showCosts
-                                                                            ? updateMortgageCompare
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-emerald-400 font-bold"
-                                                                        >%</span
-                                                                    >
-                                                                </div>
+                                                                    }}
+                                                                    on:blur={(
+                                                                        e,
+                                                                    ) => {
+                                                                        startingWealth =
+                                                                            Math.max(
+                                                                                startingWealth,
+                                                                                totalAmount +
+                                                                                    house_price -
+                                                                                    mortgage_amount,
+                                                                            );
+                                                                        e.target.value =
+                                                                            startingWealth.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >€</span
+                                                                >
                                                             </div>
                                                         </div>
 
-                                                        <!-- Arrow after Card 3 -->
+                                                        <!-- First Arrow with Icon -->
                                                         <div
-                                                            class="hidden lg:flex items-center justify-center"
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
                                                         >
+                                                            💰
                                                             <svg
-                                                                class="w-6 h-6 text-emerald-400"
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
                                                                 fill="none"
                                                                 stroke="currentColor"
                                                                 viewBox="0 0 24 24"
@@ -3329,73 +3130,174 @@
                                                                     stroke-linecap="round"
                                                                     stroke-linejoin="round"
                                                                     stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
                                                                 />
                                                             </svg>
-                                                        </div>
-                                                        <div
-                                                            class="flex lg:hidden items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-emerald-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
-                                                                />
-                                                            </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
                                                         </div>
 
-                                                        <!-- Card 4: Investment Return -->
+                                                        <!-- Second column: Yearly income input with label on top -->
                                                         <div
-                                                            class="relative group"
+                                                            class="flex flex-col items-center gap-2"
                                                         >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
                                                             >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
+                                                                {$_(
+                                                                    "income.yearlyIncome",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="text"
+                                                                    inputmode="decimal"
+                                                                    class="w-26 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    value={yearlySaving.toLocaleString(
+                                                                        "it-IT",
+                                                                    )}
+                                                                    on:input={(
+                                                                        e,
+                                                                    ) => {
+                                                                        const value =
+                                                                            e.target.value.replace(
+                                                                                /\./g,
+                                                                                "",
+                                                                            );
+                                                                        yearlySaving =
+                                                                            parseFloat(
+                                                                                value,
+                                                                            ) ||
+                                                                            0;
+                                                                        e.target.value =
+                                                                            yearlySaving.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >€</span
                                                                 >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >📈</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.investmentReturn",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Second Arrow with Icon -->
+                                                        <div
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
+                                                        >
+                                                            💸
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
+                                                        </div>
+
+                                                        <!-- Third column: Saving rate input with label on top -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
+                                                            >
+                                                                {$_(
+                                                                    "income.savingRate",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-20 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    max="100"
+                                                                    step="1"
+                                                                    bind:value={
+                                                                        yearlySavingRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
                                                                 >
-                                                                    <input
-                                                                        type="number"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-amber-400 focus:outline-none transition-colors"
-                                                                        min="0"
-                                                                        step="0.1"
-                                                                        bind:value={
-                                                                            yearlyGrowthgRate
-                                                                        }
-                                                                        on:change={showCosts
-                                                                            ? updateMortgageCompare
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-amber-400 font-bold"
-                                                                        >%</span
-                                                                    >
-                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Third Arrow with Icon -->
+                                                        <div
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
+                                                        >
+                                                            📈
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
+                                                        </div>
+
+                                                        <!-- Fourth column: Investment return input with label on top -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
+                                                            >
+                                                                {$_(
+                                                                    "income.investmentReturn",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-20 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    step="0.1"
+                                                                    bind:value={
+                                                                        yearlyGrowthgRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateMortgageCompare
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
+                                                                >
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3635,99 +3537,66 @@
                                             >
                                                 <!-- Input section with modern card layout -->
                                                 <div
-                                                    class="max-w-6xl mx-auto mb-8 px-4"
+                                                    class="flex flex-col items-center gap-4 mb-4"
                                                     transition:slide={{
                                                         duration: 500,
                                                     }}
                                                 >
-                                                    <!-- Grid layout for responsive cards -->
+                                                    <!-- Text labels and inputs aligned - responsive layout -->
                                                     <div
-                                                        class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-2 lg:gap-3 items-center"
+                                                        class="flex flex-col md:flex-row justify-center items-center md:items-end gap-4 md:gap-4 w-full"
                                                     >
-                                                        <!-- Card 1: Starting Wealth -->
+                                                        <!-- First column: Euro input with label on top -->
                                                         <div
-                                                            class="relative group"
+                                                            class="flex flex-col items-center gap-2"
                                                         >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
                                                             >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >💰</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.startingWealth",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="text"
-                                                                        inputmode="decimal"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-purple-400 focus:outline-none transition-colors"
-                                                                        value={startingWealth.toLocaleString(
-                                                                            "it-IT",
-                                                                        )}
-                                                                        on:input={(
-                                                                            e,
-                                                                        ) => {
-                                                                            const value =
-                                                                                e.target.value.replace(
-                                                                                    /\./g,
-                                                                                    "",
-                                                                                );
-                                                                            const parsedValue =
-                                                                                parseFloat(
-                                                                                    value,
-                                                                                ) ||
-                                                                                0;
-                                                                            startingWealth =
-                                                                                parsedValue;
-                                                                            e.target.value =
-                                                                                startingWealth.toLocaleString(
-                                                                                    "it-IT",
-                                                                                );
-                                                                        }}
-                                                                        on:keydown={(
-                                                                            e,
-                                                                        ) => {
-                                                                            if (
-                                                                                e.key ===
-                                                                                "Enter"
-                                                                            ) {
-                                                                                startingWealth =
-                                                                                    Math.max(
-                                                                                        startingWealth,
-                                                                                        totalAmount +
-                                                                                            house_price -
-                                                                                            mortgage_amount,
-                                                                                    );
-                                                                                e.target.value =
-                                                                                    startingWealth.toLocaleString(
-                                                                                        "it-IT",
-                                                                                    );
-                                                                                if (
-                                                                                    showCosts
-                                                                                ) {
-                                                                                    updateCashVsMortgage();
-                                                                                }
-                                                                                e.target.blur();
-                                                                            }
-                                                                        }}
-                                                                        on:blur={(
-                                                                            e,
-                                                                        ) => {
+                                                                {$_(
+                                                                    "income.startingWealth",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="text"
+                                                                    inputmode="decimal"
+                                                                    class="w-26 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    value={startingWealth.toLocaleString(
+                                                                        "it-IT",
+                                                                    )}
+                                                                    on:focus={() => {
+                                                                        isTyping = true;
+                                                                    }}
+                                                                    on:input={(
+                                                                        e,
+                                                                    ) => {
+                                                                        const value =
+                                                                            e.target.value.replace(
+                                                                                /\./g,
+                                                                                "",
+                                                                            );
+                                                                        const parsedValue =
+                                                                            parseFloat(
+                                                                                value,
+                                                                            ) ||
+                                                                            0;
+                                                                        startingWealth =
+                                                                            parsedValue;
+                                                                        e.target.value =
+                                                                            startingWealth.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                    on:keydown={(
+                                                                        e,
+                                                                    ) => {
+                                                                        if (
+                                                                            e.key ===
+                                                                            "Enter"
+                                                                        ) {
                                                                             startingWealth =
                                                                                 Math.max(
                                                                                     startingWealth,
@@ -3739,211 +3608,44 @@
                                                                                 startingWealth.toLocaleString(
                                                                                     "it-IT",
                                                                                 );
-                                                                        }}
-                                                                        on:change={showCosts
-                                                                            ? updateCashVsMortgage
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-purple-400 font-bold"
-                                                                        >€</span
-                                                                    >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Arrow after Card 1 -->
-                                                        <div
-                                                            class="hidden lg:flex items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-purple-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-                                                        <div
-                                                            class="flex lg:hidden items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-purple-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-
-                                                        <!-- Card 2: Yearly Income -->
-                                                        <div
-                                                            class="relative group"
-                                                        >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
-                                                            >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >💵</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.yearlyIncome",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="text"
-                                                                        inputmode="decimal"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-blue-400 focus:outline-none transition-colors"
-                                                                        value={yearlySaving.toLocaleString(
-                                                                            "it-IT",
-                                                                        )}
-                                                                        on:input={(
-                                                                            e,
-                                                                        ) => {
-                                                                            const value =
-                                                                                e.target.value.replace(
-                                                                                    /\./g,
-                                                                                    "",
-                                                                                );
-                                                                            yearlySaving =
-                                                                                parseFloat(
-                                                                                    value,
-                                                                                ) ||
-                                                                                0;
-                                                                            e.target.value =
-                                                                                yearlySaving.toLocaleString(
-                                                                                    "it-IT",
-                                                                                );
-                                                                        }}
-                                                                        on:change={showCosts
-                                                                            ? updateCashVsMortgage
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-blue-400 font-bold"
-                                                                        >€</span
-                                                                    >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Arrow after Card 2 -->
-                                                        <div
-                                                            class="hidden lg:flex items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-blue-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-                                                        <div
-                                                            class="flex lg:hidden items-center justify-center"
-                                                        >
-                                                            <svg
-                                                                class="w-6 h-6 text-blue-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
-                                                                />
-                                                            </svg>
-                                                        </div>
-
-                                                        <!-- Card 3: Saving Rate -->
-                                                        <div
-                                                            class="relative group"
-                                                        >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
-                                                            >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
-                                                                >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >🏦</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.savingRate",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
-                                                                >
-                                                                    <input
-                                                                        type="number"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-emerald-400 focus:outline-none transition-colors"
-                                                                        min="0"
-                                                                        max="100"
-                                                                        step="1"
-                                                                        bind:value={
-                                                                            yearlySavingRate
+                                                                            if (
+                                                                                showCosts
+                                                                            ) {
+                                                                                updateCashVsMortgage();
+                                                                            }
+                                                                            e.target.blur();
                                                                         }
-                                                                        on:change={showCosts
-                                                                            ? updateCashVsMortgage
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-emerald-400 font-bold"
-                                                                        >%</span
-                                                                    >
-                                                                </div>
+                                                                    }}
+                                                                    on:blur={(
+                                                                        e,
+                                                                    ) => {
+                                                                        startingWealth =
+                                                                            Math.max(
+                                                                                startingWealth,
+                                                                                totalAmount +
+                                                                                    house_price -
+                                                                                    mortgage_amount,
+                                                                            );
+                                                                        e.target.value =
+                                                                            startingWealth.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >€</span
+                                                                >
                                                             </div>
                                                         </div>
 
-                                                        <!-- Arrow after Card 3 -->
+                                                        <!-- First Arrow with Icon -->
                                                         <div
-                                                            class="hidden lg:flex items-center justify-center"
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
                                                         >
+                                                            💰
                                                             <svg
-                                                                class="w-6 h-6 text-emerald-400"
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
                                                                 fill="none"
                                                                 stroke="currentColor"
                                                                 viewBox="0 0 24 24"
@@ -3952,103 +3654,178 @@
                                                                     stroke-linecap="round"
                                                                     stroke-linejoin="round"
                                                                     stroke-width="2"
-                                                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
                                                                 />
                                                             </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
                                                         </div>
+                                                        <!-- Second column: Yearly income input with label on top -->
                                                         <div
-                                                            class="flex lg:hidden items-center justify-center"
+                                                            class="flex flex-col items-center gap-2"
                                                         >
-                                                            <svg
-                                                                class="w-6 h-6 text-emerald-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
                                                             >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M7 13l5 5m0 0l5-5m-5 5V6"
+                                                                {$_(
+                                                                    "income.yearlyIncome",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="text"
+                                                                    inputmode="decimal"
+                                                                    class="w-26 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    value={yearlySaving.toLocaleString(
+                                                                        "it-IT",
+                                                                    )}
+                                                                    on:input={(
+                                                                        e,
+                                                                    ) => {
+                                                                        const value =
+                                                                            e.target.value.replace(
+                                                                                /\./g,
+                                                                                "",
+                                                                            );
+                                                                        yearlySaving =
+                                                                            parseFloat(
+                                                                                value,
+                                                                            ) ||
+                                                                            0;
+                                                                        e.target.value =
+                                                                            yearlySaving.toLocaleString(
+                                                                                "it-IT",
+                                                                            );
+                                                                    }}
+                                                                    on:change={showCosts
+                                                                        ? updateCashVsMortgage
+                                                                        : () => {}}
                                                                 />
-                                                            </svg>
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >€</span
+                                                                >
+                                                            </div>
                                                         </div>
 
-                                                        <!-- Card 4: Investment Return -->
+                                                        <!-- Second Arrow with Icon -->
                                                         <div
-                                                            class="relative group"
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
                                                         >
-                                                            <div
-                                                                class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"
-                                                            ></div>
-                                                            <div
-                                                                class="relative bg-[#1a1b23] rounded-xl p-4 w-full border border-white/10"
+                                                            💸
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
                                                             >
-                                                                <div
-                                                                    class="flex items-center gap-2 mb-2"
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
+                                                        </div>
+
+                                                        <!-- Third column: Saving rate input with label on top -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
+                                                            >
+                                                                {$_(
+                                                                    "income.savingRate",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-20 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    max="100"
+                                                                    step="1"
+                                                                    bind:value={
+                                                                        yearlySavingRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateCashVsMortgage
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
                                                                 >
-                                                                    <span
-                                                                        class="text-xl"
-                                                                        >📈</span
-                                                                    >
-                                                                    <h3
-                                                                        class="text-white font-semibold text-xs leading-tight"
-                                                                    >
-                                                                        {$_(
-                                                                            "income.investmentReturn",
-                                                                        )}
-                                                                    </h3>
-                                                                </div>
-                                                                <div
-                                                                    class="relative"
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Third Arrow with Icon -->
+                                                        <div
+                                                            class="flex flex-row md:flex-col items-center gap-2 md:gap-1"
+                                                        >
+                                                            📈
+                                                            <svg
+                                                                class="w-6 h-6 text-white/70 rotate-90 md:rotate-0"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                                                />
+                                                            </svg>
+                                                            <span
+                                                                class="text-xl"
+                                                            ></span>
+                                                        </div>
+
+                                                        <!-- Fourth column: Investment return input with label on top -->
+                                                        <div
+                                                            class="flex flex-col items-center gap-2"
+                                                        >
+                                                            <h3
+                                                                class="text-white font-semibold text-xs leading-tight text-center"
+                                                            >
+                                                                {$_(
+                                                                    "income.investmentReturn",
+                                                                )}
+                                                            </h3>
+                                                            <div
+                                                                class="relative"
+                                                            >
+                                                                <input
+                                                                    type="number"
+                                                                    class="w-20 border border-white rounded px-3 py-2 pr-8 text-white bg-transparent focus:border-white focus:outline-none"
+                                                                    min="0"
+                                                                    step="0.1"
+                                                                    bind:value={
+                                                                        yearlyGrowthgRate
+                                                                    }
+                                                                    on:change={showCosts
+                                                                        ? updateCashVsMortgage
+                                                                        : () => {}}
+                                                                />
+                                                                <span
+                                                                    class="absolute right-3 top-2 text-white font-semibold"
+                                                                    >%</span
                                                                 >
-                                                                    <input
-                                                                        type="number"
-                                                                        class="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 pr-8 text-white text-base font-bold focus:border-amber-400 focus:outline-none transition-colors"
-                                                                        min="0"
-                                                                        step="0.1"
-                                                                        bind:value={
-                                                                            yearlyGrowthgRate
-                                                                        }
-                                                                        on:change={showCosts
-                                                                            ? updateCashVsMortgage
-                                                                            : () => {}}
-                                                                    />
-                                                                    <span
-                                                                        class="absolute right-3 top-2.5 text-amber-400 font-bold"
-                                                                        >%</span
-                                                                    >
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <!-- Question with reduced top margin -->
-                                            <h2
-                                                class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
-                                                transition:slide={{
-                                                    duration: 500,
-                                                }}
-                                            >
-                                                {$_(
-                                                    "mortgage.question.how",
-                                                )}<span
-                                                    class="font-bold text-purple-400"
-                                                    >{$_(
-                                                        "mortgage.question.wealth",
-                                                    )}</span
-                                                >
-                                                {$_("mortgage.question.with")}
-                                                <span
-                                                    class="font-bold text-purple-400"
-                                                    >{$_(
-                                                        "mortgage.question.mortgage",
-                                                    )}</span
-                                                >{$_("mortgage.question.end")}
-                                            </h2>
-
                                             <!-- Question -->
                                             <h2
                                                 class="font-bold text-white leading-tight text-base sm:text-lg text-center mb-2 mt-3"
