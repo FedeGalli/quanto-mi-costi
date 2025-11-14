@@ -359,7 +359,9 @@ func calculateCashVsMortgage(
 	yearlyGrowthgRate float64,
 	yearlySavingRate float64,
 	morgagePercentages []float64,
-	housePrice float64) []CashVsMortgageItem {
+	housePrice float64,
+	totalExpense float64,
+	startingWealth float64) []CashVsMortgageItem {
 
 	installment := 0.0
 
@@ -382,7 +384,9 @@ func calculateCashVsMortgage(
 			taeg,
 			yearlyGrowthgRate,
 			housePrice*morgagePercentages[i]/100,
-			housePrice)
+			housePrice,
+			totalExpense,
+			startingWealth)
 
 	}
 
@@ -396,7 +400,9 @@ func calculateMortgageCompare(
 	yearlySavingRate float64,
 	durations []int,
 	mortgageAmount float64,
-	housePrice float64) []MortgageCompareItem {
+	housePrice float64,
+	totalExpense float64,
+	startingWealth float64) []MortgageCompareItem {
 
 	yearlyIncome := make([]float64, slices.Max(durations))
 	incomeValue := (yearlySaving * yearlySavingRate)
@@ -416,7 +422,9 @@ func calculateMortgageCompare(
 			taeg,
 			yearlyGrowthgRate,
 			mortgageAmount,
-			housePrice)
+			housePrice,
+			totalExpense,
+			startingWealth)
 		myData[i].Valid = utils.IsValidMortgage(myData[i].Installment, yearlySaving)
 
 		fmt.Println(myData[i].Valid)
@@ -438,6 +446,8 @@ func main() {
 			"https://quanto-mi-costi.web.app",
 			"https://quantocosto.com",
 			"https://www.quantocosto.com",
+			"http://192.168.1.108:5173", //REMEMBER TO REMOVE LOCAL TESTING ONLY
+			"http://localhost:5173",     //REMEMBER TO REMOVE LOCAL TESTING ONLY
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
@@ -475,6 +485,8 @@ func main() {
 		yearlySavingRate := utils.ToFloat64(c.DefaultQuery("yearly_saving_rate", "0.3"))
 		mortgageDuration := utils.ToInt(c.DefaultQuery("mortgage_duration", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
+		totalExpense := utils.ToFloat64(c.DefaultQuery("total_expense", "0"))
+		startingWealth := utils.ToFloat64(c.DefaultQuery("starting_wealth", "0"))
 		mortgagePercentages := utils.ToFloatArray(c.DefaultQuery("mortgage_percentage", "25,50,75,80"), []float64{25, 50, 75, 80})
 
 		UID := c.DefaultQuery("UID", "null")
@@ -486,7 +498,7 @@ func main() {
 
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
-				"data": calculateCashVsMortgage(yearlySaving, mortgageDuration, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, mortgagePercentages, housePrice),
+				"data": calculateCashVsMortgage(yearlySaving, mortgageDuration, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, mortgagePercentages, housePrice, totalExpense, startingWealth),
 			})
 		} else {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
@@ -501,6 +513,8 @@ func main() {
 		yearlySavingRate := utils.ToFloat64(c.DefaultQuery("yearly_saving_rate", "0.3"))
 		mortgageAmount := utils.ToFloat64(c.DefaultQuery("mortgage_amount", "0"))
 		mortgageTAEG := utils.ToFloat64(c.DefaultQuery("mortgage_TAEG", "0"))
+		totalExpense := utils.ToFloat64(c.DefaultQuery("total_expense", "0"))
+		startingWealth := utils.ToFloat64(c.DefaultQuery("starting_wealth", "0"))
 		durations := utils.ToIntArray(c.DefaultQuery("durations", "10,20,30"), []int{10, 20, 30})
 
 		UID := c.DefaultQuery("UID", "null")
@@ -512,7 +526,7 @@ func main() {
 
 		if utils.IsAllowed(c.ClientIP()) {
 			c.JSON(http.StatusOK, gin.H{
-				"data": calculateMortgageCompare(yearlySaving, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, durations, mortgageAmount, housePrice),
+				"data": calculateMortgageCompare(yearlySaving, mortgageTAEG, yearlyGrowthRate, yearlySavingRate, durations, mortgageAmount, housePrice, totalExpense, startingWealth),
 			})
 		} else {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "rate limit exceeded"})
